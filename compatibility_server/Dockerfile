@@ -74,8 +74,6 @@ RUN curl -s -S -O https://bootstrap.pypa.io/get-pip.py && \
   /compatibility-checker/bin/python3.6 get-pip.py && \
   rm get-pip.py
 
-ENV GOOGLE_APPLICATION_CREDENTIALS=/compatibility-checker/compatibilitytester.json
-
 COPY compatibility_checker_server.py /compatibility-checker
 COPY pip_checker.py /compatibility-checker
 
