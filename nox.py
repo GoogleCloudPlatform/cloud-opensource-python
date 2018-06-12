@@ -33,7 +33,11 @@ def lint(session):
 @nox.session
 @nox.parametrize('py', ['2.7', '3.4', '3.5', '3.6'])
 def unit(session, py):
-    """Run the unit test suite."""
+    """Run the unit test suite.
+    
+    Unit test files should be named like test_*.py and in the same directory
+    as the file being tested.
+    """
 
     # Run unit tests against all supported versions of Python.
     session.interpreter = 'python{}'.format(py)
