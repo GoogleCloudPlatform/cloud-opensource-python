@@ -34,7 +34,7 @@ def lint(session):
 
 
 @nox.session
-def unit(session, py):
+def unit(session):
     """Run the unit test suite.
     
     Unit test files should be named like test_*.py and in the same directory
