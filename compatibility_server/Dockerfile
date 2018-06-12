@@ -93,6 +93,7 @@ COPY pip_checker.py /compatibility-checker
 
 EXPOSE 8888
 
+# Extra arguments to pass to the server e.g. --install-once.
 ARG EXTRA_COMMAND_ARGUMENTS=""
 ENV EXTRA_COMMAND_ARGUMENTS ${EXTRA_COMMAND_ARGUMENTS}
 

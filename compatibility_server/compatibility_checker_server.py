@@ -12,7 +12,30 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A HTTP server that wraps pip_checker."""
+"""A HTTP server that wraps pip_checker.
+
+Requires Python 3.6 or later.
+
+Example usage:
+
+$ python3 compatibility_checker_server.py \
+     --host=0.0.0.0 --port=8888 \
+     --python-version \
+     2:python2,3:python3
+$ curl 'http://0.0.0.0:8888/?package=six&python-version=3' \
+    | python3 -m json.tool
+{
+    "result": "SUCCESS",
+    "packages": [
+        "six"
+    ],
+    "description": null,
+    "requirements": "absl-py==0.2.2\napparmor==2.11.1\n..."
+}
+
+For complete usage information:
+$ python3 compatibility_checker_server.py --help
+"""
 
 import argparse
 import collections.abc
@@ -20,14 +43,15 @@ import json
 import logging
 import pprint
 import threading
+import typing
 import urllib.parse
 import wsgiref.simple_server
 
 import pip_checker
 
 
-def _parse_python_version_to_command_mapping(s):
-    version_to_command = {}
+def _parse_python_version_to_interpreter_mapping(s):
+    version_to_interpreter = {}
     for version_mapping in s.split(','):
         try:
             version, command = version_mapping.split(':')
@@ -35,18 +59,32 @@ def _parse_python_version_to_command_mapping(s):
             raise argparse.ArgumentTypeError(
                 ('{0} is not in the format of <version>:<command>,' +
                  '<version>:<command>').format(s))
-        version_to_command[version] = command
-    return version_to_command
+        version_to_interpreter[version] = command
+    return version_to_interpreter
 
 
 class CompatibilityServer:
 
-    def __init__(self, host, port, clean, python_version_to_command,
-                 install_once):
+    def __init__(self, host: str, port: int, clean: bool,
+                 python_version_to_interpreter: typing.Mapping[str, str],
+                 install_once: bool):
+        """Initialize an HTTP server that checks for pip package compatibility.
+
+        Args:
+            host: The host name to listen on e.g. "localhost".
+            port: The port number to listen on e.g. 80.
+            clean: If True then uninstall previously installed packages before
+                handling each request.
+            python_version_to_interpreter: Maps python version e.g. "3" to
+                a Python interpreter that can corresponds to that version e.g.
+                "/usr/bin/python3.6"
+            install_once: If True then the server will exit after handling a
+                single request that involves installing pip packages.
+        """
         self._host = host
         self._port = port
         self._clean = clean
-        self._python_version_to_command = python_version_to_command
+        self._python_version_to_interpreter = python_version_to_interpreter
         self._install_once = install_once
 
     def _shutdown(self):
@@ -63,15 +101,15 @@ class CompatibilityServer:
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify the Python version to use']
 
-        if python_version not in self._python_version_to_command:
+        if python_version not in self._python_version_to_interpreter:
             start_response('400 Bad Request',
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [
                 b'Invalid Python version specified. Must be one of: %s' % (
                     ', '.join(
-                        self._python_version_to_command).encode('utf-8'))
+                        self._python_version_to_interpreter).encode('utf-8'))
             ]
-        python_command = self._python_version_to_command[python_version]
+        python_command = self._python_version_to_interpreter[python_version]
 
         if self._install_once:
             self._shutdown()
@@ -168,7 +206,7 @@ def main():
         help='exit after doing a single "pip install" command')
     parser.add_argument(
         '--python-versions',
-        type=_parse_python_version_to_command_mapping,
+        type=_parse_python_version_to_interpreter_mapping,
         default='2:python2,3:python3',
         help='maps version strings to the Python command to execute when ' +
              'running that version e.g. "2:python2;2,3:python3;' +
