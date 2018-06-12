@@ -73,10 +73,10 @@ class PipCheckResult:
         packages: The list of packages that were installed
             e.g. ['tensorflow', 'numpy'].
         result_type: The result of "pip install <packages> && pip check".
-        result_text: The text output of "pip install && pip check". For example:
-            "Could not find a version that satisfies the requirement
-            tensorflow." or
-            "numpy has requirement six<3, but you have six 4.0.1."
+        result_text: The text output of "pip install && pip check". For
+            example: "Could not find a version that satisfies the requirement
+            tensorflow." or "numpy has requirement six<3, but you have six
+            4.0.1."
             Will be None if "pip install <packages> && pip check" completed
             without error.
         requirements: The text output of "pip freeze" i.e. the packages that
@@ -87,10 +87,10 @@ class PipCheckResult:
     """
 
     def __init__(self,
-        packages: List[str],
-        result_type: PipCheckResultType,
-        result_text: Optional[str] = None,
-        requirements: Optional[str] = None):
+                 packages: List[str],
+                 result_type: PipCheckResultType,
+                 result_text: Optional[str] = None,
+                 requirements: Optional[str] = None):
         """Initializer for PipCheckResult/
 
         Args:
@@ -98,8 +98,8 @@ class PipCheckResult:
                 e.g. ['tensorflow', 'numpy'].
             result_type: The result of "pip install <packages> && pip check".
             result_text: The text output of "pip install && pip check".
-            requirements: The text output of "pip freeze" i.e. the packages that
-                were installed as a product of the "pip install <packages"
+            requirements: The text output of "pip freeze" i.e. the packages
+                that were installed as a product of the "pip install <packages"
                 command.
         """
 
@@ -123,7 +123,9 @@ class PipCheckResult:
 
     def with_requirements(self, requirements: str):
         """Return a new PipCheckResult with a new "requirements" attribute."""
-        return PipCheckResult(self.packages, self.result_type, self.result_text,
+        return PipCheckResult(self.packages,
+                              self.result_type,
+                              self.result_text,
                               requirements)
 
     @property
@@ -155,9 +157,11 @@ class _OneshotPipCheck():
     See https://pip.pypa.io/en/stable/user_guide/.
     """
 
-    def __init__(self, pip_command: List[str], packages: List[str],
-        tmp_path: str,
-        clean: bool):
+    def __init__(self,
+                 pip_command: List[str],
+                 packages: List[str],
+                 tmp_path: str,
+                 clean: bool):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -199,7 +203,8 @@ class _OneshotPipCheck():
         self._run_command(command, requirements_file_path, std_err_path)
 
     def _uninstall(self, requirements_file_path):
-        std_out_path = os.path.join(self._output_directory, 'uninstall-out.txt')
+        std_out_path = os.path.join(self._output_directory,
+                                    'uninstall-out.txt')
         std_err_path = os.path.join(self._output_directory,
                                     'uninstall-error.txt')
         command = self._build_command(
@@ -211,8 +216,10 @@ class _OneshotPipCheck():
             return f.read()
 
     def _install(self):
-        std_out_path = os.path.join(self._output_directory, 'install-out.txt')
-        std_err_path = os.path.join(self._output_directory, 'install-error.txt')
+        std_out_path = os.path.join(self._output_directory,
+                                    'install-out.txt')
+        std_err_path = os.path.join(self._output_directory,
+                                    'install-error.txt')
         command = self._build_command(['install', '-U'] + self._packages)
         returncode = self._run_command(
             command, std_out_path, std_err_path, raise_on_failure=False)
@@ -260,9 +267,9 @@ class _OneshotPipCheck():
 
 
 def check(pip_command: List[str],
-    packages: List[str],
-    tmp_path: str = None,
-    clean: bool = False) -> PipCheckResultType:
+          packages: List[str],
+          tmp_path: str = None,
+          clean: bool = False) -> PipCheckResultType:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:

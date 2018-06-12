@@ -88,7 +88,8 @@ def main():
     elif command == 'uninstall':
         sys.exit(known.uninstall_returncode)
     else:
-        print('unexpected command: {}'.format(command), end='', file=sys.stderr)
+        print('unexpected command: {}'.format(command),
+              end='', file=sys.stderr)
         sys.exit(1)
 
 
