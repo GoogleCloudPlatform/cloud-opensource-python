@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Run the compatilbity_checker_server locally.
+# Run the compatibility_checker_server locally.
 
 set -e
 

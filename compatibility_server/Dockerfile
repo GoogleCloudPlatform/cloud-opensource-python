@@ -15,7 +15,7 @@
 # An image used to run a Python webserver that does compatibility checking
 # between pip-installable packages.
 #
-# Contains three indenpendent versions of Python:
+# Contains three independent versions of Python:
 #  - python 3.6: used to run the web application
 #  - python 3.6.5: used for python3 pip installation (build from source)
 #  - python 2.7.15: used for python2 pip installation (build from source)
