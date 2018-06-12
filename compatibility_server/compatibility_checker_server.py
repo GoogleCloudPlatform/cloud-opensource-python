@@ -12,14 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# An image used to run a Python webserver that does compatibility checking
-# between pip-installable packages.
-#
-# Contains three indenpendent versions of Python:
-#  - python 3.6: used to run the web application
-#  - python 3.6.5: used for python3 pip installation (build from source)
-#  - python 2.7.15: used for python2 pip installation (build from source)
-
 """A HTTP server that wraps pip_checker."""
 
 import argparse
@@ -50,7 +42,7 @@ def _parse_python_version_to_command_mapping(s):
 class CompatibilityServer:
 
     def __init__(self, host, port, clean, python_version_to_command,
-        install_once):
+            install_once):
         self._host = host
         self._port = port
         self._clean = clean
@@ -110,16 +102,11 @@ class CompatibilityServer:
         return [json.dumps(results).encode('utf-8')]
 
     def _wsgi_app(self, environ, start_response):
-        # https://www.python.org/dev/peps/pep-0333/
-        packages = []
-        python_version = None
-
         if environ.get('REQUEST_METHOD') == 'GET':
             parameters = urllib.parse.parse_qs(environ.get('QUERY_STRING', ''))
             packages = parameters.get('package', [])
             python_version = parameters.get('python-version', [None])[0]
         elif environ.get('REQUEST_METHOD') == 'POST':
-            # TODO(bquinlan): Fix POST.
             content_length = int(environ.get('CONTENT_LENGTH', 0))
             try:
                 request = json.loads(environ['wsgi.input'].read(content_length))
