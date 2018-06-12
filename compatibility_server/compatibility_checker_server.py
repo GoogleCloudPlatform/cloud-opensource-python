@@ -42,7 +42,7 @@ def _parse_python_version_to_command_mapping(s):
 class CompatibilityServer:
 
     def __init__(self, host, port, clean, python_version_to_command,
-            install_once):
+                 install_once):
         self._host = host
         self._port = port
         self._clean = clean
@@ -109,7 +109,8 @@ class CompatibilityServer:
         elif environ.get('REQUEST_METHOD') == 'POST':
             content_length = int(environ.get('CONTENT_LENGTH', 0))
             try:
-                request = json.loads(environ['wsgi.input'].read(content_length))
+                request = json.loads(
+                    environ['wsgi.input'].read(content_length))
             except json.JSONDecodeError as e:
                 start_response('400 Bad Request',
                                [('Content-Type', 'text/plain; charset=utf-8')])
@@ -143,8 +144,8 @@ class CompatibilityServer:
 def main():
     logging.basicConfig(
         level=logging.INFO,
-        format=
-        '%(levelname)-8s %(asctime)s %(filename)s:%(lineno)s] %(message)s')
+        format='%(levelname)-8s %(asctime)s ' +
+               '%(filename)s:%(lineno)s] %(message)s')
 
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument(
@@ -155,13 +156,12 @@ def main():
         '--port',
         type=int,
         default=8888,
-        help=
-        'port to which the server should bind')
+        help='port to which the server should bind')
     parser.add_argument(
         '--clean',
         action='store_true',
-        help=
-        'uninstall existing packages before performing dependency checking')
+        help='uninstall existing packages before performing dependency ' +
+             'checking')
     parser.add_argument(
         '--install-once',
         action='store_true',
@@ -170,10 +170,9 @@ def main():
         '--python-versions',
         type=_parse_python_version_to_command_mapping,
         default='2:python2,3:python3',
-        help=
-        'maps version strings to the Python command to execute when running '
-        'that version e.g. "2:python2;2,3:python3;3.5:/usr/bin/python3.5'
-        ';3.6:/usr/bin/python3.6"')
+        help='maps version strings to the Python command to execute when ' +
+             'running that version e.g. "2:python2;2,3:python3;' +
+             '3.5:/usr/bin/python3.5;3.6:/usr/bin/python3.6"')
     args = parser.parse_args()
     logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
     CompatibilityServer(args.host, args.port, args.clean, args.python_versions,
