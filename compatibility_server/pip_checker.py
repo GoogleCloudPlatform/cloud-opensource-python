@@ -290,4 +290,3 @@ def check(pip_command: List[str],
             uninstalled before installing "packages".
     """
     return _OneshotPipCheck(pip_command, packages, tmp_path, clean).run()
-
