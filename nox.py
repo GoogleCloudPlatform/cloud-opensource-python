@@ -34,7 +34,6 @@ def lint(session):
 
 
 @nox.session
-@nox.parametrize('py', ['3.6'])
 def unit(session, py):
     """Run the unit test suite.
     
@@ -43,7 +42,7 @@ def unit(session, py):
     """
 
     # Run unit tests against all supported versions of Python.
-    session.interpreter = 'python{}'.format(py)
+    session.interpreter = 'python3.6'
 
     # Run py.test against the unit tests.
     session.run(
