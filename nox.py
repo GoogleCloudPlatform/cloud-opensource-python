@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Nox config for running lint and unit tests."""
+
 import nox
 
 LINT_UNIT_DIR = ['compatibility_server',]
@@ -20,6 +22,7 @@ LINT_UNIT_DIR = ['compatibility_server',]
 @nox.session
 def lint(session):
     """Run flake8.
+
     Returns a failure if flake8 finds linting errors or sufficiently
     serious code quality issues.
     """
