@@ -40,8 +40,6 @@ def unit(session, py):
     Unit test files should be named like test_*.py and in the same directory
     as the file being tested.
     """
-
-    # Run unit tests against all supported versions of Python.
     session.interpreter = 'python3.6'
 
     # Run py.test against the unit tests.
