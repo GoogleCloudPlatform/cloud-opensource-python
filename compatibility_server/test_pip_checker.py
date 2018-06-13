@@ -44,7 +44,7 @@ class TestPipChecker(unittest.TestCase):
                 'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
                 'current_date': '2018-06-13T16:13:33.744591',
-                'latest_release_date': '2018-06-13',
+                'latest_release_date': '2018-06-13T18:29:51',
                 'is_latest': False
             }
         }
@@ -60,7 +60,7 @@ class TestPipChecker(unittest.TestCase):
             'releases': {
                 '1.2.4': [
                     {
-                        'upload_time': '2018-06-13',
+                        'upload_time': '2018-06-13T18:29:51',
                     },
                 ],
             },
@@ -97,7 +97,7 @@ class TestPipChecker(unittest.TestCase):
                 'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
                 'current_date': '2018-06-13T16:13:33.744591',
-                'latest_release_date': '2018-06-13',
+                'latest_release_date': '2018-06-13T18:29:51',
                 'is_latest': False
             }
         }
@@ -113,7 +113,7 @@ class TestPipChecker(unittest.TestCase):
             'releases': {
                 '1.2.4': [
                     {
-                        'upload_time': '2018-06-13',
+                        'upload_time': '2018-06-13T18:29:51',
                     },
                 ],
             },
@@ -166,7 +166,7 @@ class TestPipChecker(unittest.TestCase):
                 'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
                 'current_date': '2018-06-13T16:13:33.744591',
-                'latest_release_date': '2018-06-13',
+                'latest_release_date': '2018-06-13T18:29:51',
                 'is_latest': False
             }
         }
@@ -182,7 +182,7 @@ class TestPipChecker(unittest.TestCase):
             'releases': {
                 '1.2.4': [
                     {
-                        'upload_time': '2018-06-13',
+                        'upload_time': '2018-06-13T18:29:51',
                     },
                 ],
             },
