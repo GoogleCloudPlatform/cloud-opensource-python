@@ -87,7 +87,7 @@ class PipCheckResult:
         deps_info: The text output of "pip list" i.e. the packages that
             were installed as a product of the "pip install <packages" command.
             Json format data which stores the deps versions and latest release
-            date, together with the date that run this check.
+            date, together with the timestamp that run this check.
     """
 
     def __init__(self,
@@ -105,7 +105,7 @@ class PipCheckResult:
             deps_info: The text output of "pip list" i.e. the packages
                 that were installed as a product of the "pip install <packages"
                 command. And also the latest release date get by querying
-                Pypi json API.
+                Pypi json API and the timestamp when running this check.
         """
 
         self._packages = packages
