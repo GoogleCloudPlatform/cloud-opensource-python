@@ -24,13 +24,17 @@ See https://pip.pypa.io/en/stable/user_guide/.
 """
 
 import enum
+import json
 import logging
 import os.path
 import shlex
 import subprocess
 import tempfile
+import urllib.request
 
 from typing import List, Optional
+
+PYPI_URL = 'https://pypi.org/pypi/'
 
 
 class PipError(Exception):
@@ -90,7 +94,8 @@ class PipCheckResult:
                  packages: List[str],
                  result_type: PipCheckResultType,
                  result_text: Optional[str] = None,
-                 requirements: Optional[str] = None):
+                 requirements: Optional[str] = None,
+                 version_and_date: Optional[str] = None):
         """Initializer for PipCheckResult/
 
         Args:
@@ -107,13 +112,15 @@ class PipCheckResult:
         self._result_type = result_type
         self._result_text = result_text
         self._requirements = requirements
+        self._version_and_date = version_and_date
 
     def __eq__(self, other):
         return (isinstance(other, PipCheckResult) and
                 self.packages == other.packages and
                 self.result_type == other.result_type and
                 self.result_text == other.result_text and
-                self.requirements == other.requirements)
+                self.requirements == other.requirements and
+                self._version_and_date == other.version_and_date)
 
     def __repr__(self):
         return ('PipCheckResult(packages={!r}, result_type={!r}, ' +
@@ -121,12 +128,15 @@ class PipCheckResult:
             self.packages, self.result_type, self.result_text,
             self.requirements)
 
-    def with_requirements(self, requirements: str):
-        """Return a new PipCheckResult with a new "requirements" attribute."""
+    def with_extra_attrs(self,
+                         requirements: Optional[str] = None,
+                         version_and_date: Optional[str] = None):
+        """Return a new PipCheckResult with extra attributes."""
         return PipCheckResult(self.packages,
                               self.result_type,
                               self.result_text,
-                              requirements)
+                              requirements=requirements,
+                              version_and_date=version_and_date)
 
     @property
     def packages(self) -> List[str]:
@@ -143,6 +153,10 @@ class PipCheckResult:
     @property
     def requirements(self) -> Optional[str]:
         return self._requirements
+
+    @property
+    def version_and_date(self) -> Optional[str]:
+        return self._version_and_date
 
 
 class _OneshotPipCheck():
@@ -194,6 +208,16 @@ class _OneshotPipCheck():
 
         return completed_command.returncode
 
+    @staticmethod
+    def _call_pypi_json_api(pkg_name, pkg_version):
+        pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(pkg_name, pkg_version)
+        r = urllib.request.Request(pypi_pkg_url)
+
+        with urllib.request.urlopen(r) as f:
+            result = json.loads(f.read().decode('utf-8'))
+
+        return result
+
     def _build_command(self, subcommands):
         return self._pip_command + subcommands
 
@@ -241,6 +265,43 @@ class _OneshotPipCheck():
                                   self._read(std_out_path))
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
+    def _list(self):
+        """Use pypi json api to get the release date of the latest version."""
+        std_out_path = os.path.join(self._output_directory, 'list-out.txt')
+        std_err_path = os.path.join(self._output_directory, 'list-error.txt')
+
+        pkg_version_date = {}
+
+        # Get the package installed version and latest version
+        command = self._build_command(['list', '-o', '--format=json'])
+        self._run_command(
+            command, std_out_path, std_err_path, raise_on_failure=False)
+
+        pip_list_result = json.loads(self._read(std_out_path))
+
+        for pkg in pip_list_result:
+            pkg_name = pkg.get('name')
+            version = pkg.get('version')
+            latest_version = pkg.get('latest_version')
+
+            # Get the package latest release date
+            result = self._call_pypi_json_api(pkg_name, latest_version)
+
+            # For each release versions, first item is wheel file,
+            # second is tar.gz file, we use the time of the wheel file.
+            release_date = result.get('releases'). \
+                get(latest_version)[0].get('upload_time')
+
+            pkg_info = {
+                'version': version,
+                'latest_version': latest_version,
+                'release_date': release_date,
+            }
+
+            pkg_version_date[pkg_name] = pkg_info
+
+        return pkg_version_date
+
     def run(self):
         """Run the version compatibility check."""
         self._output_directory = tempfile.mkdtemp(dir=self._tmp_path)
@@ -263,7 +324,11 @@ class _OneshotPipCheck():
         if install_result.result_type == PipCheckResultType.SUCCESS:
             install_result = self._check()
 
-        return install_result.with_requirements(requirements)
+        version_and_date = self._list()
+
+        return install_result.with_extra_attrs(
+            requirements=requirements,
+            version_and_date=str(version_and_date))
 
 
 def check(pip_command: List[str],
