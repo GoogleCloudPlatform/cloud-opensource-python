@@ -134,8 +134,7 @@ class CompatibilityServer:
             result=pip_result.result_type.name,
             packages=pip_result.packages,
             description=pip_result.result_text,
-            requirements=pip_result.requirements,
-            version_and_date=pip_result.version_and_date)
+            deps_info=pip_result.deps_info)
 
         start_response('200 OK', [('Content-Type', 'application/json')])
         return [json.dumps(results).encode('utf-8')]

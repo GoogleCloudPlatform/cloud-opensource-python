@@ -39,13 +39,22 @@ class TestPipChecker(unittest.TestCase):
             'version': '1.2.3',
             'latest_version': '1.2.4',
         }]
-        expected_version_and_date = {
+        expected_deps_info = {
             'six': {
-                'version': '1.2.3',
+                'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
-                'release_date': '2018-06-13',
+                'current_date': '2018-06-13T16:13:33.744591',
+                'latest_release_date': '2018-06-13',
+                'is_latest': False
             }
         }
+
+        mock_datetime = mock.Mock()
+        mock_now = mock.Mock()
+        mock_now.isoformat.return_value = '2018-06-13T16:13:33.744591'
+        mock_datetime.datetime.now.return_value = mock_now
+
+        patch = mock.patch('pip_checker.datetime', mock_datetime)
 
         mock__call_pypi_json_api.return_value = {
             'releases': {
@@ -61,16 +70,17 @@ class TestPipChecker(unittest.TestCase):
             packages=['six'],
             result_type=pip_checker.PipCheckResultType.SUCCESS,
             result_text=None,
-            requirements='six==1.2.3\n',
-            version_and_date=expected_version_and_date)
-        check_result = pip_checker.check(
-            pip_command=[
-                self._fake_pip_path, '--expected-install-args=-U,six',
-                '--freeze-output=six==1.2.3\n',
-                '--list-output={}'.format(
-                    json.dumps(expected_list_output))
-            ],
-            packages=['six'])
+            deps_info=expected_deps_info)
+
+        with patch:
+            check_result = pip_checker.check(
+                pip_command=[
+                    self._fake_pip_path, '--expected-install-args=-U,six',
+                    '--freeze-output=six==1.2.3\n',
+                    '--list-output={}'.format(
+                        json.dumps(expected_list_output))
+                ],
+                packages=['six'])
         self.assertEqual(
             check_result,
             expected_check_result)
@@ -82,13 +92,22 @@ class TestPipChecker(unittest.TestCase):
             'version': '1.2.3',
             'latest_version': '1.2.4',
         }]
-        expected_version_and_date = {
+        expected_deps_info = {
             'six': {
-                'version': '1.2.3',
+                'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
-                'release_date': '2018-06-13',
+                'current_date': '2018-06-13T16:13:33.744591',
+                'latest_release_date': '2018-06-13',
+                'is_latest': False
             }
         }
+
+        mock_datetime = mock.Mock()
+        mock_now = mock.Mock()
+        mock_now.isoformat.return_value = '2018-06-13T16:13:33.744591'
+        mock_datetime.datetime.now.return_value = mock_now
+
+        patch = mock.patch('pip_checker.datetime', mock_datetime)
 
         mock__call_pypi_json_api.return_value = {
             'releases': {
@@ -99,21 +118,22 @@ class TestPipChecker(unittest.TestCase):
                 ],
             },
         }
-        check_result = pip_checker.check(
-            pip_command=[
-                self._fake_pip_path, '--expected-install-args=-U,six',
-                '--uninstall-returncode=0', '--freeze-output=six==1.2.3\n',
-                '--list-output={}'.format(
-                    json.dumps(expected_list_output))
-            ],
-            packages=['six'],
-            clean=True)
+
+        with patch:
+            check_result = pip_checker.check(
+                pip_command=[
+                    self._fake_pip_path, '--expected-install-args=-U,six',
+                    '--uninstall-returncode=0', '--freeze-output=six==1.2.3\n',
+                    '--list-output={}'.format(
+                        json.dumps(expected_list_output))
+                ],
+                packages=['six'],
+                clean=True)
         expected_check_result = pip_checker.PipCheckResult(
             packages=['six'],
             result_type=pip_checker.PipCheckResultType.SUCCESS,
             result_text=None,
-            requirements='six==1.2.3\n',
-            version_and_date=expected_version_and_date)
+            deps_info=expected_deps_info)
 
         self.assertEqual(
             check_result,
@@ -132,8 +152,7 @@ class TestPipChecker(unittest.TestCase):
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.INSTALL_ERROR,
                 result_text='bad-install',
-                requirements=None,
-                version_and_date=None))
+                deps_info=None))
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     def test_check_warning(self, mock__call_pypi_json_api):
@@ -142,13 +161,22 @@ class TestPipChecker(unittest.TestCase):
             'version': '1.2.3',
             'latest_version': '1.2.4',
         }]
-        expected_version_and_date = {
+        expected_deps_info = {
             'six': {
-                'version': '1.2.3',
+                'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
-                'release_date': '2018-06-13',
+                'current_date': '2018-06-13T16:13:33.744591',
+                'latest_release_date': '2018-06-13',
+                'is_latest': False
             }
         }
+
+        mock_datetime = mock.Mock()
+        mock_now = mock.Mock()
+        mock_now.isoformat.return_value = '2018-06-13T16:13:33.744591'
+        mock_datetime.datetime.now.return_value = mock_now
+
+        patch = mock.patch('pip_checker.datetime', mock_datetime)
 
         mock__call_pypi_json_api.return_value = {
             'releases': {
@@ -160,22 +188,24 @@ class TestPipChecker(unittest.TestCase):
             },
         }
 
-        check_result = pip_checker.check(
-            pip_command=[
-                self._fake_pip_path,
-                '--check-returncode=1',
-                '--check-output=bad-check',
-                '--freeze-output=six==1.2.3\n',
-                '--list-output={}'.format(
-                    json.dumps(expected_list_output))
-            ],
-            packages=['six'])
+        with patch:
+            check_result = pip_checker.check(
+                pip_command=[
+                    self._fake_pip_path,
+                    '--check-returncode=1',
+                    '--check-output=bad-check',
+                    '--freeze-output=six==1.2.3\n',
+                    '--list-output={}'.format(
+                        json.dumps(expected_list_output))
+                ],
+                packages=['six'])
         expected_check_result = pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.CHECK_WARNING,
                 result_text='bad-check',
-                requirements='six==1.2.3\n',
-                version_and_date=expected_version_and_date)
+                deps_info=expected_deps_info)
+
+        print(check_result)
 
         self.assertEqual(
             check_result,
@@ -185,7 +215,7 @@ class TestPipChecker(unittest.TestCase):
         with self.assertRaises(pip_checker.PipError) as e:
             pip_checker.check(
                 pip_command=[self._fake_pip_path, '--freeze-returncode=1'],
-                packages=['six'])
+                packages=['six'], clean=True)
         self.assertIn('freeze', e.exception.command)
 
     def test_uninstall_error(self):

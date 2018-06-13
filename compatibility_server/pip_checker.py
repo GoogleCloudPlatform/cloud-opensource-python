@@ -23,6 +23,7 @@ and returns the contents of "out.txt" and "requirements.txt".
 See https://pip.pypa.io/en/stable/user_guide/.
 """
 
+import datetime
 import enum
 import json
 import logging
@@ -83,19 +84,17 @@ class PipCheckResult:
             4.0.1."
             Will be None if "pip install <packages> && pip check" completed
             without error.
-        requirements: The text output of "pip freeze" i.e. the packages that
+        deps_info: The text output of "pip list" i.e. the packages that
             were installed as a product of the "pip install <packages" command.
-            The output can be parsed with pkg_resources.parse_requirements().
-            For example: "numpy==1.23\nsix==3.4.5". Will be None if a previous
-            step failed e.g. "pip install <packages>".
+            Json format data which stores the deps versions and latest release
+            date, together with the date that run this check.
     """
 
     def __init__(self,
                  packages: List[str],
                  result_type: PipCheckResultType,
                  result_text: Optional[str] = None,
-                 requirements: Optional[str] = None,
-                 version_and_date: Optional[str] = None):
+                 deps_info: Optional[str] = None):
         """Initializer for PipCheckResult/
 
         Args:
@@ -103,41 +102,35 @@ class PipCheckResult:
                 e.g. ['tensorflow', 'numpy'].
             result_type: The result of "pip install <packages> && pip check".
             result_text: The text output of "pip install && pip check".
-            requirements: The text output of "pip freeze" i.e. the packages
+            deps_info: The text output of "pip list" i.e. the packages
                 that were installed as a product of the "pip install <packages"
-                command.
+                command. And also the latest release date get by querying
+                Pypi json API.
         """
 
         self._packages = packages
         self._result_type = result_type
         self._result_text = result_text
-        self._requirements = requirements
-        self._version_and_date = version_and_date
+        self._deps_info = deps_info
 
     def __eq__(self, other):
         return (isinstance(other, PipCheckResult) and
                 self.packages == other.packages and
                 self.result_type == other.result_type and
                 self.result_text == other.result_text and
-                self.requirements == other.requirements and
-                self._version_and_date == other.version_and_date)
+                self.deps_info == other.deps_info)
 
     def __repr__(self):
         return ('PipCheckResult(packages={!r}, result_type={!r}, ' +
-                'result_text={!r}, requirements={!r}, ' +
-                'version_and_date={!r})').format(
-            self.packages, self.result_type, self.result_text,
-            self.requirements, self.version_and_date)
+                'result_text={!r}, deps_info={!r})').format(
+            self.packages, self.result_type, self.result_text, self.deps_info)
 
-    def with_extra_attrs(self,
-                         requirements: Optional[str] = None,
-                         version_and_date: Optional[str] = None):
+    def with_extra_attrs(self, deps_info: Optional[str] = None):
         """Return a new PipCheckResult with extra attributes."""
         return PipCheckResult(self.packages,
                               self.result_type,
                               self.result_text,
-                              requirements=requirements,
-                              version_and_date=version_and_date)
+                              deps_info=deps_info)
 
     @property
     def packages(self) -> List[str]:
@@ -152,12 +145,8 @@ class PipCheckResult:
         return self._result_text
 
     @property
-    def requirements(self) -> Optional[str]:
-        return self._requirements
-
-    @property
-    def version_and_date(self) -> Optional[str]:
-        return self._version_and_date
+    def deps_info(self) -> Optional[str]:
+        return self._deps_info
 
 
 class _OneshotPipCheck():
@@ -212,11 +201,16 @@ class _OneshotPipCheck():
     @staticmethod
     def _call_pypi_json_api(pkg_name, pkg_version):
         pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(pkg_name, pkg_version)
-        r = urllib.request.Request(pypi_pkg_url)
 
-        with urllib.request.urlopen(r) as f:
-            result = json.loads(f.read().decode('utf-8'))
+        try:
+            r = urllib.request.Request(pypi_pkg_url)
 
+            with urllib.request.urlopen(r) as f:
+                result = json.loads(f.read().decode('utf-8'))
+        except urllib.error.HTTPError:
+            logging.error('Package {} with version {} not found in Pypi'.
+                          format(pkg_name, pkg_version))
+            return None
         return result
 
     def _build_command(self, subcommands):
@@ -274,29 +268,59 @@ class _OneshotPipCheck():
         pkg_version_date = {}
 
         # Get the package installed version and latest version
-        command = self._build_command(['list', '-o', '--format=json'])
+        command = self._build_command(['list', '--format=json'])
         self._run_command(
             command, std_out_path, std_err_path, raise_on_failure=False)
 
         pip_list_result = json.loads(self._read(std_out_path))
 
+        std_out_path = os.path.join(
+            self._output_directory, 'list-outdate-out.txt')
+        std_err_path = os.path.join(
+            self._output_directory, 'list-outdate-error.txt')
+
+        command = self._build_command(['list', '-o', '--format=json'])
+        self._run_command(
+            command, std_out_path, std_err_path, raise_on_failure=False)
+
+        pip_list_latest_result = json.loads(self._read(std_out_path))
+
+        # Get the outdated packages and latest versions
+        outdated_pkgs = {}
+
+        for pkg in pip_list_latest_result:
+            pkg_name = pkg.get('name')
+            latest_version = pkg.get('latest_version')
+            outdated_pkgs[pkg_name] = latest_version
+
         for pkg in pip_list_result:
             pkg_name = pkg.get('name')
-            version = pkg.get('version')
-            latest_version = pkg.get('latest_version')
+            installed_version = pkg.get('version')
 
-            # Get the package latest release date
+            if pkg_name in outdated_pkgs:
+                latest_version = outdated_pkgs.get(pkg_name)
+                is_latest = False
+            else:
+                latest_version = installed_version
+                is_latest = True
+
+            # Get the package latest version release date
             result = self._call_pypi_json_api(pkg_name, latest_version)
 
             # For each release versions, first item is wheel file,
             # second is tar.gz file, we use the time of the wheel file.
-            release_date = result.get('releases'). \
-                get(latest_version)[0].get('upload_time')
+            if result is not None:
+                latest_release_date = result.get('releases'). \
+                    get(latest_version)[0].get('upload_time')
+            else:
+                latest_release_date = None
 
             pkg_info = {
-                'version': version,
+                'installed_version': installed_version,
                 'latest_version': latest_version,
-                'release_date': release_date,
+                'current_date': datetime.datetime.now().isoformat(),
+                'latest_release_date': latest_release_date,
+                'is_latest': is_latest,
             }
 
             pkg_version_date[pkg_name] = pkg_info
@@ -314,23 +338,15 @@ class _OneshotPipCheck():
                 self._uninstall(requirements_old_file_path)
         install_result = self._install()
 
-        requirements = None
-        version_and_date  =None
+        deps_info = None
         if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
-            requirements_file_path = os.path.join(self._output_directory,
-                                                  'requirements.txt')
-            self._freeze(requirements_file_path)
-            with open(requirements_file_path, 'r') as r:
-                requirements = r.read()
-
-            version_and_date = self._list()
+            deps_info = self._list()
 
         if install_result.result_type == PipCheckResultType.SUCCESS:
             install_result = self._check()
 
         return install_result.with_extra_attrs(
-            requirements=requirements,
-            version_and_date=version_and_date)
+            deps_info=deps_info)
 
 
 def check(pip_command: List[str],
