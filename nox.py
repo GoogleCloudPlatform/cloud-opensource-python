@@ -42,6 +42,9 @@ def unit(session):
     """
     session.interpreter = 'python3.6'
 
+    # Install all test dependencies, then install this package in-place.
+    session.install('-r', 'requirements-test.txt')
+
     # Run py.test against the unit tests.
     session.run(
         'py.test',
