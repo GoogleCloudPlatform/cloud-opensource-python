@@ -124,9 +124,10 @@ class PipCheckResult:
 
     def __repr__(self):
         return ('PipCheckResult(packages={!r}, result_type={!r}, ' +
-                'result_text={!r}, requirements={!r})').format(
+                'result_text={!r}, requirements={!r}, ' +
+                'version_and_date={!r})').format(
             self.packages, self.result_type, self.result_text,
-            self.requirements)
+            self.requirements, self.version_and_date)
 
     def with_extra_attrs(self,
                          requirements: Optional[str] = None,
@@ -314,6 +315,7 @@ class _OneshotPipCheck():
         install_result = self._install()
 
         requirements = None
+        version_and_date  =None
         if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
             requirements_file_path = os.path.join(self._output_directory,
                                                   'requirements.txt')
@@ -321,14 +323,14 @@ class _OneshotPipCheck():
             with open(requirements_file_path, 'r') as r:
                 requirements = r.read()
 
+            version_and_date = self._list()
+
         if install_result.result_type == PipCheckResultType.SUCCESS:
             install_result = self._check()
 
-        version_and_date = self._list()
-
         return install_result.with_extra_attrs(
             requirements=requirements,
-            version_and_date=str(version_and_date))
+            version_and_date=version_and_date)
 
 
 def check(pip_command: List[str],
