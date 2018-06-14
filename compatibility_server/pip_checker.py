@@ -33,7 +33,7 @@ import subprocess
 import tempfile
 import urllib.request
 
-from typing import List, Optional
+from typing import Any, List, Mapping, Optional
 
 PYPI_URL = 'https://pypi.org/pypi/'
 
@@ -84,17 +84,17 @@ class PipCheckResult:
             4.0.1."
             Will be None if "pip install <packages> && pip check" completed
             without error.
-        deps_info: The text output of "pip list" i.e. the packages that
-            were installed as a product of the "pip install <packages" command.
-            Json format data which stores the deps versions and latest release
-            date, together with the timestamp that run this check.
+        dependency_info: The text output of "pip list" i.e. the packages that
+            were installed as a product of the "pip install <packages>"
+            command. Dict which stores the dependency versions and latest
+            release time, together with the timestamp that run this check.
     """
 
     def __init__(self,
                  packages: List[str],
                  result_type: PipCheckResultType,
                  result_text: Optional[str] = None,
-                 deps_info: Optional[str] = None):
+                 dependency_info: Optional[Mapping[str, Any]] = None):
         """Initializer for PipCheckResult/
 
         Args:
@@ -102,7 +102,7 @@ class PipCheckResult:
                 e.g. ['tensorflow', 'numpy'].
             result_type: The result of "pip install <packages> && pip check".
             result_text: The text output of "pip install && pip check".
-            deps_info: The text output of "pip list" i.e. the packages
+            dependency_info: The text output of "pip list" i.e. the packages
                 that were installed as a product of the "pip install <packages"
                 command. And also the latest release date get by querying
                 Pypi json API and the timestamp when running this check.
@@ -111,26 +111,26 @@ class PipCheckResult:
         self._packages = packages
         self._result_type = result_type
         self._result_text = result_text
-        self._deps_info = deps_info
+        self._dependency_info = dependency_info
 
     def __eq__(self, other):
         return (isinstance(other, PipCheckResult) and
                 self.packages == other.packages and
                 self.result_type == other.result_type and
                 self.result_text == other.result_text and
-                self.deps_info == other.deps_info)
+                self.dependency_info == other.dependency_info)
 
     def __repr__(self):
         return ('PipCheckResult(packages={!r}, result_type={!r}, ' +
-                'result_text={!r}, deps_info={!r})').format(
-            self.packages, self.result_type, self.result_text, self.deps_info)
+                'result_text={!r}, dependency_info={!r})').format(
+            self.packages, self.result_type, self.result_text, self.dependency_info)
 
-    def with_extra_attrs(self, deps_info: Optional[str] = None):
+    def with_extra_attrs(self, dependency_info: Optional[str] = None):
         """Return a new PipCheckResult with extra attributes."""
         return PipCheckResult(self.packages,
                               self.result_type,
                               self.result_text,
-                              deps_info=deps_info)
+                              dependency_info=dependency_info)
 
     @property
     def packages(self) -> List[str]:
@@ -145,8 +145,8 @@ class PipCheckResult:
         return self._result_text
 
     @property
-    def deps_info(self) -> Optional[str]:
-        return self._deps_info
+    def dependency_info(self) -> Optional[Mapping[str, Any]]:
+        return self._dependency_info
 
 
 class _OneshotPipCheck():
@@ -311,17 +311,17 @@ class _OneshotPipCheck():
 
             # For each release versions, first item is wheel file,
             # second is tar.gz file, we use the time of the wheel file.
-            latest_release_date = None
+            latest_version_time = None
             if result is not None:
                 latest_release = result.get('releases').get(latest_version)
                 if latest_release:
-                    latest_release_date = latest_release[0].get('upload_time')
+                    latest_version_time = latest_release[0].get('upload_time')
 
             pkg_info = {
                 'installed_version': installed_version,
                 'latest_version': latest_version,
-                'current_date': datetime.datetime.now().isoformat(),
-                'latest_release_date': latest_release_date,
+                'current_time': datetime.datetime.now().isoformat(),
+                'latest_version_time': latest_version_time,
                 'is_latest': is_latest,
             }
 
@@ -340,15 +340,15 @@ class _OneshotPipCheck():
                 self._uninstall(requirements_old_file_path)
         install_result = self._install()
 
-        deps_info = None
+        dependency_info = None
         if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
-            deps_info = self._list()
+            dependency_info = self._list()
 
         if install_result.result_type == PipCheckResultType.SUCCESS:
             install_result = self._check()
 
         return install_result.with_extra_attrs(
-            deps_info=deps_info)
+            dependency_info=dependency_info)
 
 
 def check(pip_command: List[str],

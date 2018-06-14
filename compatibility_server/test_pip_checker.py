@@ -39,12 +39,12 @@ class TestPipChecker(unittest.TestCase):
             'version': '1.2.3',
             'latest_version': '1.2.4',
         }]
-        expected_deps_info = {
+        expected_dependency_info = {
             'six': {
                 'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
-                'current_date': '2018-06-13T16:13:33.744591',
-                'latest_release_date': '2018-06-13T18:29:51',
+                'current_time': '2018-06-13T16:13:33.744591',
+                'latest_version_time': '2018-06-13T18:29:51',
                 'is_latest': False
             }
         }
@@ -70,7 +70,7 @@ class TestPipChecker(unittest.TestCase):
             packages=['six'],
             result_type=pip_checker.PipCheckResultType.SUCCESS,
             result_text=None,
-            deps_info=expected_deps_info)
+            dependency_info=expected_dependency_info)
 
         with patch:
             check_result = pip_checker.check(
@@ -92,12 +92,12 @@ class TestPipChecker(unittest.TestCase):
             'version': '1.2.3',
             'latest_version': '1.2.4',
         }]
-        expected_deps_info = {
+        expected_dependency_info = {
             'six': {
                 'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
-                'current_date': '2018-06-13T16:13:33.744591',
-                'latest_release_date': '2018-06-13T18:29:51',
+                'current_time': '2018-06-13T16:13:33.744591',
+                'latest_version_time': '2018-06-13T18:29:51',
                 'is_latest': False
             }
         }
@@ -133,7 +133,7 @@ class TestPipChecker(unittest.TestCase):
             packages=['six'],
             result_type=pip_checker.PipCheckResultType.SUCCESS,
             result_text=None,
-            deps_info=expected_deps_info)
+            dependency_info=expected_dependency_info)
 
         self.assertEqual(
             check_result,
@@ -152,7 +152,7 @@ class TestPipChecker(unittest.TestCase):
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.INSTALL_ERROR,
                 result_text='bad-install',
-                deps_info=None))
+                dependency_info=None))
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     def test_check_warning(self, mock__call_pypi_json_api):
@@ -161,12 +161,12 @@ class TestPipChecker(unittest.TestCase):
             'version': '1.2.3',
             'latest_version': '1.2.4',
         }]
-        expected_deps_info = {
+        expected_dependency_info = {
             'six': {
                 'installed_version': '1.2.3',
                 'latest_version': '1.2.4',
-                'current_date': '2018-06-13T16:13:33.744591',
-                'latest_release_date': '2018-06-13T18:29:51',
+                'current_time': '2018-06-13T16:13:33.744591',
+                'latest_version_time': '2018-06-13T18:29:51',
                 'is_latest': False
             }
         }
@@ -203,7 +203,7 @@ class TestPipChecker(unittest.TestCase):
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.CHECK_WARNING,
                 result_text='bad-check',
-                deps_info=expected_deps_info)
+                dependency_info=expected_dependency_info)
 
         print(check_result)
 
