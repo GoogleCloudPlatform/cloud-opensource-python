@@ -123,7 +123,10 @@ class PipCheckResult:
     def __repr__(self):
         return ('PipCheckResult(packages={!r}, result_type={!r}, ' +
                 'result_text={!r}, dependency_info={!r})').format(
-            self.packages, self.result_type, self.result_text, self.dependency_info)
+            self.packages,
+            self.result_type,
+            self.result_text,
+            self.dependency_info)
 
     def with_extra_attrs(self, dependency_info: Optional[str] = None):
         """Return a new PipCheckResult with extra attributes."""
