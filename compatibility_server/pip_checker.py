@@ -88,6 +88,17 @@ class PipCheckResult:
             were installed as a product of the "pip install <packages>"
             command. Dict which stores the dependency versions and latest
             release time, together with the timestamp that run this check.
+
+            e.g. "dependency_info": {
+                    "astroid": {
+                        "installed_version": "1.6.5",
+                        "latest_version": "1.6.5",
+                        "current_time": "2018-06-14T13:46:04.180159",
+                        "latest_version_time": "2018-06-06T15:08:26",
+                        "is_latest": true
+                    },
+                    ...
+                }
     """
 
     def __init__(self,
