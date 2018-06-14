@@ -296,24 +296,26 @@ class _OneshotPipCheck():
         for pkg in pip_list_result:
             pkg_name = pkg.get('name')
             installed_version = pkg.get('version')
+            latest_version = installed_version
 
+            is_latest = True
             if pkg_name in outdated_pkgs:
                 latest_version = outdated_pkgs.get(pkg_name)
-                is_latest = False
-            else:
-                latest_version = installed_version
-                is_latest = True
+                # For py2, pip list -o returns all the packages but not just
+                # the outdated pkgs.
+                if latest_version != installed_version:
+                    is_latest = False
 
             # Get the package latest version release date
             result = self._call_pypi_json_api(pkg_name, latest_version)
 
             # For each release versions, first item is wheel file,
             # second is tar.gz file, we use the time of the wheel file.
+            latest_release_date = None
             if result is not None:
-                latest_release_date = result.get('releases'). \
-                    get(latest_version)[0].get('upload_time')
-            else:
-                latest_release_date = None
+                latest_release = result.get('releases').get(latest_version)
+                if latest_release:
+                    latest_release_date = latest_release[0].get('upload_time')
 
             pkg_info = {
                 'installed_version': installed_version,
