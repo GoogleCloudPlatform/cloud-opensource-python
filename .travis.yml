@@ -7,7 +7,7 @@ install:
 
 script:
   - nox -s update_dashboard
-  - touch docs/.nojekyll
+  - touch dashboard/.nojekyll
 
 branches:
   only:
