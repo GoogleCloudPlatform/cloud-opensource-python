@@ -231,6 +231,3 @@ class CompatibilityStore:
             self._client.insert_rows(
                 self._pairwise_table,
                 pair_rows)
-
-
-
