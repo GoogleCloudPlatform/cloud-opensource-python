@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <style>
+.wrapper {
+  display: grid;
+  grid-gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: minmax(100px, auto);
+}
+.box {
+background-color: lightgreen;
+}
+.box2 {
+background-color: #fcc;
+}
+  </style>
+</head>
+<body>
+<h1>Tensorflow</h1>
+(as of 5 minutes ago) <button>Refresh</button>
+<br/>
+<br/>
+<div class="wrapper">
+  <div class="box"><b>Tensorflow</b><br/>Can be installed successfully</div>
+</div>
+<br/>
+<h2>Dependencies</h2>
+<br/>
+<div class="wrapper">
+  <div class="box"><b>google-cloud-datastore</b> (latest version 3.5.1)<br/><br/>Compatible!</div>
+  <div class="box2"><b>dill</b> (latest version 2.1.1)<br/><br/>Latest compatible version 1.9.9</div>
+</div>
+<br/>
+<h2>Cross-Package Compatibility</h2>
+<br/>
+<div class="wrapper">
+  <div class="box"><b>google-cloud-dataflow</b> (v1.1.1)</div>
+  <div class="box"><b>google-cloud-bigtable</b> (v2.1.2)</div>
+  <div class="box2"><b>apache-beam</b> (v3.21)<pre>gapic-google-cloud-pubsub-v1 0.15.4 has requirement oauth2client&lt;4.0dev,&gt;=2.0.0, but you have oauth2client 4.1.2.
+googledatastore 7.0.1 has requirement oauth2client&lt;4.0.0,&gt;=2.0.1, but you have oauth2client 4.1.2.
+proto-google-cloud-pubsub-v1 0.15.4 has requirement oauth2client&lt;4.0dev,&gt;=2.0.0, but you have oauth2client 4.1.2.
+proto-google-cloud-datastore-v1 0.90.4 has requirement oauth2client&lt;4.0dev,&gt;=2.0.0, but you have oauth2client 4.1.2.
+</pre></div>
+  <div class="box"><b>apache-beam</b></div>
+  <div class="box"><b>apache-beam</b></div>
+  <div class="box"><b>apache-beam</b></div>
+</div>
+</body>
+</html>
