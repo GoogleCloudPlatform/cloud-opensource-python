@@ -59,6 +59,16 @@ def main():
         help='the stdout output for "pip freeze"')
 
     parser.add_argument(
+        '--list-returncode',
+        type=int,
+        default=0,
+        help='the return code for "pip list"')
+    parser.add_argument(
+        '--list-output',
+        default='list',
+        help='the stdout output for "pip list"')
+
+    parser.add_argument(
         '--uninstall-returncode',
         type=int,
         default=1,
@@ -85,6 +95,10 @@ def main():
         assert_args([], command_args)
         print(known.freeze_output, end='')
         sys.exit(known.freeze_returncode)
+    elif command == 'list':
+        assert_args([], command_args)
+        print(known.list_output, end='')
+        sys.exit(known.list_returncode)
     elif command == 'uninstall':
         sys.exit(known.uninstall_returncode)
     else:
