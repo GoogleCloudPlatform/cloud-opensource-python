@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "REQUIRED", 
+    "name": "install_name", 
+    "type": "STRING"
+  }, 
+  {
+    "mode": "REQUIRED", 
+    "name": "status", 
+    "type": "STRING"
+  }, 
+  {
+    "mode": "REQUIRED", 
+    "name": "py_version", 
+    "type": "STRING"
+  }, 
+  {
+    "mode": "REQUIRED", 
+    "name": "timestamp", 
+    "type": "TIMESTAMP"
+  }, 
+  {
+    "name": "details", 
+    "type": "STRING"
+  }
+]
