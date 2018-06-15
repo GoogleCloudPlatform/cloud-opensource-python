@@ -14,6 +14,8 @@
 
 """Nox config for running lint and unit tests."""
 
+import os
+
 import nox
 
 LINT_UNIT_DIR = ['compatibility_server',]
@@ -36,7 +38,7 @@ def lint(session):
 @nox.session
 def unit(session):
     """Run the unit test suite.
-    
+
     Unit test files should be named like test_*.py and in the same directory
     as the file being tested.
     """
@@ -52,3 +54,19 @@ def unit(session):
         ','.join(LINT_UNIT_DIR),
         *session.posargs
     )
+
+
+@nox.session
+def update_dashboard(session):
+    """Build the dashboard."""
+
+    session.interpreter = 'python3.6'
+
+    # Set the virtualenv dirname.
+    session.virtualenv_dirname = 'dashboard'
+
+    session.chdir(os.path.realpath(os.path.dirname(__file__)))
+
+    # Build the dashboard!
+    session.run(
+        'bash', os.path.join('.', 'scripts', 'update_dashboard.sh'))
