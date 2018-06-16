@@ -71,6 +71,7 @@ SERVER_URL = 'http://104.197.8.72'
 class CompatibilityChecker(object):
 
     def check(self, packages, python_version):
+        """Call the checker server to get back status results."""
         data = json.dumps({
             'python-version': python_version,
             'packages': packages
@@ -86,11 +87,13 @@ class CompatibilityChecker(object):
     @retrying.retry(wait_exponential_multiplier=5000,
                     wait_exponential_max=20000)
     def retrying_check(self, args):
+        """Retrying logic for sending requests to checker server."""
         packages = args[0]
         python_version = args[1]
         return self.check(packages, python_version)
 
     def get_self_compatibility(self, python_version):
+        """Get the self compatibility data for each package."""
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as p:
             pkg_set_results = p.map(
                 self.retrying_check,
@@ -100,6 +103,7 @@ class CompatibilityChecker(object):
                 yield result
 
     def get_pairwise_compatibility(self, python_version):
+        """Get pairwise compatibility data for each pair of packages."""
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as p:
             pkg_sets = itertools.combinations(PKG_LIST, 2)
             pkg_set_results = p.map(

@@ -28,7 +28,6 @@ PY3 = '3'
 
 
 def _result_dict_to_compatibility_result(results, python_version):
-
     res_list = []
 
     for item in results:
