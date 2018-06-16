@@ -20,7 +20,7 @@ from typing import Any, Iterable, List, Mapping, Optional
 from google.cloud import bigquery
 from google.cloud.bigquery import table
 
-from compatibility_lib import package
+import package
 
 _DATASET_NAME = 'compatibility_checker'
 _SELF_COMPATIBILITY_STATUS_TABLE_NAME = 'self_compatibility_status'
@@ -51,11 +51,13 @@ class CompatibilityResult:
                  python_major_version: int,
                  status: Status=Status.UNKNOWN,
                  details: Optional[str] = None,
+                 dependency_info: Optional[Mapping[str, Any]] = None,
                  timestamp: Optional[datetime.datetime]=None):
         self._packages = list(packages)
         self._python_major_version = python_major_version
         self._status = status
         self._details = details
+        self._dependency_info = dependency_info
         if timestamp:
             self._timestamp = timestamp
         else:
@@ -64,7 +66,8 @@ class CompatibilityResult:
     def __repr__(self):
         return (f'CompatibilityResult({self.packages}, '
                 f'{self.python_major_version}, {self.status}, {self.details}, '
-                f'{self.timestamp})')
+                f'{self.timestamp}, '
+                f'{self.dependency_info})')
 
     @property
     def packages(self) -> List[package.Package]:
@@ -85,6 +88,10 @@ class CompatibilityResult:
     @property
     def details(self) -> Optional[str]:
         return self._details
+
+    @property
+    def dependency_info(self) -> Optional[Mapping[str, Any]]:
+        return self._dependency_info
 
     @property
     def timestamp(self) -> datetime.datetime:
