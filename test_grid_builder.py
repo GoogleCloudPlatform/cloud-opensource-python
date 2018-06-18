@@ -52,6 +52,26 @@ class TestGridBuilder(unittest.TestCase):
         grid = grid_builder.GridBuilder(store)
         grid.build_grid([PACKAGE_1, PACKAGE_2])
 
+    def test_self_failure(self):
+        """CompatibilityResult failure installing a single package."""
+        store = fake_compatibility_store.CompatibilityStore()
+        store.save_compatibility_statuses([
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                details="Installation failure"
+            ),
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS
+            ),
+        ])
+        grid = grid_builder.GridBuilder(store)
+        html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+        self.assertIn("Installation failure", html_grid)
+
     def test_missing_pairwise(self):
         """CompatibilityResult not available for a pair of packages."""
         store = fake_compatibility_store.CompatibilityStore()
@@ -82,3 +102,28 @@ class TestGridBuilder(unittest.TestCase):
         ])
         grid = grid_builder.GridBuilder(store)
         grid.build_grid([PACKAGE_1, PACKAGE_2])
+
+    def test_pairwise_failure(self):
+        """CompatibilityResult failure between pair of packages."""
+        store = fake_compatibility_store.CompatibilityStore()
+        store.save_compatibility_statuses([
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS
+            ),
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS
+            ),
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1, PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                details="Installation failure"
+            ),
+        ])
+        grid = grid_builder.GridBuilder(store)
+        html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+        self.assertIn("Installation failure", html_grid)
