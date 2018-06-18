@@ -12,8 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""
+"""Creates a web page that shows the compatibility between packages as a grid.
 
+For example:
+
+------------------------------------------------------------
+             |  absl-py | apache_beam | grpcio | tensorflow |
+------------------------------------------------------------
+absl-py      |   Good   |             |        |            |
+apache_beam  |   Bad    |     Bad     |        |            |
+grpcio       |   Good   |     Bad     |  Good  |            |
+tensorflow   |   Good   |     Bad     |  Good  |    Good    |
+------------------------------------------------------------
 """
 
 import argparse
@@ -115,10 +125,13 @@ class _ResultHolder():
 
 
 class GridBuilder:
+    """Build a web page that shows package compatibility as a grid."""
+
     def __init__(self, store: compatibility_store.CompatibilityStore):
         self._store = store
 
     def build_grid(self, packages: Iterable[package.Package]) -> str:
+        """Returns a web page compatibility grid given a list of packages."""
         packages = list(packages)
         package_to_results = {}
         for p in packages:

@@ -12,15 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Storage for package compatibility information."""
-import datetime
-import enum
-from typing import Any, Iterable, List, Mapping, Optional
+"""In memory storage for package compatibility information."""
+
+from typing import Iterable, List
 
 from compatibility_lib import package
 from compatibility_lib import compatibility_store
-
-import itertools
 
 
 class CompatibilityStore:

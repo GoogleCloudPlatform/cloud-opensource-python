@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Storage for package compatibility information."""
+
 import datetime
 import enum
 from typing import Any, Iterable, List, Mapping, Optional
