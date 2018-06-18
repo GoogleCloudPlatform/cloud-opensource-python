@@ -18,7 +18,7 @@ import os
 
 import nox
 
-LINT_UNIT_DIR = ['compatibility_server',]
+LINT_UNIT_DIR = ['compatibility_server', '.']
 
 
 @nox.session
@@ -51,7 +51,7 @@ def unit(session):
     session.run(
         'py.test',
         '--quiet',
-        ','.join(LINT_UNIT_DIR),
+        *LINT_UNIT_DIR,
         *session.posargs
     )
 
