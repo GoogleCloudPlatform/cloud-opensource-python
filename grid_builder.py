@@ -37,7 +37,6 @@ import jinja2
 from compatibility_lib import compatibility_store
 from compatibility_lib import package
 
-
 _JINJA2_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader('.'), autoescape=jinja2.select_autoescape())
 
@@ -81,7 +80,7 @@ class _ResultHolder():
         """
         install_names = frozenset([install_name_1, install_name_2])
 
-        if  (not self._package_to_results[install_name_1] or
+        if (not self._package_to_results[install_name_1] or
                 not self._package_to_results[install_name_2]):
             return {
                 'status': compatibility_store.Status.UNKNOWN.name,
@@ -159,17 +158,26 @@ def main():
                         default=_DEFAULT_INSTALL_NAMES,
                         help='the packages to display compatibility ' +
                              'information for')
+    parser.add_argument(
+        '--browser',
+        action='store_true',
+        default=False,
+        help='display the grid in a browser tab')
+
     args = parser.parse_args()
 
     store = compatibility_store.CompatibilityStore()
     grid_builder = GridBuilder(store)
+    grid_html = grid_builder.build_grid(
+        (package.Package(install_name) for install_name in args.packages))
 
-    _, grid_path = tempfile.mkstemp(suffix='.html')
-    print(grid_path)
-    with open(grid_path, 'wt') as f:
-        f.write(grid_builder.build_grid(
-            (package.Package(install_name) for install_name in args.packages)))
-    webbrowser.open_new_tab('file://' + grid_path)
+    if args.browser:
+        _, grid_path = tempfile.mkstemp(suffix='.html')
+        with open(grid_path, 'wt') as f:
+            f.write(grid_html)
+        webbrowser.open_new_tab('file://' + grid_path)
+    else:
+        print(grid_html, end='')
 
 
 if __name__ == '__main__':
