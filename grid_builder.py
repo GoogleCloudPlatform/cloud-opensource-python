@@ -81,8 +81,8 @@ class _ResultHolder():
         """
         install_names = frozenset([install_name_1, install_name_2])
 
-        if not (self._package_to_results[install_name_1] and
-                self._package_to_results[install_name_2]):
+        if  (not self._package_to_results[install_name_1] or
+                not self._package_to_results[install_name_2]):
             return {
                 'status': compatibility_store.Status.UNKNOWN.name,
                 'self': True,
@@ -100,7 +100,12 @@ class _ResultHolder():
                     'details': pr.details
                 }
 
-        if install_name_1 != install_name_2:
+        if install_name_1 == install_name_2:
+            return {
+                'status': compatibility_store.Status.SUCCESS.name,
+                'self': True,
+            }
+        else:
             pairwise_results = self._pairwise_to_results[install_names]
             if not pairwise_results:
                 return {
@@ -118,10 +123,6 @@ class _ResultHolder():
                 'status': compatibility_store.Status.SUCCESS.name,
                 'self': False,
             }
-        return {
-            'status': compatibility_store.Status.SUCCESS.name,
-            'self': True,
-        }
 
 
 class GridBuilder:

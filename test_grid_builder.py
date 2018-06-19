@@ -24,10 +24,133 @@ import grid_builder
 
 PACKAGE_1 = package.Package("package1")
 PACKAGE_2 = package.Package("package2")
-PACKAGE_3 = package.Package("package3")
+
+
+class TestResultHolder(unittest.TestCase):
+    """Tests for grid_builder._ResultHolder."""
+
+    def test_self_compatibility_success(self):
+        package_to_results = {
+            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )]
+        }
+        rh = grid_builder._ResultHolder(
+            package_to_results=package_to_results, pairwise_to_results={})
+        self.assertEqual(
+            rh.get_result(PACKAGE_1.install_name, PACKAGE_1.install_name),
+            {'status': 'SUCCESS', 'self': True})
+
+    def test_self_compatibility_error(self):
+        package_to_results = {
+            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                details='Installation failure',
+            )]
+        }
+        rh = grid_builder._ResultHolder(
+            package_to_results=package_to_results, pairwise_to_results={})
+        self.assertEqual(
+            rh.get_result(PACKAGE_1.install_name, PACKAGE_1.install_name),
+            {'status': 'INSTALL_ERROR', 'details': 'Installation failure',
+             'self': True})
+
+    def test_self_compatibility_no_entry(self):
+        package_to_results = {PACKAGE_1.install_name: []}
+        rh = grid_builder._ResultHolder(
+            package_to_results=package_to_results, pairwise_to_results={})
+        self.assertEqual(
+            rh.get_result(PACKAGE_1.install_name, PACKAGE_1.install_name),
+            {'status': 'UNKNOWN', 'self': True})
+
+    def test_pairwise_success(self):
+        package_to_results = {
+            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )],
+            PACKAGE_2.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )]
+        }
+        pairwise_to_results = {
+            frozenset([PACKAGE_1.install_name, PACKAGE_2.install_name]): [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1, PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )]
+        }
+        rh = grid_builder._ResultHolder(
+            package_to_results=package_to_results,
+            pairwise_to_results=pairwise_to_results)
+        self.assertEqual(
+            rh.get_result(PACKAGE_1.install_name, PACKAGE_2.install_name),
+            {'status': 'SUCCESS', 'self': False})
+
+    def test_pairwise_error(self):
+        package_to_results = {
+            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )],
+            PACKAGE_2.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )]
+        }
+        pairwise_to_results = {
+            frozenset([PACKAGE_1.install_name, PACKAGE_2.install_name]): [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1, PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.INSTALL_ERROR,
+                    details='Installation failure',
+                )]
+        }
+        rh = grid_builder._ResultHolder(
+            package_to_results=package_to_results,
+            pairwise_to_results=pairwise_to_results)
+        self.assertEqual(
+            rh.get_result(PACKAGE_1.install_name, PACKAGE_2.install_name),
+            {'status': 'INSTALL_ERROR', 'details': 'Installation failure',
+             'self': False})
+
+    def test_pairwise_no_entry(self):
+        package_to_results = {
+            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )],
+            PACKAGE_2.install_name: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )]
+        }
+        pairwise_to_results = {
+            frozenset([PACKAGE_1.install_name, PACKAGE_2.install_name]): []
+        }
+        rh = grid_builder._ResultHolder(
+            package_to_results=package_to_results,
+            pairwise_to_results=pairwise_to_results)
+        self.assertEqual(
+            rh.get_result(PACKAGE_1.install_name, PACKAGE_2.install_name),
+            {'status': 'UNKNOWN', 'self': False})
 
 
 class TestGridBuilder(unittest.TestCase):
+    """Tests for grid_builder.GridBuilder."""
 
     def test_success(self):
         """CompatibilityResult available for all packages and pairs."""
