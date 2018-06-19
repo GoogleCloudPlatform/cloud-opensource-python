@@ -44,6 +44,12 @@ class Package:
     def __repr__(self):
         return f'Package({self.install_name})'
 
+    def __hash__(self):
+        return hash(self.install_name)
+
+    def __eq__(self, o):
+        return isinstance(o, Package) and self.install_name == o.install_name
+
     @property
     def install_name(self) -> str:
         return self._install_name

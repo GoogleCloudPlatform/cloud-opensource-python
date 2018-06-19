@@ -47,13 +47,14 @@ class CompatibilityResult:
             if the check succeeded.
         timestamp: The time at which the compatibility check was performed.
     """
+
     def __init__(self,
                  packages: Iterable[package.Package],
                  python_major_version: int,
-                 status: Status=Status.UNKNOWN,
+                 status: Status = Status.UNKNOWN,
                  details: Optional[str] = None,
                  dependency_info: Optional[Mapping[str, Any]] = None,
-                 timestamp: Optional[datetime.datetime]=None):
+                 timestamp: Optional[datetime.datetime] = None):
         self._packages = list(packages)
         self._python_major_version = python_major_version
         self._status = status
@@ -186,6 +187,37 @@ class CompatibilityStore:
         query_job = self._client.query(query, job_config=job_config)
         for row in query_job:
             yield self._row_to_compatibility_status([package], row)
+
+    def get_self_compatibilities(self,
+                                 packages: Iterable[package.Package]) -> \
+            Mapping[package.Package, List[CompatibilityResult]]:
+
+        install_name_to_package = {p.install_name: p for p in packages}
+        package_to_result = {p: [] for p in packages}
+
+        query_params = [
+            bigquery.ArrayQueryParameter('install_names', 'STRING',
+                                         [package.install_name
+                                          for package in packages]),
+        ]
+        job_config = bigquery.QueryJobConfig()
+        job_config.query_parameters = query_params
+
+        query = (f'SELECT * '
+                 f'FROM {self._self_table_id} s1'
+                 f'WHERE s1.install_name IN @UNNEST(@install_names)'
+                 f'      AND timestamp = ('
+                 f'          SELECT MAX(timestamp) '
+                 f'          FROM {self._self_table_id} s2 '
+                 f'          WHERE s1.install_name = s2.install_name)')
+
+        query_job = self._client.query(query, job_config=job_config)
+
+        for row in query_job:
+            p = install_name_to_package[row.install_name]
+            package_to_result[p].append(self._row_to_compatibility_status(
+                install_name_to_package[row.install_name], row))
+        return install_name_to_package
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[CompatibilityResult]:
