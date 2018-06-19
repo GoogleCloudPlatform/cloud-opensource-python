@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Storage for package compatibility information."""
+
 import datetime
 import enum
 from typing import Any, Iterable, List, Mapping, Optional
@@ -20,7 +21,7 @@ from typing import Any, Iterable, List, Mapping, Optional
 from google.cloud import bigquery
 from google.cloud.bigquery import table
 
-import package
+from compatibility_lib import package
 
 _DATASET_NAME = 'compatibility_checker'
 _SELF_COMPATIBILITY_STATUS_TABLE_NAME = 'self_compatibility_status'
