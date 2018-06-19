@@ -26,15 +26,10 @@ class CompatibilityStore:
     def __init__(self):
         self._packages_to_compatibility_result = {}
 
-    @staticmethod
-    def _packages_as_key(packages: Iterable[package.Package]):
-        """Return the packages usage as a set/dict key."""
-        return frozenset(p.install_name for p in packages)
-
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
 
-        return [p[0]
+        return [list(p)[0]
                 for p in self._packages_to_compatibility_result.keys()
                 if len(p) == 1]
 
@@ -50,7 +45,7 @@ class CompatibilityStore:
             One CompatibilityResult per Python version.
         """
         return self._packages_to_compatibility_result.get(
-            self._packages_as_key([p]), [])
+            frozenset([p]), [])
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[compatibility_store.CompatibilityResult]:
@@ -63,7 +58,7 @@ class CompatibilityStore:
             One CompatibilityResult per Python version.
         """
         return self._packages_to_compatibility_result.get(
-            self._packages_as_key(packages),
+            frozenset(packages),
             [])
 
     def save_compatibility_statuses(
@@ -74,4 +69,4 @@ class CompatibilityStore:
 
         for cr in compatibility_statuses:
             self._packages_to_compatibility_result.setdefault(
-                self._packages_as_key(cr.packages), []).append(cr)
+                frozenset(cr.packages), []).append(cr)
