@@ -72,6 +72,17 @@ class CompatibilityResult:
                 f'{self.timestamp}, '
                 f'{self.dependency_info})')
 
+    def __hash__(self):
+        return hash((tuple(self.packages), self.status, self.timestamp))
+
+    def __eq__(self, o):
+        return (frozenset(self.packages) == frozenset(o.packages) and
+                self.python_major_version == o.python_major_version and
+                self.status == o.status and
+                self.details == o.details and
+                self.dependency_info == o.dependency_info and
+                self.timestamp == o.timestamp)
+
     @property
     def packages(self) -> List[package.Package]:
         return self._packages
@@ -154,6 +165,20 @@ class CompatibilityStore:
             row['install_name_lower'], row['install_name_higher'] = names
         return row
 
+    @staticmethod
+    def _filter_older_versions(crs: Iterable[CompatibilityResult]) \
+            -> Iterable[CompatibilityResult]:
+        """Remove old versions of CompatibilityResults from the given list."""
+
+        def key_func(cr):
+            return frozenset(cr.packages), cr.python_major_version
+
+        filtered_results = []
+        crs = sorted(crs, key=key_func)
+        for _, results in itertools.groupby(crs, key_func):
+            filtered_results.append(max(results, key=lambda cr: cr.timestamp))
+        return filtered_results
+
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
         query = f'SELECT DISTINCT install_name FROM {self._self_table_id}'
@@ -172,22 +197,7 @@ class CompatibilityStore:
         Yields:
             One CompatibilityResult per Python version.
         """
-        query_params = [
-            bigquery.ScalarQueryParameter('install_name', 'STRING',
-                                          p.install_name),
-        ]
-        job_config = bigquery.QueryJobConfig()
-        job_config.query_parameters = query_params
-
-        query = (f'SELECT * '
-                 f'FROM {self._self_table_id} '
-                 f'WHERE INSTALL_NAME=@install_name '
-                 f'ORDER BY timestamp DESC LIMIT 1'
-                 )
-
-        query_job = self._client.query(query, job_config=job_config)
-        for row in query_job:
-            yield self._row_to_compatibility_status([p], row)
+        return self.get_self_compatibilities([p])[p]
 
     def get_self_compatibilities(self,
                                  packages: Iterable[package.Package]) -> \
@@ -228,7 +238,8 @@ class CompatibilityStore:
             p = install_name_to_package[row.install_name]
             package_to_result[p].append(self._row_to_compatibility_status(
                 [p], row))
-        return package_to_result
+        return {p: self._filter_older_versions(crs)
+                for (p, crs) in package_to_result.items()}
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[CompatibilityResult]:
@@ -255,14 +266,19 @@ class CompatibilityStore:
         job_config.query_parameters = query_params
 
         query = (f'SELECT * '
-                 f'FROM {self._pairwise_table_id} '
-                 f'WHERE INSTALL_NAME_LOWER=@install_name_lower AND '
-                 f'INSTALL_NAME_HIGHER=@install_name_higher '
-                 f'ORDER BY timestamp DESC LIMIT 1'
-                 )
+                 f'FROM {self._pairwise_table_id} s1 '
+                 f'WHERE INSTALL_NAME_LOWER=@install_name_lower '
+                 f'  AND INSTALL_NAME_HIGHER=@install_name_higher '
+                 f'  AND timestamp = ( '
+                 f'     SELECT MAX(timestamp) '
+                 f'     FROM {self._pairwise_table_id} s2 '
+                 f'     WHERE s1.install_name_lower = s2.install_name_lower '
+                 f'       AND s1.install_name_higher = s2.install_name_higher '
+                 f'       AND s1.py_version = s2.py_version)')
         query_job = self._client.query(query, job_config=job_config)
-        for row in query_job:
-            yield self._row_to_compatibility_status(packages, row)
+        return self._filter_older_versions(
+            self._row_to_compatibility_status(packages, row)
+            for row in query_job)
 
     def get_compatibility_combinations(self,
                                        packages: List[package.Package]) -> \
@@ -314,7 +330,8 @@ class CompatibilityStore:
             packages_to_results[frozenset([p_lower, p_higher])].append(
                 self._row_to_compatibility_status([p_lower, p_higher], row)
             )
-        return packages_to_results
+        return {p: self._filter_older_versions(crs) for (p, crs) in
+                packages_to_results.items()}
 
     def save_compatibility_statuses(
             self,
