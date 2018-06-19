@@ -214,20 +214,21 @@ class CompatibilityStore:
         job_config.query_parameters = query_params
 
         query = (f'SELECT * '
-                 f'FROM {self._self_table_id} s1'
-                 f'WHERE s1.install_name IN @UNNEST(@install_names)'
-                 f'      AND timestamp = ('
+                 f'FROM {self._self_table_id} s1 '
+                 f'WHERE s1.install_name IN UNNEST(@install_names) '
+                 f'      AND timestamp = ( '
                  f'          SELECT MAX(timestamp) '
                  f'          FROM {self._self_table_id} s2 '
-                 f'          WHERE s1.install_name = s2.install_name)')
+                 f'          WHERE s1.install_name = s2.install_name '
+                 f'            AND s1.py_version = s2.py_version)')
 
         query_job = self._client.query(query, job_config=job_config)
 
         for row in query_job:
             p = install_name_to_package[row.install_name]
             package_to_result[p].append(self._row_to_compatibility_status(
-                install_name_to_package[row.install_name], row))
-        return install_name_to_package
+                [p], row))
+        return package_to_result
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[CompatibilityResult]:
@@ -283,7 +284,7 @@ class CompatibilityStore:
         """
         install_name_to_package = {p.install_name: p for p in packages}
 
-        packages_to_results = []
+        packages_to_results = {}
         for p1, p2 in itertools.combinations(packages, r=2):
             packages_to_results[frozenset([p1, p2])] = []
 
@@ -296,13 +297,14 @@ class CompatibilityStore:
 
         query = (f'SELECT * '
                  f'FROM {self._pairwise_table_id} s1 '
-                 f'WHERE s1.install_name_lower IN @UNNEST(@install_names) '
-                 f'  AND s1.install_name_higher IN @UNNEST(@install_names) '
+                 f'WHERE s1.install_name_lower IN UNNEST(@install_names) '
+                 f'  AND s1.install_name_higher IN UNNEST(@install_names) '
                  f'  AND timestamp = ( '
                  f'     SELECT MAX(timestamp) '
-                 f'     FROM {self._self_table_id} s2 '
+                 f'     FROM {self._pairwise_table_id} s2 '
                  f'     WHERE s1.install_name_lower = s2.install_name_lower '
-                 f'       AND s1.install_name_higher = s2.install_name_higher)')
+                 f'       AND s1.install_name_higher = s2.install_name_higher '
+                 f'       AND s1.py_version = s2.py_version)')
 
         query_job = self._client.query(query, job_config=job_config)
 
