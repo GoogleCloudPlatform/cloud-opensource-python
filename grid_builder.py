@@ -27,9 +27,8 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 """
 
 import argparse
-import itertools
 import tempfile
-from typing import Iterable
+from typing import Iterable, Mapping
 import webbrowser
 
 import jinja2
@@ -56,16 +55,16 @@ class _ResultHolder():
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
 
-    def get_result(self, install_name_1, install_name_2):
+    def get_result(self,
+                   package_1: package.Package,
+                   package_2: package.Package) -> Mapping[str, str]:
         """Returns the installation result of two packages.
 
         Args:
-            install_name_1: The name of one package (as would be used in the
-                "pip install" command e.g. "tensorflow" or
-                "git+git://github.com/apache/beam#subdirectory=sdks/python").
-            install_name_2: The name of one package (as would be used in the
-                "pip install" command e.g. "tensorflow" or
-                "git+git://github.com/apache/beam#subdirectory=sdks/python").
+            package_1: One of the two packages to check installation
+                compatibility with.
+            package_2: One of the two packages to check installation
+                compatibility with.
 
         Returns:
             The results of installing the two packages together, as a dict:
@@ -78,18 +77,16 @@ class _ResultHolder():
                             May be None.>
             }
         """
-        install_names = frozenset([install_name_1, install_name_2])
-
-        if (not self._package_to_results[install_name_1] or
-                not self._package_to_results[install_name_2]):
+        if (not self._package_to_results[package_1] or
+            not self._package_to_results[package_2]):
             return {
                 'status': compatibility_store.Status.UNKNOWN.name,
                 'self': True,
             }
 
         package_results = (
-                self._package_to_results[install_name_1] +
-                self._package_to_results[install_name_2])
+                self._package_to_results[package_1] +
+                self._package_to_results[package_2])
 
         for pr in package_results:
             if pr.status != compatibility_store.Status.SUCCESS:
@@ -99,13 +96,14 @@ class _ResultHolder():
                     'details': pr.details
                 }
 
-        if install_name_1 == install_name_2:
+        if package_1 == package_2:
             return {
                 'status': compatibility_store.Status.SUCCESS.name,
                 'self': True,
             }
         else:
-            pairwise_results = self._pairwise_to_results[install_names]
+            pairwise_results = self._pairwise_to_results[
+                frozenset([package_1, package_2])]
             if not pairwise_results:
                 return {
                     'status': compatibility_store.Status.UNKNOWN.name,
@@ -133,17 +131,9 @@ class GridBuilder:
     def build_grid(self, packages: Iterable[package.Package]) -> str:
         """Returns a web page compatibility grid given a list of packages."""
         packages = list(packages)
-        package_to_results = {}
-        for p in packages:
-            package_to_results[p.install_name] = list(
-                self._store.get_self_compatibility(p))
-
-        pairwise_to_results = {}
-        for package_1, package_2 in itertools.combinations(packages, 2):
-            install_names = frozenset(
-                [package_1.install_name, package_2.install_name])
-            pairwise_to_results[install_names] = list(
-                self._store.get_pair_compatibility([package_1, package_2]))
+        package_to_results = self._store.get_self_compatibilities(packages)
+        pairwise_to_results = self._store.get_compatibility_combinations(
+            packages)
 
         results = _ResultHolder(package_to_results, pairwise_to_results)
         template = _JINJA2_ENVIRONMENT.get_template('grid-template.html')

@@ -76,12 +76,14 @@ class CompatibilityResult:
         return hash((tuple(self.packages), self.status, self.timestamp))
 
     def __eq__(self, o):
-        return (frozenset(self.packages) == frozenset(o.packages) and
-                self.python_major_version == o.python_major_version and
-                self.status == o.status and
-                self.details == o.details and
-                self.dependency_info == o.dependency_info and
-                self.timestamp == o.timestamp)
+        if isinstance(o, CompatibilityResult):
+            return (frozenset(self.packages) == frozenset(o.packages) and
+                    self.python_major_version == o.python_major_version and
+                    self.status == o.status and
+                    self.details == o.details and
+                    self.dependency_info == o.dependency_info and
+                    self.timestamp == o.timestamp)
+        return NotImplemented
 
     @property
     def packages(self) -> List[package.Package]:

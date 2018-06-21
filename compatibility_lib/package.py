@@ -48,7 +48,9 @@ class Package:
         return hash(self.install_name)
 
     def __eq__(self, o):
-        return isinstance(o, Package) and self.install_name == o.install_name
+        if isinstance(o, Package):
+            return self.install_name == o.install_name
+        return NotImplemented
 
     @property
     def install_name(self) -> str:

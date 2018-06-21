@@ -83,7 +83,7 @@
         {% for col_package in packages %}
         {% set column = loop.index0 %}
         {% if column <= row %}
-            {% set result = results.get_result(row_package.install_name, col_package.install_name) %}
+            {% set result = results.get_result(row_package, col_package) %}
             <td class="{% if result.self %}self-{% endif %}{{ result.status | lower }}"
                 ><pre>{{ result.details }}</pre></td>
         {% else %}
