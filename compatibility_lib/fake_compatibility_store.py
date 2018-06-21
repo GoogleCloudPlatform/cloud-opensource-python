@@ -14,7 +14,8 @@
 
 """In memory storage for package compatibility information."""
 
-from typing import Iterable, List
+import itertools
+from typing import Iterable, FrozenSet, List, Mapping
 
 from compatibility_lib import package
 from compatibility_lib import compatibility_store
@@ -26,17 +27,27 @@ class CompatibilityStore:
     def __init__(self):
         self._packages_to_compatibility_result = {}
 
-    @staticmethod
-    def _packages_as_key(packages: Iterable[package.Package]):
-        """Return the packages usage as a set/dict key."""
-        return frozenset(p.install_name for p in packages)
-
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
 
-        return [p[0]
+        return [list(p)[0]
                 for p in self._packages_to_compatibility_result.keys()
                 if len(p) == 1]
+
+    @staticmethod
+    def _filter_older_versions(
+            crs: Iterable[compatibility_store.CompatibilityResult]) \
+            -> Iterable[compatibility_store.CompatibilityResult]:
+        """Remove old versions of CompatibilityResults from the given list."""
+
+        def key_func(cr):
+            return frozenset(cr.packages), cr.python_major_version
+
+        filtered_results = []
+        crs = sorted(crs, key=key_func)
+        for _, results in itertools.groupby(crs, key_func):
+            filtered_results.append(max(results, key=lambda cr: cr.timestamp))
+        return filtered_results
 
     def get_self_compatibility(self,
                                p: package.Package) -> \
@@ -49,8 +60,25 @@ class CompatibilityStore:
         Yields:
             One CompatibilityResult per Python version.
         """
-        return self._packages_to_compatibility_result.get(
-            self._packages_as_key([p]), [])
+        return self._filter_older_versions(
+            self._packages_to_compatibility_result.get(
+                frozenset([p]), []))
+
+    def get_self_compatibilities(self,
+                                 packages: Iterable[package.Package]) -> \
+            Mapping[package.Package, List[
+                compatibility_store.CompatibilityResult]]:
+        """Returns CompatibilityStatuses for internal package compatibility.
+
+        Args:
+            packages: The packages to check internal compatibility for.
+
+        Returns:
+            A mapping between the given packages and a (possibly empty)
+            list of CompatibilityResults for each one.
+        """
+
+        return {p: list(self.get_self_compatibility(p)) for p in packages}
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[compatibility_store.CompatibilityResult]:
@@ -62,9 +90,32 @@ class CompatibilityStore:
         Yields:
             One CompatibilityResult per Python version.
         """
-        return self._packages_to_compatibility_result.get(
-            self._packages_as_key(packages),
-            [])
+        return self._filter_older_versions(
+            self._packages_to_compatibility_result.get(
+                frozenset(packages),
+                []))
+
+    def get_compatibility_combinations(self,
+                                       packages: List[package.Package]) -> \
+            Mapping[FrozenSet[package.Package], List[
+                compatibility_store.CompatibilityResult]]:
+        """Returns a mapping between package pairs and CompatibilityResults.
+
+        Args:
+            packages: The packages to check compatibility for.
+
+        Returns:
+            A mapping between every combination of input packages and their
+            CompatibilityResults. For example:
+            get_compatibility_combinations(packages = [p1, p2, p3]) =>
+            {
+               frozenset([p1, p2]): [CompatibilityResult...],
+               frozenset([p1, p3]): [CompatibilityResult...],
+               frozenset([p2, p3]): [CompatibilityResult...],
+            }.
+        """
+        return {frozenset([p1, p2]): self.get_pair_compatibility([p1, p2])
+                for (p1, p2) in itertools.combinations(packages, r=2)}
 
     def save_compatibility_statuses(
             self,
@@ -74,4 +125,4 @@ class CompatibilityStore:
 
         for cr in compatibility_statuses:
             self._packages_to_compatibility_result.setdefault(
-                self._packages_as_key(cr.packages), []).append(cr)
+                frozenset(cr.packages), []).append(cr)

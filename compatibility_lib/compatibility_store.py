@@ -16,7 +16,8 @@
 
 import datetime
 import enum
-from typing import Any, Iterable, List, Mapping, Optional
+import itertools
+from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
 
 from google.cloud import bigquery
 from google.cloud.bigquery import table
@@ -47,13 +48,14 @@ class CompatibilityResult:
             if the check succeeded.
         timestamp: The time at which the compatibility check was performed.
     """
+
     def __init__(self,
                  packages: Iterable[package.Package],
                  python_major_version: int,
-                 status: Status=Status.UNKNOWN,
+                 status: Status = Status.UNKNOWN,
                  details: Optional[str] = None,
                  dependency_info: Optional[Mapping[str, Any]] = None,
-                 timestamp: Optional[datetime.datetime]=None):
+                 timestamp: Optional[datetime.datetime] = None):
         self._packages = list(packages)
         self._python_major_version = python_major_version
         self._status = status
@@ -69,6 +71,17 @@ class CompatibilityResult:
                 f'{self.python_major_version}, {self.status}, {self.details}, '
                 f'{self.timestamp}, '
                 f'{self.dependency_info})')
+
+    def __hash__(self):
+        return hash((tuple(self.packages), self.status, self.timestamp))
+
+    def __eq__(self, o):
+        return (frozenset(self.packages) == frozenset(o.packages) and
+                self.python_major_version == o.python_major_version and
+                self.status == o.status and
+                self.details == o.details and
+                self.dependency_info == o.dependency_info and
+                self.timestamp == o.timestamp)
 
     @property
     def packages(self) -> List[package.Package]:
@@ -152,6 +165,20 @@ class CompatibilityStore:
             row['install_name_lower'], row['install_name_higher'] = names
         return row
 
+    @staticmethod
+    def _filter_older_versions(crs: Iterable[CompatibilityResult]) \
+            -> Iterable[CompatibilityResult]:
+        """Remove old versions of CompatibilityResults from the given list."""
+
+        def key_func(cr):
+            return frozenset(cr.packages), cr.python_major_version
+
+        filtered_results = []
+        crs = sorted(crs, key=key_func)
+        for _, results in itertools.groupby(crs, key_func):
+            filtered_results.append(max(results, key=lambda cr: cr.timestamp))
+        return filtered_results
+
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
         query = f'SELECT DISTINCT install_name FROM {self._self_table_id}'
@@ -160,43 +187,74 @@ class CompatibilityStore:
             yield package.Package(install_name=row[0])
 
     def get_self_compatibility(self,
-                               package: package.Package) -> \
+                               p: package.Package) -> \
             Iterable[CompatibilityResult]:
         """Returns CompatibilityStatuses for internal package compatibility.
 
         Args:
-            package: The package to check internal compatibility for.
+            p: The package to check internal compatibility for.
 
         Yields:
             One CompatibilityResult per Python version.
         """
+        return self.get_self_compatibilities([p])[p]
+
+    def get_self_compatibilities(self,
+                                 packages: Iterable[package.Package]) -> \
+            Mapping[package.Package, List[CompatibilityResult]]:
+        """Returns CompatibilityStatuses for internal package compatibility.
+
+        Args:
+            packages: The packages to check internal compatibility for.
+
+        Returns:
+            A mapping between the given packages and a (possibly empty)
+            list of CompatibilityResults for each one.
+        """
+
+        install_name_to_package = {p.install_name: p for p in packages}
+        package_to_result = {p: [] for p in packages}
+
         query_params = [
-            bigquery.ScalarQueryParameter('install_name', 'STRING',
-                                          package.install_name),
+            bigquery.ArrayQueryParameter('install_names', 'STRING',
+                                         [package.install_name
+                                          for package in packages]),
         ]
         job_config = bigquery.QueryJobConfig()
         job_config.query_parameters = query_params
 
         query = (f'SELECT * '
-                 f'FROM {self._self_table_id} '
-                 f'WHERE INSTALL_NAME=@install_name '
-                 f'ORDER BY timestamp DESC LIMIT 1'
-                 )
+                 f'FROM {self._self_table_id} s1 '
+                 f'WHERE s1.install_name IN UNNEST(@install_names) '
+                 f'      AND timestamp = ( '
+                 f'          SELECT MAX(timestamp) '
+                 f'          FROM {self._self_table_id} s2 '
+                 f'          WHERE s1.install_name = s2.install_name '
+                 f'            AND s1.py_version = s2.py_version)')
 
         query_job = self._client.query(query, job_config=job_config)
+
         for row in query_job:
-            yield self._row_to_compatibility_status([package], row)
+            p = install_name_to_package[row.install_name]
+            package_to_result[p].append(self._row_to_compatibility_status(
+                [p], row))
+        return {p: self._filter_older_versions(crs)
+                for (p, crs) in package_to_result.items()}
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[CompatibilityResult]:
-        """Returns CompatibilityStatuses for internal package compatibility.
+        """Returns CompatibilityStatuses for a pair of packages.
 
         Args:
-            packages: The packages to check compatibility for.
+            packages: The packages to check compatibility for. Must have a
+                length of exactly 2.
 
         Yields:
             One CompatibilityResult per Python version.
         """
+        if len(packages) != 2:
+            raise ValueError(
+                'expected 2 packages, got {}'.format(len(packages)))
         packages = sorted(packages, key=lambda p: p.install_name)
         query_params = [
             bigquery.ScalarQueryParameter('install_name_lower', 'STRING',
@@ -208,14 +266,72 @@ class CompatibilityStore:
         job_config.query_parameters = query_params
 
         query = (f'SELECT * '
-                 f'FROM {self._pairwise_table_id} '
-                 f'WHERE INSTALL_NAME_LOWER=@install_name_lower AND '
-                 f'INSTALL_NAME_HIGHER=@install_name_higher '
-                 f'ORDER BY timestamp DESC LIMIT 1'
-                 )
+                 f'FROM {self._pairwise_table_id} s1 '
+                 f'WHERE INSTALL_NAME_LOWER=@install_name_lower '
+                 f'  AND INSTALL_NAME_HIGHER=@install_name_higher '
+                 f'  AND timestamp = ( '
+                 f'     SELECT MAX(timestamp) '
+                 f'     FROM {self._pairwise_table_id} s2 '
+                 f'     WHERE s1.install_name_lower = s2.install_name_lower '
+                 f'       AND s1.install_name_higher = s2.install_name_higher '
+                 f'       AND s1.py_version = s2.py_version)')
         query_job = self._client.query(query, job_config=job_config)
+        return self._filter_older_versions(
+            self._row_to_compatibility_status(packages, row)
+            for row in query_job)
+
+    def get_compatibility_combinations(self,
+                                       packages: List[package.Package]) -> \
+            Mapping[FrozenSet[package.Package], List[CompatibilityResult]]:
+        """Returns a mapping between package pairs and CompatibilityResults.
+
+        Args:
+            packages: The packages to check compatibility for.
+
+        Returns:
+            A mapping between every combination of input packages and their
+            CompatibilityResults. For example:
+            get_compatibility_combinations(packages = [p1, p2, p3]) =>
+            {
+               frozenset([p1, p2]): [CompatibilityResult...],
+               frozenset([p1, p3]): [CompatibilityResult...],
+               frozenset([p2, p3]): [CompatibilityResult...],
+            }.
+        """
+        install_name_to_package = {p.install_name: p for p in packages}
+
+        packages_to_results = {}
+        for p1, p2 in itertools.combinations(packages, r=2):
+            packages_to_results[frozenset([p1, p2])] = []
+
+        query_params = [
+            bigquery.ArrayQueryParameter('install_names', 'STRING',
+                                         [p.install_name for p in packages]),
+        ]
+        job_config = bigquery.QueryJobConfig()
+        job_config.query_parameters = query_params
+
+        query = (f'SELECT * '
+                 f'FROM {self._pairwise_table_id} s1 '
+                 f'WHERE s1.install_name_lower IN UNNEST(@install_names) '
+                 f'  AND s1.install_name_higher IN UNNEST(@install_names) '
+                 f'  AND timestamp = ( '
+                 f'     SELECT MAX(timestamp) '
+                 f'     FROM {self._pairwise_table_id} s2 '
+                 f'     WHERE s1.install_name_lower = s2.install_name_lower '
+                 f'       AND s1.install_name_higher = s2.install_name_higher '
+                 f'       AND s1.py_version = s2.py_version)')
+
+        query_job = self._client.query(query, job_config=job_config)
+
         for row in query_job:
-            yield self._row_to_compatibility_status(packages, row)
+            p_lower = install_name_to_package[row.install_name_lower]
+            p_higher = install_name_to_package[row.install_name_higher]
+            packages_to_results[frozenset([p_lower, p_higher])].append(
+                self._row_to_compatibility_status([p_lower, p_higher], row)
+            )
+        return {p: self._filter_older_versions(crs) for (p, crs) in
+                packages_to_results.items()}
 
     def save_compatibility_statuses(
             self,
