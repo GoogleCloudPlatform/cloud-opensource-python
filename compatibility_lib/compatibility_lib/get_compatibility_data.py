@@ -16,9 +16,9 @@
 
 import datetime
 
-import compatibility_checker
-import compatibility_store
-import package
+from compatibility_lib import compatibility_checker
+from compatibility_lib import compatibility_store
+from compatibility_lib import package
 
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
