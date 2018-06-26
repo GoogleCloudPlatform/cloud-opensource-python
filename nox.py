@@ -14,11 +14,15 @@
 
 """Nox config for running lint and unit tests."""
 
+from __future__ import absolute_import
+
 import os
 
 import nox
 
 LINT_UNIT_DIR = ['compatibility_server', '.']
+
+LOCAL_DEPS = ['compatibility_lib']
 
 
 @nox.session
@@ -45,6 +49,7 @@ def unit(session):
     session.interpreter = 'python3.6'
 
     # Install all test dependencies, then install this package in-place.
+    session.install('-e', ','.join(LOCAL_DEPS))
     session.install('-r', 'requirements-test.txt')
 
     # Run py.test against the unit tests.
