@@ -16,7 +16,6 @@ set -ev
 
 # Build dashboard
 function build_dashboard {
-    python grid_builder.py > dashboard/index.html
     if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
       openssl aes-256-cbc -d -a -k "$GOOGLE_CREDENTIALS_PASSPHRASE" \
           -in credentials.json.enc \
