@@ -16,6 +16,13 @@ set -ev
 
 # Build dashboard
 function build_dashboard {
+    if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+      openssl aes-256-cbc -d -a -k "$GOOGLE_CREDENTIALS_PASSPHRASE" \
+          -in credentials.json.enc \
+          -out $GOOGLE_APPLICATION_CREDENTIALS
+    else
+      echo "No credentials. Dashboard will not build."
+    fi
     mv dashboard/dashboard.html dashboard/index.html
     return $?
 }
