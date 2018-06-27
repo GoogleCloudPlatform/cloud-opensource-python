@@ -16,7 +16,7 @@ set -ev
 
 # Build dashboard
 function build_dashboard {
-    mv dashboard/dashboard.html dashboard/index.html
+    python grid_builder.py > dashboard/index.html
     return $?
 }
 

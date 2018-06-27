@@ -57,6 +57,7 @@ def write_to_status_table():
     for py_version in [PY2, PY3]:
         results = checker.get_self_compatibility(py_version)
         res_list = _result_dict_to_compatibility_result(results, py_version)
+        print(res_list)
         store.save_compatibility_statuses(res_list)
 
     # Write pairwise compatibility status to BigQuery
