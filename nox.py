@@ -40,7 +40,7 @@ def lint(session):
 
 
 @nox.session
-@nox.parametrize('py', ['3.4', '3.5', '3.6'])
+@nox.parametrize('py', ['3.5', '3.6'])
 def unit(session, py):
     """Run the unit test suite.
 
