@@ -17,7 +17,6 @@ set -ev
 # Build dashboard
 function build_dashboard {
     if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
-      export GOOGLE_APPLICATION_CREDENTIALS=python_compatibility_tools.json
       python grid_builder.py > dashboard/index.html
     else
       echo "No credentials. Dashboard will not build."
