@@ -33,14 +33,14 @@ import webbrowser
 
 import jinja2
 
-from compatibility_lib import compatibility_checker
+from compatibility_lib import configs
 from compatibility_lib import compatibility_store
 from compatibility_lib import package
 
 _JINJA2_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader('.'), autoescape=jinja2.select_autoescape())
 
-_DEFAULT_INSTALL_NAMES = compatibility_checker.PKG_LIST
+_DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 
 class _ResultHolder():

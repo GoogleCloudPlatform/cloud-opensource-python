@@ -20,50 +20,7 @@ import urllib.request
 import json
 import retrying
 
-PKG_LIST = [
-    'google-api-core',
-    'google-api-python-client',
-    'google-auth',
-    'google-cloud-bigquery',
-    'google-cloud-bigquery-datatransfer',
-    'google-cloud-bigtable',
-    'google-cloud-container',
-    'google-cloud-core',
-    'google-cloud-dataflow',
-    'google-cloud-datastore',
-    'google-cloud-dns',
-    'google-cloud-error-reporting',
-    'google-cloud-firestore',
-    'google-cloud-language',
-    'google-cloud-logging',
-    'google-cloud-monitoring',
-    'google-cloud-pubsub',
-    'google-cloud-resource-manager',
-    'google-cloud-runtimeconfig',
-    'google-cloud-spanner',
-    'google-cloud-speech',
-    'google-cloud-storage',
-    'google-cloud-trace',
-    'google-cloud-translate',
-    'google-cloud-videointelligence',
-    'google-cloud-vision',
-    'google-resumable-media',
-    'cloud-utils',
-    'google-apitools',
-    'google-gax',
-    'googleapis-common-protos',
-    'grpc-google-iam-v1',
-    'grpcio',
-    'gsutil',
-    'opencensus',
-    'protobuf',
-    'protorpc',
-    'tensorboard',
-    'tensorflow',
-    'google-cloud',
-    'gcloud',
-    'oauth2client',
-]
+from compatibility_lib import configs
 
 SERVER_URL = 'http://104.197.8.72'
 
@@ -97,7 +54,7 @@ class CompatibilityChecker(object):
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as p:
             pkg_set_results = p.map(
                 self.retrying_check,
-                (([pkg], python_version) for pkg in PKG_LIST))
+                (([pkg], python_version) for pkg in configs.PKG_LIST))
 
             for result in zip(pkg_set_results):
                 yield result
@@ -105,7 +62,7 @@ class CompatibilityChecker(object):
     def get_pairwise_compatibility(self, python_version):
         """Get pairwise compatibility data for each pair of packages."""
         with concurrent.futures.ThreadPoolExecutor(max_workers=20) as p:
-            pkg_sets = itertools.combinations(PKG_LIST, 2)
+            pkg_sets = itertools.combinations(configs.PKG_LIST, 2)
             pkg_set_results = p.map(
                 self.retrying_check,
                 ((list(pkg_set), python_version) for pkg_set in pkg_sets))
