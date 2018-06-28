@@ -42,7 +42,7 @@ class Package:
         self._friendly_name = friendly_name or install_name
 
     def __repr__(self):
-        return f'Package({self.install_name})'
+        return 'Package({})'.format(self.install_name)
 
     def __hash__(self):
         return hash(self.install_name)
