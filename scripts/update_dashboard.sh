@@ -16,7 +16,14 @@ set -ev
 
 # Build dashboard
 function build_dashboard {
-    mv dashboard/dashboard.html dashboard/index.html
+    if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+      openssl aes-256-cbc -d -a -k "$GOOGLE_CREDENTIALS_PASSPHRASE" \
+          -in credentials.json.enc \
+          -out $GOOGLE_APPLICATION_CREDENTIALS
+      python grid_builder.py > dashboard/index.html
+    else
+      echo "No credentials. Dashboard will not build."
+    fi
     return $?
 }
 

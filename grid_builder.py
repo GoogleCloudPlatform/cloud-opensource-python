@@ -33,21 +33,14 @@ import webbrowser
 
 import jinja2
 
+from compatibility_lib import configs
 from compatibility_lib import compatibility_store
 from compatibility_lib import package
 
 _JINJA2_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader('.'), autoescape=jinja2.select_autoescape())
 
-_DEFAULT_INSTALL_NAMES = [
-    'absl-py',
-    'apache_beam',
-    'google-cloud-bigtable',
-    'grpcio',
-    'pyclif',
-    'pytype',
-    'tensorflow',
-]
+_DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 
 class _ResultHolder():

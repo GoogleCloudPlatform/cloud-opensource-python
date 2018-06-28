@@ -67,6 +67,8 @@ def update_dashboard(session):
     """Build the dashboard."""
 
     session.interpreter = 'python3.6'
+    session.install('-e', ','.join(LOCAL_DEPS))
+    session.install('-r', 'requirements-test.txt')
 
     # Set the virtualenv dirname.
     session.virtualenv_dirname = 'dashboard'
