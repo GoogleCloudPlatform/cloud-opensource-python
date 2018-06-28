@@ -67,10 +67,9 @@ class CompatibilityResult:
             self._timestamp = datetime.datetime.now(datetime.timezone.utc)
 
     def __repr__(self):
-        return (f'CompatibilityResult({self.packages}, '
-                f'{self.python_major_version}, {self.status}, {self.details}, '
-                f'{self.timestamp}, '
-                f'{self.dependency_info})')
+        return ('CompatibilityResult({}, {}, {}, {}, {}, {})'.format(
+            self.packages, self.python_major_version, self.status,
+            self.details, self.timestamp, self.dependency_info))
 
     def __hash__(self):
         return hash((tuple(self.packages), self.status, self.timestamp))
@@ -126,12 +125,14 @@ class CompatibilityStore:
         dataset_ref = self._client.dataset(_DATASET_NAME)
 
         self._self_table_id = (
-            f'{_DATASET_NAME}.{_SELF_COMPATIBILITY_STATUS_TABLE_NAME}')
+            '{}.{}'.format(
+                _DATASET_NAME, _SELF_COMPATIBILITY_STATUS_TABLE_NAME))
         self._self_table = self._client.get_table(dataset_ref.table(
             _SELF_COMPATIBILITY_STATUS_TABLE_NAME))
 
         self._pairwise_table_id = (
-            f'{_DATASET_NAME}.{_PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME}')
+            '{}.{}'.format(
+                _DATASET_NAME, _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME))
         self._pairwise_table = self._client.get_table(dataset_ref.table(
             _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME))
 
@@ -183,7 +184,8 @@ class CompatibilityStore:
 
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
-        query = f'SELECT DISTINCT install_name FROM {self._self_table_id}'
+        query = 'SELECT DISTINCT install_name FROM {}'.format(
+            self._self_table_id)
         query_job = self._client.query(query)
         for row in query_job:
             yield package.Package(install_name=row[0])
@@ -225,14 +227,15 @@ class CompatibilityStore:
         job_config = bigquery.QueryJobConfig()
         job_config.query_parameters = query_params
 
-        query = (f'SELECT * '
-                 f'FROM {self._self_table_id} s1 '
-                 f'WHERE s1.install_name IN UNNEST(@install_names) '
-                 f'      AND timestamp = ( '
-                 f'          SELECT MAX(timestamp) '
-                 f'          FROM {self._self_table_id} s2 '
-                 f'          WHERE s1.install_name = s2.install_name '
-                 f'            AND s1.py_version = s2.py_version)')
+        query = ('SELECT * '
+                 'FROM {} s1 '
+                 'WHERE s1.install_name IN UNNEST(@install_names) '
+                 '      AND timestamp = ( '
+                 '          SELECT MAX(timestamp) '
+                 '          FROM {} s2 '
+                 '          WHERE s1.install_name = s2.install_name '
+                 '            AND s1.py_version = s2.py_version)'.format(
+            self._self_table_id, self._self_table_id))
 
         query_job = self._client.query(query, job_config=job_config)
 
@@ -267,16 +270,17 @@ class CompatibilityStore:
         job_config = bigquery.QueryJobConfig()
         job_config.query_parameters = query_params
 
-        query = (f'SELECT * '
-                 f'FROM {self._pairwise_table_id} s1 '
-                 f'WHERE INSTALL_NAME_LOWER=@install_name_lower '
-                 f'  AND INSTALL_NAME_HIGHER=@install_name_higher '
-                 f'  AND timestamp = ( '
-                 f'     SELECT MAX(timestamp) '
-                 f'     FROM {self._pairwise_table_id} s2 '
-                 f'     WHERE s1.install_name_lower = s2.install_name_lower '
-                 f'       AND s1.install_name_higher = s2.install_name_higher '
-                 f'       AND s1.py_version = s2.py_version)')
+        query = ('SELECT * '
+                 'FROM {} s1 '
+                 'WHERE INSTALL_NAME_LOWER=@install_name_lower '
+                 '  AND INSTALL_NAME_HIGHER=@install_name_higher '
+                 '  AND timestamp = ( '
+                 '     SELECT MAX(timestamp) '
+                 '     FROM {} s2 '
+                 '     WHERE s1.install_name_lower = s2.install_name_lower '
+                 '       AND s1.install_name_higher = s2.install_name_higher '
+                 '       AND s1.py_version = s2.py_version)'.format(
+            self._pairwise_table_id, self._pairwise_table_id))
         query_job = self._client.query(query, job_config=job_config)
         return self._filter_older_versions(
             self._row_to_compatibility_status(packages, row)
@@ -313,16 +317,17 @@ class CompatibilityStore:
         job_config = bigquery.QueryJobConfig()
         job_config.query_parameters = query_params
 
-        query = (f'SELECT * '
-                 f'FROM {self._pairwise_table_id} s1 '
-                 f'WHERE s1.install_name_lower IN UNNEST(@install_names) '
-                 f'  AND s1.install_name_higher IN UNNEST(@install_names) '
-                 f'  AND timestamp = ( '
-                 f'     SELECT MAX(timestamp) '
-                 f'     FROM {self._pairwise_table_id} s2 '
-                 f'     WHERE s1.install_name_lower = s2.install_name_lower '
-                 f'       AND s1.install_name_higher = s2.install_name_higher '
-                 f'       AND s1.py_version = s2.py_version)')
+        query = ('SELECT * '
+                 'FROM {} s1 '
+                 'WHERE s1.install_name_lower IN UNNEST(@install_names) '
+                 '  AND s1.install_name_higher IN UNNEST(@install_names) '
+                 '  AND timestamp = ( '
+                 '     SELECT MAX(timestamp) '
+                 '     FROM {} s2 '
+                 '     WHERE s1.install_name_lower = s2.install_name_lower '
+                 '       AND s1.install_name_higher = s2.install_name_higher '
+                 '       AND s1.py_version = s2.py_version)'.format(
+            self._pairwise_table_id, self._pairwise_table_id))
 
         query_job = self._client.query(query, job_config=job_config)
 

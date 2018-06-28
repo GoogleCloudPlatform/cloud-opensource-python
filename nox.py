@@ -40,13 +40,14 @@ def lint(session):
 
 
 @nox.session
-def unit(session):
+@nox.parametrize('py', ['3.4', '3.5', '3.6'])
+def unit(session, py):
     """Run the unit test suite.
 
     Unit test files should be named like test_*.py and in the same directory
     as the file being tested.
     """
-    session.interpreter = 'python3.6'
+    session.interpreter = 'python{}'.format(py)
 
     # Install all test dependencies, then install this package in-place.
     session.install('-e', ','.join(LOCAL_DEPS))
