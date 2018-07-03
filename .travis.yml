@@ -18,7 +18,7 @@ deploy:
   on:
     branch: master
 before_install:
-- if [ "$TRAVIS_REPO_SLUG" == "GoogleCloudPlatform/cloud-opensource-python" ]; then
+- if [ -n "encrypted_415d6cfcbdfb_iv" ]; then
     openssl aes-256-cbc -K $encrypted_415d6cfcbdfb_key -iv $encrypted_415d6cfcbdfb_iv
     -in python-compatibility-tools.json.enc -out python-compatibility-tools.json -d;
   fi
