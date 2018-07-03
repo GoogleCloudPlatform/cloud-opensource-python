@@ -68,16 +68,8 @@
     </style>
 </head>
 
-<body onload="getCurrentTimestamp()">
-<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-
-<b>Dashboard updated on: </b><b id="timestamp"></b>
-
-<script>
-function getCurrentTimestamp() {
-    document.getElementById('timestamp').innerHTML = Date();
-}
-</script>
+<body>
+<b>Dashboard updated on: </b><b>{{ current_timestamp }}</b>
 <table>
     <tr>
         <td></td>

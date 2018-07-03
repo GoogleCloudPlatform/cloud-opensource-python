@@ -27,6 +27,7 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 """
 
 import argparse
+import datetime
 import tempfile
 from typing import Iterable, Mapping
 import webbrowser
@@ -129,8 +130,12 @@ class GridBuilder:
             packages)
 
         results = _ResultHolder(package_to_results, pairwise_to_results)
+        current_timestamp = datetime.datetime.now().isoformat()
         template = _JINJA2_ENVIRONMENT.get_template('grid-template.html')
-        return template.render(packages=packages, results=results)
+        return template.render(
+            packages=packages,
+            results=results,
+            current_timestamp=current_timestamp)
 
 
 def main():
