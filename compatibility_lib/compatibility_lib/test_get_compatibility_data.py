@@ -15,7 +15,7 @@
 import mock
 import unittest
 
-from compatibility_lib import get_compatibility_data
+import compatibility_lib
 
 
 class TestGetCompatibilityData(unittest.TestCase):
@@ -45,35 +45,49 @@ class TestGetCompatibilityData(unittest.TestCase):
         ],
     )
 
-    def test__result_dict_to_compatibility_result(self):
+    def setUp(self):
         from compatibility_lib import compatibility_store
 
-        python_version = 3
+        self.mock_checker = mock.Mock()
+        self.mock_checker.get_self_compatibility.return_value = self.results
+        self.mock_checker.get_pairwise_compatibility.return_value = self.results
 
-        res_list = get_compatibility_data._result_dict_to_compatibility_result(
-            self.results, python_version)
+        self.mock_store = mock.Mock()
+        self.mock_store.save_compatibility_statuses.return_value = None
+
+        def mock_init():
+            return None
+
+        self.patch_constructor = mock.patch.object(
+            compatibility_store.CompatibilityStore,
+            '__init__',
+            side_effect=mock_init)
+        self.patch_checker = mock.patch(
+            'compatibility_lib.get_compatibility_data.checker',
+            self.mock_checker)
+        self.patch_store = mock.patch(
+            'compatibility_lib.get_compatibility_data.store',
+            self.mock_store)
+
+    def test__result_dict_to_compatibility_result(self):
+        with self.patch_constructor, self.patch_checker, self.patch_store:
+            from compatibility_lib import compatibility_store
+            from compatibility_lib import get_compatibility_data
+
+            python_version = 3
+            res_list = get_compatibility_data._result_dict_to_compatibility_result(
+                self.results, python_version)
 
         self.assertTrue(isinstance(
             res_list[0], compatibility_store.CompatibilityResult))
 
     def test_write_to_status_table(self):
-        mock_checker = mock.Mock()
-        mock_checker.get_self_compatibility.return_value = self.results
-        mock_checker.get_pairwise_compatibility.return_value = self.results
 
-        mock_store = mock.Mock()
-        mock_store.save_compatibility_statuses.return_value = None
+        with self.patch_checker, self.patch_store:
+            from compatibility_lib import get_compatibility_data
 
-        patch_checker = mock.patch(
-            'compatibility_lib.get_compatibility_data.checker',
-            mock_checker)
-        patch_store = mock.patch(
-            'compatibility_lib.get_compatibility_data.store',
-            mock_store)
-
-        with patch_checker, patch_store:
             get_compatibility_data.write_to_status_table()
 
-        self.assertTrue(mock_checker.get_self_compatibility.called)
-        self.assertTrue(mock_checker.get_pairwise_compatibility.called)
-        self.assertTrue(mock_store.save_compatibility_statuses.called)
+        self.assertTrue(self.mock_checker.get_self_compatibility.called)
+        self.assertTrue(self.mock_checker.get_pairwise_compatibility.called)
+        self.assertTrue(self.mock_store.save_compatibility_statuses.called)
