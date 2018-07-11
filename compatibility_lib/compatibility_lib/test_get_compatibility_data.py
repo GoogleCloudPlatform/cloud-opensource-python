@@ -15,45 +15,48 @@
 import mock
 import unittest
 
-import compatibility_lib
+from compatibility_lib import fake_compatibility_store
+from compatibility_lib import package
+from compatibility_lib import compatibility_store
 
 
 class TestGetCompatibilityData(unittest.TestCase):
+    dependency_info = {
+        'cachetools': {
+            'installed_version': '2.1.0',
+            'latest_version': '2.1.0',
+            'current_time': '2018-07-10T11:02:40.481246',
+            'latest_version_time': '2018-05-12T16:26:31',
+            'is_latest': True
+        },
+        'certifi': {
+            'installed_version': '2018.4.16',
+            'latest_version': '2018.4.16',
+            'current_time': '2018-07-10T11:02:40.544879',
+            'latest_version_time': '2018-04-16T18:50:10',
+            'is_latest': True
+        }
+    }
     results = (
         [
             {
                 'result': 'SUCCESS',
                 'packages': ['google-api-core'],
                 'description': None,
-                'dependency_info': {
-                    'cachetools': {
-                        'installed_version': '2.1.0',
-                        'latest_version': '2.1.0',
-                        'current_time': '2018-07-10T11:02:40.481246',
-                        'latest_version_time': '2018-05-12T16:26:31',
-                        'is_latest': True
-                    },
-                    'certifi': {
-                        'installed_version': '2018.4.16',
-                        'latest_version': '2018.4.16',
-                        'current_time': '2018-07-10T11:02:40.544879',
-                        'latest_version_time': '2018-04-16T18:50:10',
-                        'is_latest': True
-                    },
-                }
+                'dependency_info': dependency_info,
             }
         ],
     )
 
-    def setUp(self):
-        from compatibility_lib import compatibility_store
+    packages = [package.Package('google-api-core')]
+    status = compatibility_store.Status.SUCCESS
 
+    def setUp(self):
         self.mock_checker = mock.Mock()
         self.mock_checker.get_self_compatibility.return_value = self.results
         self.mock_checker.get_pairwise_compatibility.return_value = self.results
 
-        self.mock_store = mock.Mock()
-        self.mock_store.save_compatibility_statuses.return_value = None
+        self.fake_store = fake_compatibility_store.CompatibilityStore()
 
         def mock_init():
             return None
@@ -67,7 +70,7 @@ class TestGetCompatibilityData(unittest.TestCase):
             self.mock_checker)
         self.patch_store = mock.patch(
             'compatibility_lib.get_compatibility_data.store',
-            self.mock_store)
+            self.fake_store)
 
     def test__result_dict_to_compatibility_result(self):
         with self.patch_constructor, self.patch_checker, self.patch_store:
@@ -80,6 +83,9 @@ class TestGetCompatibilityData(unittest.TestCase):
 
         self.assertTrue(isinstance(
             res_list[0], compatibility_store.CompatibilityResult))
+        self.assertEqual(res_list[0].dependency_info, self.dependency_info)
+        self.assertEqual(res_list[0].packages, self.packages)
+        self.assertEqual(res_list[0].status, self.status)
 
     def test_write_to_status_table(self):
 
@@ -90,4 +96,3 @@ class TestGetCompatibilityData(unittest.TestCase):
 
         self.assertTrue(self.mock_checker.get_self_compatibility.called)
         self.assertTrue(self.mock_checker.get_pairwise_compatibility.called)
-        self.assertTrue(self.mock_store.save_compatibility_statuses.called)
