@@ -96,3 +96,11 @@ class TestGetCompatibilityData(unittest.TestCase):
 
         self.assertTrue(self.mock_checker.get_self_compatibility.called)
         self.assertTrue(self.mock_checker.get_pairwise_compatibility.called)
+        saved_results = self.fake_store._packages_to_compatibility_result.get(
+            frozenset({self.packages[0]}))
+        self.assertIsNotNone(saved_results)
+        self.assertEqual(len(saved_results), 4)
+        saved_item = saved_results[0]
+        self.assertEqual(saved_item.packages, self.packages)
+        self.assertEqual(saved_item.dependency_info, self.dependency_info)
+        self.assertEqual(saved_item.status, self.status)
