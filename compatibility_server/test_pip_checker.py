@@ -42,6 +42,7 @@ class TestPipChecker(unittest.TestCase):
         expected_dependency_info = {
             'six': {
                 'installed_version': '1.2.3',
+                'installed_version_time': '2018-05-10T15:00:00',
                 'latest_version': '1.2.4',
                 'current_time': '2018-06-13T16:13:33.744591',
                 'latest_version_time': '2018-06-13T18:29:51',
@@ -62,6 +63,11 @@ class TestPipChecker(unittest.TestCase):
                     {
                         'upload_time': '2018-06-13T18:29:51',
                     },
+                ],
+                '1.2.3': [
+                    {
+                        'upload_time': '2018-05-10T15:00:00',
+                    }
                 ],
             },
         }
@@ -95,6 +101,7 @@ class TestPipChecker(unittest.TestCase):
         expected_dependency_info = {
             'six': {
                 'installed_version': '1.2.3',
+                'installed_version_time': '2018-05-10T15:00:00',
                 'latest_version': '1.2.4',
                 'current_time': '2018-06-13T16:13:33.744591',
                 'latest_version_time': '2018-06-13T18:29:51',
@@ -115,6 +122,11 @@ class TestPipChecker(unittest.TestCase):
                     {
                         'upload_time': '2018-06-13T18:29:51',
                     },
+                ],
+                '1.2.3': [
+                    {
+                        'upload_time': '2018-05-10T15:00:00',
+                    }
                 ],
             },
         }
@@ -164,6 +176,7 @@ class TestPipChecker(unittest.TestCase):
         expected_dependency_info = {
             'six': {
                 'installed_version': '1.2.3',
+                'installed_version_time': '2018-05-10T15:00:00',
                 'latest_version': '1.2.4',
                 'current_time': '2018-06-13T16:13:33.744591',
                 'latest_version_time': '2018-06-13T18:29:51',
@@ -184,6 +197,11 @@ class TestPipChecker(unittest.TestCase):
                     {
                         'upload_time': '2018-06-13T18:29:51',
                     },
+                ],
+                '1.2.3': [
+                    {
+                        'upload_time': '2018-05-10T15:00:00',
+                    }
                 ],
             },
         }
