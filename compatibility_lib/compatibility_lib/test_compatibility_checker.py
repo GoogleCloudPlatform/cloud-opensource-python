@@ -57,77 +57,88 @@ class TestCompatibilityChecker(unittest.TestCase):
             compatibility_checker.SERVER_URL, json.dumps(data).encode('utf-8'))
         mock_request.urlopen.assert_called_with(request)
 
-    def test_get_self_compatibility(self):
-        import itertools
+    def _mock_retrying_check(self, *args):
+        packages = args[0][0]
+        python_version = args[0][1]
+        return (packages, python_version, 'SUCCESS')
 
+    def test_get_self_compatibility(self):
         checker = compatibility_checker.CompatibilityChecker()
 
         pkg_list = ['pkg1', 'pkg2']
         python_version = 3
-        pkg_and_version = (
-            (([pkg], python_version) for pkg in pkg_list))
 
         mock_config = mock.Mock()
         mock_config.PKG_LIST = pkg_list
         patch_config = mock.patch(
             'compatibility_lib.compatibility_checker.configs', mock_config)
 
-        mock_concurrent = mock.Mock()
-        mock_thread = mock.Mock()
-        mock_concurrent.ThreadPoolExecutor.return_value = mock_thread
-        mock_p = mock.Mock()
-        mock_p.map.return_value = pkg_and_version
-        mock_thread.__enter__ = mock.Mock(return_value=mock_p)
-        mock_thread.__exit__ = mock.Mock(return_value=None)
-        patch_concurrent = mock.patch(
-            'compatibility_lib.compatibility_checker.concurrent.futures',
-            mock_concurrent)
+        patch_executor = mock.patch(
+            'compatibility_lib.compatibility_checker.concurrent.futures.ThreadPoolExecutor',
+            FakeExecutor)
+        patch_retrying_check = mock.patch.object(
+            compatibility_checker.CompatibilityChecker,
+            'retrying_check',
+            self._mock_retrying_check)
 
         res = []
-        with patch_config, patch_concurrent:
+        with patch_config, patch_executor, patch_retrying_check:
             result = checker.get_self_compatibility(python_version)
 
             for item in result:
                 res.append(item)
 
-        self.assertTrue(mock_p.map.called)
-        self.assertEqual(res, [((['pkg1'], 3),), ((['pkg2'], 3),)])
+        self.assertEqual(res,
+                         [((['pkg1'], 3, 'SUCCESS'),),
+                          ((['pkg2'], 3, 'SUCCESS'),)])
 
     def test_get_pairwise_compatibility(self):
-        import itertools
-
         checker = compatibility_checker.CompatibilityChecker()
 
         pkg_list = ['pkg1', 'pkg2', 'pkg3']
         python_version = 3
-        pkg_sets = itertools.combinations(pkg_list, 2)
-        pkg_and_version = (
-            (list(pkg_set), python_version) for pkg_set in pkg_sets)
 
         mock_config = mock.Mock()
         mock_config.PKG_LIST = pkg_list
         patch_config = mock.patch(
             'compatibility_lib.compatibility_checker.configs', mock_config)
 
-        mock_concurrent = mock.Mock()
-        mock_thread = mock.Mock()
-        mock_concurrent.ThreadPoolExecutor.return_value = mock_thread
-        mock_p = mock.Mock()
-        mock_p.map.return_value = pkg_and_version
-        mock_thread.__enter__ = mock.Mock(return_value=mock_p)
-        mock_thread.__exit__ = mock.Mock(return_value=None)
-        patch_concurrent = mock.patch(
-            'compatibility_lib.compatibility_checker.concurrent.futures',
-            mock_concurrent)
+        patch_executor = mock.patch(
+            'compatibility_lib.compatibility_checker.concurrent.futures.ThreadPoolExecutor',
+            FakeExecutor)
+        patch_retrying_check = mock.patch.object(
+            compatibility_checker.CompatibilityChecker,
+            'retrying_check',
+            self._mock_retrying_check)
+
 
         res = []
-        with patch_config, patch_concurrent:
+        with patch_config, patch_executor, patch_retrying_check:
             result = checker.get_pairwise_compatibility(python_version)
 
             for item in result:
                 res.append(item)
 
-        self.assertTrue(mock_p.map.called)
-        self.assertEqual(res, [((['pkg1', 'pkg2'], 3),),
-                               ((['pkg1', 'pkg3'], 3),),
-                               ((['pkg2', 'pkg3'], 3),)])
+        self.assertEqual(res,
+                         [((['pkg1', 'pkg2'], 3, 'SUCCESS'),),
+                          ((['pkg1', 'pkg3'], 3, 'SUCCESS'),),
+                          ((['pkg2', 'pkg3'], 3, 'SUCCESS'),)])
+
+
+class FakeExecutor(object):
+    def __init__(self, max_workers):
+        self.max_workers = max_workers
+
+    def map(self, check_func, pkgs):
+        results = []
+
+        for pkg in pkgs:
+            results.append(check_func(pkg))
+
+        return results
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        return None
