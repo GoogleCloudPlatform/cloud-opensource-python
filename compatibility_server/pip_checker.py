@@ -325,14 +325,23 @@ class _OneshotPipCheck():
 
             # For each release versions, first item is wheel file,
             # second is tar.gz file, we use the time of the wheel file.
+            installed_version_time = None
             latest_version_time = None
             if result is not None:
-                latest_release = result.get('releases').get(latest_version)
+                if 'releases' in result:
+                    latest_release = result.get('releases').get(
+                        latest_version)
+                    installed_release = result.get('releases').get(
+                        installed_version)
                 if latest_release:
                     latest_version_time = latest_release[0].get('upload_time')
+                if installed_release:
+                    installed_version_time = installed_release[0].get(
+                        'upload_time')
 
             pkg_info = {
                 'installed_version': installed_version,
+                'installed_version_time': installed_version_time,
                 'latest_version': latest_version,
                 'current_time': datetime.datetime.now().isoformat(),
                 'latest_version_time': latest_version_time,
