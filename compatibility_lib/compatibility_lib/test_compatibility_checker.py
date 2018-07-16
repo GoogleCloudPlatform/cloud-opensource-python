@@ -126,7 +126,7 @@ class TestCompatibilityChecker(unittest.TestCase):
 
 
 class FakeExecutor(object):
-    def __init__(self, max_workers):
+    def __init__(self, max_workers=10):
         self.max_workers = max_workers
 
     def map(self, check_func, pkgs):
