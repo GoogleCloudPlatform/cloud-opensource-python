@@ -22,7 +22,6 @@ from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
 from google.cloud import bigquery
 from google.cloud.bigquery import table
 
-from compatibility_lib import configs
 from compatibility_lib import package
 
 _DATASET_NAME = 'compatibility_checker'
@@ -48,6 +47,8 @@ class CompatibilityResult:
         status: The overall result of the compatibility check.
         details: A text description of the compatibility check. Will be None
             if the check succeeded.
+        dependency_info: The dict contains the dependency version info and
+            release time info.
         timestamp: The time at which the compatibility check was performed.
     """
 
@@ -178,7 +179,7 @@ class CompatibilityStore:
 
     @staticmethod
     def _compatibility_status_to_release_time_row(
-            cs: CompatibilityResult) -> List:
+            cs: CompatibilityResult) -> List[Mapping[str, Any]]:
         """Converts a CompatibilityResult into a dict which is a row for
         release time table."""
         if len(cs.packages) != 1 or cs.dependency_info is None:
@@ -380,6 +381,7 @@ class CompatibilityStore:
         if any(cs for cs in compatibility_statuses
                if len(cs.packages) not in [1, 2]):
             raise ValueError('CompatibilityResult must have 1 or 2 packages')
+
         rows = [self._compatibility_status_to_row(s) for s in
                 compatibility_statuses]
 
@@ -394,18 +396,17 @@ class CompatibilityStore:
                 self._pairwise_table,
                 pair_rows)
 
-        release_time_rows = []
-        # For py2 and py3, the release time info are the same, so we only
-        # record the py3 version by default. And also record py2 only packages.
+        release_time_rows = {}
         for cs in compatibility_statuses:
             if len(cs.packages) == 1:
-                if cs.python_major_version == '3' or \
-                        cs.packages[0].install_name in configs.PY2_ONLY_PKGS:
-                    row = self._compatibility_status_to_release_time_row(cs)
-                    if row:
-                        release_time_rows.extend(row)
+                install_name = cs.packages[0].install_name
+                row = self._compatibility_status_to_release_time_row(cs)
+                if row:
+                    release_time_rows[install_name] = row
 
-        if release_time_rows:
+        print(release_time_rows)
+
+        for row in release_time_rows.values():
             self._client.insert_rows(
                 self._release_time_table,
-                release_time_rows)
+                row)

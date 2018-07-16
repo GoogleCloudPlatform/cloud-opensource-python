@@ -58,7 +58,3 @@ PKG_LIST = [
     'gcloud',
     'oauth2client',
 ]
-
-PY2_ONLY_PKGS = [
-    'google-cloud-dataflow',
-]
