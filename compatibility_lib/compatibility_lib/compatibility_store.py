@@ -27,6 +27,7 @@ from compatibility_lib import package
 _DATASET_NAME = 'compatibility_checker'
 _SELF_COMPATIBILITY_STATUS_TABLE_NAME = 'self_compatibility_status'
 _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME = 'pairwise_compatibility_status'
+_RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME = 'release_time_for_dependencies'
 
 
 class Status(enum.Enum):
@@ -46,6 +47,8 @@ class CompatibilityResult:
         status: The overall result of the compatibility check.
         details: A text description of the compatibility check. Will be None
             if the check succeeded.
+        dependency_info: The dict contains the dependency version info and
+            release time info.
         timestamp: The time at which the compatibility check was performed.
     """
 
@@ -136,6 +139,12 @@ class CompatibilityStore:
         self._pairwise_table = self._client.get_table(dataset_ref.table(
             _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME))
 
+        self._release_time_table_id = (
+            '{}.{}'.format(
+                _DATASET_NAME, _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME))
+        self._release_time_table = self._client.get_table(dataset_ref.table(
+            _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME))
+
     @staticmethod
     def _row_to_compatibility_status(packages: Iterable[package.Package],
                                      row: table.Row) -> \
@@ -167,6 +176,28 @@ class CompatibilityStore:
                             cs.packages[1].install_name])
             row['install_name_lower'], row['install_name_higher'] = names
         return row
+
+    @staticmethod
+    def _compatibility_status_to_release_time_row(
+            cs: CompatibilityResult) -> List[Mapping[str, Any]]:
+        """Converts a CompatibilityResult into a dict which is a row for
+        release time table."""
+        if len(cs.packages) != 1 or cs.dependency_info is None:
+            return []
+        install_name = cs.packages[0].install_name
+        dependency_info = cs.dependency_info
+        rows = []
+
+        for pkg, version_info in dependency_info.items():
+            row = {
+                'install_name': install_name,
+                'dep_name': pkg,
+            }
+            row.update(version_info)
+            row['timestamp'] = row.pop('current_time')
+            rows.append(row)
+
+        return rows
 
     @staticmethod
     def _filter_older_versions(crs: Iterable[CompatibilityResult]) \
@@ -350,8 +381,10 @@ class CompatibilityStore:
         if any(cs for cs in compatibility_statuses
                if len(cs.packages) not in [1, 2]):
             raise ValueError('CompatibilityResult must have 1 or 2 packages')
+
         rows = [self._compatibility_status_to_row(s) for s in
                 compatibility_statuses]
+
         self_rows = [r for r in rows if 'install_name' in r]
         pair_rows = [r for r in rows if 'install_name' not in r]
         if self_rows:
@@ -362,3 +395,16 @@ class CompatibilityStore:
             self._client.insert_rows(
                 self._pairwise_table,
                 pair_rows)
+
+        release_time_rows = {}
+        for cs in compatibility_statuses:
+            if len(cs.packages) == 1:
+                install_name = cs.packages[0].install_name
+                row = self._compatibility_status_to_release_time_row(cs)
+                if row:
+                    release_time_rows[install_name] = row
+
+        for row in release_time_rows.values():
+            self._client.insert_rows(
+                self._release_time_table,
+                row)
