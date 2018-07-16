@@ -404,8 +404,6 @@ class CompatibilityStore:
                 if row:
                     release_time_rows[install_name] = row
 
-        print(release_time_rows)
-
         for row in release_time_rows.values():
             self._client.insert_rows(
                 self._release_time_table,
