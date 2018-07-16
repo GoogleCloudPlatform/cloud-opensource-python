@@ -93,8 +93,6 @@ class TestCompatibilityChecker(unittest.TestCase):
                           ((['pkg2'], 3, 'SUCCESS'),)])
 
     def test_get_pairwise_compatibility(self):
-        checker = compatibility_checker.CompatibilityChecker()
-
         pkg_list = ['pkg1', 'pkg2', 'pkg3']
         python_version = 3
 
@@ -111,9 +109,9 @@ class TestCompatibilityChecker(unittest.TestCase):
             'retrying_check',
             self._mock_retrying_check)
 
-
         res = []
         with patch_config, patch_executor, patch_retrying_check:
+            checker = compatibility_checker.CompatibilityChecker()
             result = checker.get_pairwise_compatibility(python_version)
 
             for item in result:
