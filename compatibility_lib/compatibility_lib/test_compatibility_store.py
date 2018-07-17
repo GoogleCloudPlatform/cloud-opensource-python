@@ -196,7 +196,7 @@ class TestCompatibilityStore(unittest.TestCase):
             res = store.get_self_compatibilities(packages)
 
         self.assertEqual(len(res), 4)
-        self.assertEqual(list(res.keys()), packages)
+        self.assertEqual(frozenset(res.keys()), frozenset(packages))
 
     def test_get_pair_compatibility_value_error(self):
         mock_client = mock.Mock()
