@@ -10,9 +10,14 @@
     "type": "STRING"
   },
   {
-    "mode": "REQUIRED",
+    "mode": "NULLABLE",
     "name": "installed_version",
     "type": "STRING"
+  },
+  {
+    "mode": "NULLABLE",
+    "name": "installed_version_time",
+    "type": "TIMESTAMP"
   },
   {
     "mode": "NULLABLE",
@@ -25,14 +30,13 @@
     "type": "TIMESTAMP"
   },
   {
-    "mode": "REQUIRED",
+    "mode": "NULLABLE",
     "name": "is_latest",
     "type": "BOOLEAN"
   },
   {
-    "mode": "REQUIRED",
+    "mode": "NULLABLE",
     "name": "timestamp",
     "type": "TIMESTAMP"
   }
 ]
-
