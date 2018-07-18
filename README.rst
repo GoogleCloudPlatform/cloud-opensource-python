@@ -14,7 +14,7 @@ Dependency Management Toolkit for Google Cloud Python Projects
 
 |circleci| |pypi|
 
-.. |circleci| image:: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python.svg?style=shield
+.. |circleci| image:: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python.svg
    :target: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master
 .. |pypi| image:: https://img.shields.io/pypi/v/compatibility_lib.svg
    :target: https://pypi.org/project/compatibility_lib/
