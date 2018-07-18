@@ -172,12 +172,12 @@ class TestCompatibilityStore(unittest.TestCase):
         packages = [PACKAGE_1, PACKAGE_2, PACKAGE_3, PACKAGE_4]
         rows = []
         for pkg in packages:
-            row = mock.Mock()
-            row.install_name = pkg.install_name
-            row.status = 'SUCCESS'
-            row.py_version = '3'
-            row.timestamp = '2018-07-17 01:07:08.936648 UTC'
-            row.details = None
+            row = mock.Mock(
+                install_name=pkg.install_name,
+                status='SUCCESS',
+                py_version='3',
+                timestamp='2018-07-17 01:07:08.936648 UTC',
+                details=None)
             rows.append(row)
 
         mock_client.query.return_value = rows
@@ -199,6 +199,8 @@ class TestCompatibilityStore(unittest.TestCase):
         self.assertEqual(frozenset(res.keys()), frozenset(packages))
 
     def test_get_pair_compatibility_value_error(self):
+        # get_pair_compatibility needs 2 packages to run the check, or it will
+        # raise ValueError.
         mock_client = mock.Mock()
 
         def MockClient():
