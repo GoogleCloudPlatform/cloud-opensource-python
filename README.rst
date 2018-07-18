@@ -12,10 +12,12 @@ Dependency Management Toolkit for Google Cloud Python Projects
     dependency management, CI, and release process, thus ensuring compatibility
     across all of our GCP Python open source libraries for our end-users.
 
-|circleci|
+|circleci| |pypi|
 
 .. |circleci| image:: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python.svg?style=shield
    :target: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master
+.. |pypi| image:: https://img.shields.io/pypi/v/compatibility_lib.svg
+   :target: https://pypi.org/project/compatibility_lib/
 
 -  `Compatibility Status Dashboard`_
 
