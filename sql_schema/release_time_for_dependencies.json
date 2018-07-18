@@ -15,6 +15,7 @@
     "type": "STRING"
   },
   {
+    "mode": "NULLABLE",
     "name": "installed_version_time",
     "type": "TIMESTAMP"
   },
@@ -24,6 +25,7 @@
     "type": "STRING"
   },
   {
+    "mode": "NULLABLE",
     "name": "latest_version_time",
     "type": "TIMESTAMP"
   },
