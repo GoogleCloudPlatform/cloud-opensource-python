@@ -15,7 +15,7 @@
 """
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
 $ flask run
- * Running on http://127.0.0.1:5000/
+ * Running on http://localhost:8080/
 """
 import cachetools
 import flask
