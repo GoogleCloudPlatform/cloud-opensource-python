@@ -16,6 +16,11 @@
   },
   {
     "mode": "NULLABLE",
+    "name": "installed_version_time",
+    "type": "TIMESTAMP"
+  },
+  {
+    "mode": "NULLABLE",
     "name": "latest_version",
     "type": "STRING"
   },
@@ -35,4 +40,3 @@
     "type": "TIMESTAMP"
   }
 ]
-
