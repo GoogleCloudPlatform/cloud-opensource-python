@@ -17,9 +17,11 @@
 $ flask run
  * Running on http://localhost:8080/
 """
-import cachetools
 import flask
 import requests
+import socket
+
+from pymemcache.client.hash import HashClient
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
@@ -30,34 +32,35 @@ app = flask.Flask(__name__)
 
 # Cache storing the package name associated with its check results.
 # {
-#     'package1':{
-#         'dep_badge':{},
-#         'self_comp_badge': {
-#             'py2':{
-#                 'status': 'SUCCESS',
-#                 'details': None,
-#             },
-#             'py3':{
-#                 'status': 'CHECK_WARNING',
-#                 'details': '...',
-#             }
+#     'pkg1_dep_badge':{},
+#     'pkg1_self_comp_badge': {
+#         'py2':{
+#             'status': 'SUCCESS',
+#             'details': None,
 #         },
-#         'google_comp_badge': {
-#             'py2':{
-#                 'status': 'SUCCESS',
-#                 'details': None,
-#             },
-#             'py3':{
-#                 'status': 'CHECK_WARNING',
-#                 'details': {
-#                     'package1': '...',
-#                 },
-#             }
-#         },
-#         'api_badge':{},
+#         'py3':{
+#             'status': 'CHECK_WARNING',
+#             'details': '...',
+#         }
 #     },
+#     'pkg1_google_comp_badge': {
+#         'py2':{
+#             'status': 'SUCCESS',
+#             'details': None,
+#         },
+#         'py3':{
+#             'status': 'CHECK_WARNING',
+#             'details': {
+#                 'package1': '...',
+#             },
+#         }
+#     },
+#     'pkg1_api_badge':{},
 # }
-cache = cachetools.LRUCache(maxsize=100)
+_, _, ips = socket.gethostbyname_ex(
+    'mycache-memcached.default.svc.cluster.local')
+servers = [(ip, 11211) for ip in ips]
+client = HashClient(servers, use_pooling=True)
 
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
@@ -71,7 +74,7 @@ PY_VER_MAPPING = {
 
 STATUS_COLOR_MAPPING = {
     'SUCCESS': 'green',
-    'UNKNOWN': 'grey',
+    'UNKNOWN': 'black',
     'INSTALL_ERROR': 'orange',
     'CHECK_WARNING': 'red',
 }
@@ -90,14 +93,15 @@ def _get_pair_status_for_packages(pkg_sets, version_and_res):
             py_version = PY_VER_MAPPING[res.python_major_version]
             # Status showing one of the check failures
             if res.status.value != 'SUCCESS':
-                version_and_res[py_version]['status'] = res.status.value
-                version_and_res[py_version]['details'] = res.details
+                version_and_res[py_version]['status'] = str(res.status.value)
+                version_and_res[py_version]['details'] = str(res.details)
 
     return version_and_res
 
 
 def _get_badge_url(version_and_res, package_name):
     # By default use the status of py3
+    package_name = package_name.replace('-', '.')
     status = version_and_res['py3']['status']
     if status != 'SUCCESS':
         status = version_and_res['py2']['status']
@@ -107,6 +111,11 @@ def _get_badge_url(version_and_res, package_name):
         package_name, status, color)
 
     return url
+
+
+@app.route('/')
+def greetings():
+    return 'hello world'
 
 
 @app.route('/dependency_badge')
@@ -146,17 +155,15 @@ def self_compatibility_badge_image():
         py2_res = checker.check([package_name], '2')
         py3_res = checker.check([package_name], '3')
 
-        version_and_res['py2']['status'] = py2_res.get('result')
-        version_and_res['py2']['details'] = py2_res.get('description')
-        version_and_res['py3']['status'] = py3_res.get('result')
-        version_and_res['py3']['details'] = py3_res.get('description')
+        version_and_res['py2']['status'] = str(py2_res.get('result'))
+        version_and_res['py2']['details'] = str(py2_res.get('description'))
+        version_and_res['py3']['status'] = str(py3_res.get('result'))
+        version_and_res['py3']['details'] = str(py3_res.get('description'))
 
     url = _get_badge_url(version_and_res, package_name)
 
     # Write the result to cache
-    cache[package_name] = {
-        SELF_COMP_BADGE : version_and_res,
-    }
+    client.set('{}_self_comp_badge'.format(package_name), version_and_res)
 
     return requests.get(url).text
 
@@ -178,10 +185,8 @@ def self_compatibility_badge_target():
       }
     """
     package_name = flask.request.args.get('package')
-    pkg_res = cache.get(package_name)
-    self_comp_res = 'None'
-    if pkg_res is not None:
-        self_comp_res = pkg_res.get(SELF_COMP_BADGE)
+    self_comp_res = client.get(
+        '{}_self_comp_badge'.format(package_name))
 
     return str(self_comp_res)
 
@@ -215,16 +220,15 @@ def google_compatibility_badge_image():
                 status = res.get('result')
                 if status != 'SUCCESS':
                     # Status showing one of the check failures
-                    version_and_res[py_version]['status'] = res.get('result')
+                    version_and_res[py_version]['status'] = str(
+                        res.get('result'))
                     version_and_res[py_version]['details'][pkg_set[1]] = \
-                        res.get('description')
+                        str(res.get('description'))
 
     url = _get_badge_url(version_and_res, package_name)
 
     # Write the result to cache
-    cache[package_name] = {
-        GOOGLE_COMP_BADGE: version_and_res,
-    }
+    client.set('{}_google_comp_badge'.format(package_name), version_and_res)
 
     return requests.get(url).text
 
@@ -248,10 +252,8 @@ def google_compatibility_badge_target():
           }
     """
     package_name = flask.request.args.get('package')
-    pkg_res = cache.get(package_name)
-    google_comp_res = 'None'
-    if pkg_res is not None:
-        google_comp_res = pkg_res.get(GOOGLE_COMP_BADGE)
+    google_comp_res = client.get(
+        '{}_google_comp_badge'.format(package_name))
 
     return str(google_comp_res)
 
@@ -263,4 +265,4 @@ def api_badge():
 
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=8080)
+    app.run(host='0.0.0.0', port=8080)
