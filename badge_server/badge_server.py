@@ -14,12 +14,16 @@
 
 """
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
-$ flask run
- * Running on http://localhost:8080/
+docker build -t gcr.io/python-compatibility-tools/badge_server:v1 .
+gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:v1
+kubectl apply -f deployment/app-with-secret.yaml
 """
 import flask
+import json
+import logging
 import requests
 import socket
+import threading
 
 from pymemcache.client.hash import HashClient
 
@@ -58,7 +62,7 @@ app = flask.Flask(__name__)
 #     'pkg1_api_badge':{},
 # }
 _, _, ips = socket.gethostbyname_ex(
-    'mycache-memcached.default.svc.cluster.local')
+    'badge-cache-memcached.default.svc.cluster.local')
 servers = [(ip, 11211) for ip in ips]
 client = HashClient(servers, use_pooling=True)
 
@@ -77,7 +81,10 @@ STATUS_COLOR_MAPPING = {
     'UNKNOWN': 'black',
     'INSTALL_ERROR': 'orange',
     'CHECK_WARNING': 'red',
+    'CALCULATING': 'blue',
 }
+
+EMPTY_DETAILS = 'NO DETAILS'
 
 DEP_BADGE = 'dep_badge'
 SELF_COMP_BADGE = 'self_comp_badge'
@@ -85,7 +92,17 @@ GOOGLE_COMP_BADGE = 'google_comp_badge'
 API_BADGE = 'api_badge'
 
 
-def _get_pair_status_for_packages(pkg_sets, version_and_res):
+def _get_pair_status_for_packages(pkg_sets):
+    version_and_res = {
+        'py2': {
+            'status': 'SUCCESS',
+            'details': {},
+        },
+        'py3': {
+            'status': 'SUCCESS',
+            'details': {},
+        }
+    }
     for pkg_set in pkg_sets:
         pkgs = [package_module.Package(pkg) for pkg in pkg_set]
         pair_res = store.get_pair_compatibility(pkgs)
@@ -93,9 +110,9 @@ def _get_pair_status_for_packages(pkg_sets, version_and_res):
             py_version = PY_VER_MAPPING[res.python_major_version]
             # Status showing one of the check failures
             if res.status.value != 'SUCCESS':
-                version_and_res[py_version]['status'] = str(res.status.value)
-                version_and_res[py_version]['details'] = str(res.details)
-
+                version_and_res[py_version]['status'] = res.status.value
+                version_and_res[py_version]['details'][pkg_set[1]] = \
+                    res.details if res.details is not None else EMPTY_DETAILS
     return version_and_res
 
 
@@ -134,36 +151,64 @@ def self_compatibility_badge_image():
 
     version_and_res = {
         'py2': {
-            'status': None,
+            'status': 'CALCULATING',
             'details': None,
         },
         'py3': {
-            'status': None,
+            'status': 'CALCULATING',
             'details': None,
         }
     }
 
-    # First see if this package is already stored in BigQuery.
-    if compatibility_status:
-        for res in compatibility_status:
-            py_version = PY_VER_MAPPING[res.python_major_version]
-            version_and_res[py_version]['status'] = res.status.value
-            version_and_res[py_version]['details'] = res.details
+    def run_check():
+        # First see if this package is already stored in BigQuery.
+        if compatibility_status:
+            for res in compatibility_status:
+                py_version = PY_VER_MAPPING[res.python_major_version]
+                version_and_res[py_version]['status'] = res.status.value
+                version_and_res[py_version]['details'] = res.details \
+                    if res.details is not None else EMPTY_DETAILS
 
-    # If not pre stored in BigQuery, run the check for the package.
+        # If not pre stored in BigQuery, run the check for the package.
+        else:
+            py2_res = checker.check([package_name], '2')
+            py3_res = checker.check([package_name], '3')
+
+            version_and_res['py2']['status'] = py2_res.get('result')
+            py2_description = py2_res.get('description')
+            py2_details = EMPTY_DETAILS if py2_description is None \
+                else py2_description
+            version_and_res['py2']['details'] = py2_details
+            version_and_res['py3']['status'] = py3_res.get('result')
+            py3_description = py3_res.get('description')
+            py3_details = EMPTY_DETAILS if py3_description is None \
+                else py3_description
+            version_and_res['py3']['details'] = py3_details
+
+        url = _get_badge_url(version_and_res, package_name)
+
+        # Write the result to cache
+        client.set('{}_self_comp_badge'.format(package_name), version_and_res)
+        return requests.get(url).text
+
+    self_comp_res = client.get(
+        '{}_self_comp_badge'.format(package_name))
+    threading.Thread(target=run_check).start()
+
+    if self_comp_res is not None:
+        try:
+            self_comp_res = json.loads(
+                self_comp_res.decode().replace('\'', '"'))
+            details = self_comp_res
+        except json.decoder.JSONDecodeError:
+            logging.error(
+                'Error occurs while converting to json, value is {}.'.format(
+                    self_comp_res))
+            details = version_and_res
     else:
-        py2_res = checker.check([package_name], '2')
-        py3_res = checker.check([package_name], '3')
+        details = version_and_res
 
-        version_and_res['py2']['status'] = str(py2_res.get('result'))
-        version_and_res['py2']['details'] = str(py2_res.get('description'))
-        version_and_res['py3']['status'] = str(py3_res.get('result'))
-        version_and_res['py3']['details'] = str(py3_res.get('description'))
-
-    url = _get_badge_url(version_and_res, package_name)
-
-    # Write the result to cache
-    client.set('{}_self_comp_badge'.format(package_name), version_and_res)
+    url = _get_badge_url(details, package_name)
 
     return requests.get(url).text
 
@@ -198,37 +243,62 @@ def google_compatibility_badge_image():
     to one of the failure types, details can be found at the target link."""
     package_name = flask.request.args.get('package')
 
-    version_and_res = {
+    default_version_and_res = {
         'py2': {
-            'status': 'SUCCESS',
+            'status': 'CALCULATING',
             'details': {},
         },
         'py3': {
-            'status': 'SUCCESS',
+            'status': 'CALCULATING',
             'details': {},
         }
     }
-    pkg_sets = [[package_name, pkg] for pkg in configs.PKG_LIST]
-    if package_name in configs.PKG_LIST:
-        version_and_res = _get_pair_status_for_packages(
-            pkg_sets, version_and_res)
+
+    def run_check():
+        pkg_sets = [[package_name, pkg] for pkg in configs.PKG_LIST]
+        if package_name in configs.PKG_LIST:
+            result = _get_pair_status_for_packages(pkg_sets)
+        else:
+            for pkg_set in pkg_sets:
+                for py_ver in [2, 3]:
+                    py_version = PY_VER_MAPPING[py_ver]
+                    res = checker.check(pkg_set, str(py_ver))
+                    status = res.get('result')
+                    if status != 'SUCCESS':
+                        # Status showing one of the check failures
+                        default_version_and_res[
+                            py_version]['status'] = res.get('result')
+                        description = res.get('description')
+                        details = EMPTY_DETAILS if description is None \
+                            else description
+                        default_version_and_res[
+                            py_version]['details'][pkg_set[1]] = details
+            result = default_version_and_res
+
+        # Write the result to cache
+        client.set(
+            '{}_google_comp_badge'.format(package_name), result)
+        url = _get_badge_url(result, package_name)
+        return requests.get(url).text
+
+    google_comp_res = client.get(
+        '{}_google_comp_badge'.format(package_name))
+    threading.Thread(target=run_check).start()
+
+    if google_comp_res is not None:
+        try:
+            google_comp_res = json.loads(
+                google_comp_res.decode().replace('\'', '"'))
+            details = google_comp_res
+        except json.decoder.JSONDecodeError:
+            logging.error(
+                'Error occurs while converting to json, value is {}.'.format(
+                    google_comp_res))
+            details = default_version_and_res
     else:
-        for pkg_set in pkg_sets:
-            for py_ver in [2, 3]:
-                py_version = PY_VER_MAPPING[py_ver]
-                res = checker.check(pkg_set, str(py_ver))
-                status = res.get('result')
-                if status != 'SUCCESS':
-                    # Status showing one of the check failures
-                    version_and_res[py_version]['status'] = str(
-                        res.get('result'))
-                    version_and_res[py_version]['details'][pkg_set[1]] = \
-                        str(res.get('description'))
+        details = default_version_and_res
 
-    url = _get_badge_url(version_and_res, package_name)
-
-    # Write the result to cache
-    client.set('{}_google_comp_badge'.format(package_name), version_and_res)
+    url = _get_badge_url(details, package_name)
 
     return requests.get(url).text
 
