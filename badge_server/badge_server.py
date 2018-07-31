@@ -13,13 +13,17 @@
 # limitations under the License.
 
 """
+URL for creating the badge:
+[TODO] Switch to use pybadges once figure out the module not found issue.
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
+
+Commands for build the docker image and deploy to GKE:
 docker build -t gcr.io/python-compatibility-tools/badge_server:v1 .
 gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:v1
 kubectl apply -f deployment/app-with-secret.yaml
 """
+import ast
 import flask
-import json
 import logging
 import requests
 import socket
@@ -82,6 +86,23 @@ STATUS_COLOR_MAPPING = {
     'INSTALL_ERROR': 'orange',
     'CHECK_WARNING': 'red',
     'CALCULATING': 'blue',
+    'CONVERSION_ERROR': 'orange',
+}
+
+CONVERSION_ERROR_RES = {
+    'py2': {
+        'status': 'CONVERSION_ERROR',
+        'details': None,
+    },
+    'py3': {
+        'status': 'CONVERSION_ERROR',
+        'details': None,
+    }
+}
+
+PKG_PY_VERSION_NOT_SUPPORTED = {
+    2: ['tensorflow', ],
+    3: ['google-cloud-dataflow', ],
 }
 
 EMPTY_DETAILS = 'NO DETAILS'
@@ -117,10 +138,12 @@ def _get_pair_status_for_packages(pkg_sets):
 
 
 def _get_badge_url(version_and_res, package_name):
-    # By default use the status of py3
+    # By default use the status of py3, if it is not SUCCESS, and it can be
+    # installed with python2, then use the result of python2.
     package_name = package_name.replace('-', '.')
     status = version_and_res['py3']['status']
-    if status != 'SUCCESS':
+    if status != 'SUCCESS' and \
+                    package_name not in PKG_PY_VERSION_NOT_SUPPORTED.get(2):
         status = version_and_res['py2']['status']
 
     color = STATUS_COLOR_MAPPING[status]
@@ -133,13 +156,6 @@ def _get_badge_url(version_and_res, package_name):
 @app.route('/')
 def greetings():
     return 'hello world'
-
-
-@app.route('/dependency_badge')
-def dependency_badge():
-    """TODO: Badge showing whether the dependencies of a project is
-    up-to-date."""
-    pass
 
 
 @app.route('/self_compatibility_badge/image')
@@ -197,14 +213,12 @@ def self_compatibility_badge_image():
 
     if self_comp_res is not None:
         try:
-            self_comp_res = json.loads(
-                self_comp_res.decode().replace('\'', '"'))
-            details = self_comp_res
-        except json.decoder.JSONDecodeError:
+            details = ast.literal_eval(self_comp_res.decode('utf-8'))
+        except SyntaxError:
             logging.error(
-                'Error occurs while converting to json, value is {}.'.format(
+                'Error occurs while converting to dict, value is {}.'.format(
                     self_comp_res))
-            details = version_and_res
+            details = CONVERSION_ERROR_RES
     else:
         details = version_and_res
 
@@ -217,7 +231,7 @@ def self_compatibility_badge_image():
 def self_compatibility_badge_target():
     """Return the dict which contains the self compatibility status and details
     for py2 and py3.
-    
+
     e.g. {
           'py2':{
               'status': 'SUCCESS',
@@ -265,6 +279,10 @@ def google_compatibility_badge_image():
                     res = checker.check(pkg_set, str(py_ver))
                     status = res.get('result')
                     if status != 'SUCCESS':
+                        # Ignore the package that not support for given py_ver
+                        if pkg_set[1] in PKG_PY_VERSION_NOT_SUPPORTED.get(
+                                py_ver):
+                            continue
                         # Status showing one of the check failures
                         default_version_and_res[
                             py_version]['status'] = res.get('result')
@@ -287,14 +305,12 @@ def google_compatibility_badge_image():
 
     if google_comp_res is not None:
         try:
-            google_comp_res = json.loads(
-                google_comp_res.decode().replace('\'', '"'))
-            details = google_comp_res
-        except json.decoder.JSONDecodeError:
+            details = ast.literal_eval(google_comp_res.decode('utf-8'))
+        except SyntaxError:
             logging.error(
-                'Error occurs while converting to json, value is {}.'.format(
+                'Error occurs while converting to dict, value is {}.'.format(
                     google_comp_res))
-            details = default_version_and_res
+            details = CONVERSION_ERROR_RES
     else:
         details = default_version_and_res
 
@@ -326,12 +342,6 @@ def google_compatibility_badge_target():
         '{}_google_comp_badge'.format(package_name))
 
     return str(google_comp_res)
-
-
-@app.route('/api_badge')
-def api_badge():
-    """TODO: Badge showing whether a package satisfies semantic versioning."""
-    pass
 
 
 if __name__ == '__main__':
