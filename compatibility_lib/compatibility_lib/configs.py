@@ -54,7 +54,5 @@ PKG_LIST = [
     'protorpc',
     'tensorboard',
     'tensorflow',
-    'google-cloud',
     'gcloud',
-    'oauth2client',
 ]
