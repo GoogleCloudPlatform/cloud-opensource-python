@@ -105,6 +105,8 @@ PKG_PY_VERSION_NOT_SUPPORTED = {
     3: ['google-cloud-dataflow', ],
 }
 
+SVG_CONTENT_TYPE = 'image/svg+xml'
+
 EMPTY_DETAILS = 'NO DETAILS'
 
 DEP_BADGE = 'dep_badge'
@@ -223,8 +225,10 @@ def self_compatibility_badge_image():
         details = version_and_res
 
     url = _get_badge_url(details, package_name)
+    response = flask.make_response(requests.get(url).text)
+    response.content_type = SVG_CONTENT_TYPE
 
-    return requests.get(url).text
+    return response
 
 
 @app.route('/self_compatibility_badge/target')
@@ -315,8 +319,10 @@ def google_compatibility_badge_image():
         details = default_version_and_res
 
     url = _get_badge_url(details, package_name)
+    response = flask.make_response(requests.get(url).text)
+    response.content_type = SVG_CONTENT_TYPE
 
-    return requests.get(url).text
+    return response
 
 
 @app.route('/google_compatibility_badge/target')
