@@ -26,6 +26,7 @@ Dependency Management Toolkit for Google Cloud Python Projects
 -  Compatibility check results
 
 CHECK_TYPE    |RESULT
+-|-
 Self Compatibility  |  |self_compatibility|
 
 .. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
