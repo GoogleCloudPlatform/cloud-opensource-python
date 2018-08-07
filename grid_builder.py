@@ -53,9 +53,11 @@ class _ResultHolder():
         if result.status == compatibility_store.Status.INSTALL_ERROR:
             for version in [2, 3]:
                 for pkg in result.packages:
-                    if result.python_major_version == version and \
-                            pkg.install_name in \
-                                configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
+                    major_version = result.python_major_version
+                    name = pkg.install_name
+                    unsupported = configs.PKG_PY_VERSION_NOT_SUPPORTED[version]
+
+                    if major_version == version and name in unsupported:
                         return True
         return False
 
