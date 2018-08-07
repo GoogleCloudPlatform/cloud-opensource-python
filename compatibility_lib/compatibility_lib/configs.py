@@ -56,3 +56,8 @@ PKG_LIST = [
     'tensorflow',
     'gcloud',
 ]
+
+PKG_PY_VERSION_NOT_SUPPORTED = {
+    2: ['tensorflow', ],
+    3: ['google-cloud-dataflow', ],
+}

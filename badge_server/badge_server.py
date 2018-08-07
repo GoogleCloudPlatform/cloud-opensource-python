@@ -100,11 +100,6 @@ CONVERSION_ERROR_RES = {
     }
 }
 
-PKG_PY_VERSION_NOT_SUPPORTED = {
-    2: ['tensorflow', ],
-    3: ['google-cloud-dataflow', ],
-}
-
 SVG_CONTENT_TYPE = 'image/svg+xml'
 
 EMPTY_DETAILS = 'NO DETAILS'
@@ -145,7 +140,7 @@ def _get_badge_url(version_and_res, package_name):
     package_name = package_name.replace('-', '.')
     status = version_and_res['py3']['status']
     if status != 'SUCCESS' and \
-                    package_name not in PKG_PY_VERSION_NOT_SUPPORTED.get(2):
+            package_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
         status = version_and_res['py2']['status']
 
     color = STATUS_COLOR_MAPPING[status]
@@ -284,7 +279,8 @@ def google_compatibility_badge_image():
                     status = res.get('result')
                     if status != 'SUCCESS':
                         # Ignore the package that not support for given py_ver
-                        if pkg_set[1] in PKG_PY_VERSION_NOT_SUPPORTED.get(
+                        if pkg_set[1] in \
+                                configs.PKG_PY_VERSION_NOT_SUPPORTED.get(
                                 py_ver):
                             continue
                         # Status showing one of the check failures

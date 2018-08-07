@@ -49,6 +49,17 @@ class _ResultHolder():
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
 
+    def _is_py_version_incompatible(self, result):
+        if result.status == compatibility_store.Status.INSTALL_ERROR:
+            for version in [2, 3]:
+                for pkg in result.packages:
+                    if result.python_major_version == version and \
+                            pkg.install_name in \
+                                configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
+                        return True
+        return False
+
+
     def get_result(self,
                    package_1: package.Package,
                    package_2: package.Package) -> Mapping[str, str]:
@@ -83,7 +94,8 @@ class _ResultHolder():
                 self._package_to_results[package_2])
 
         for pr in package_results:
-            if pr.status != compatibility_store.Status.SUCCESS:
+            if not self._is_py_version_incompatible(pr) and \
+                            pr.status != compatibility_store.Status.SUCCESS:
                 return {
                     'status': pr.status.value,
                     'self': True,
@@ -104,7 +116,8 @@ class _ResultHolder():
                     'self': False,
                 }
             for pr in pairwise_results:
-                if pr.status != compatibility_store.Status.SUCCESS:
+                if not self._is_py_version_incompatible(pr) and \
+                            pr.status != compatibility_store.Status.SUCCESS:
                     return {
                         'status': pr.status.value,
                         'self': False,
