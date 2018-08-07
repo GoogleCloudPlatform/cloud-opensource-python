@@ -254,7 +254,9 @@ class TestGridBuilder(unittest.TestCase):
         self.assertIn("Installation failure", html_grid)
 
     def test_not_show_py_ver_incompatible_results(self):
-        """CompatibilityResult failure between pair of packages."""
+        """CompatibilityResult failure between pair of packages. Do not display
+        the packages that are incompatible with a specific Python version.
+        """
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
