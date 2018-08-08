@@ -14,6 +14,7 @@
 
 """Tests for grid_builder."""
 
+import mock
 import unittest
 
 from compatibility_lib import compatibility_store
@@ -24,6 +25,7 @@ import grid_builder
 
 PACKAGE_1 = package.Package("package1")
 PACKAGE_2 = package.Package("package2")
+PACKAGE_3 = package.Package("package3")
 
 
 class TestResultHolder(unittest.TestCase):
@@ -250,3 +252,38 @@ class TestGridBuilder(unittest.TestCase):
         grid = grid_builder.GridBuilder(store)
         html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
         self.assertIn("Installation failure", html_grid)
+
+    def test_not_show_py_ver_incompatible_results(self):
+        """CompatibilityResult failure between pair of packages. Do not display
+        the packages that are incompatible with a specific Python version.
+        """
+        store = fake_compatibility_store.CompatibilityStore()
+        store.save_compatibility_statuses([
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS
+            ),
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_3],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR
+            ),
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1, PACKAGE_3],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                details="Installation failure"
+            ),
+        ])
+        patch = mock.patch(
+            'compatibility_lib.configs.PKG_PY_VERSION_NOT_SUPPORTED', {
+            2: ['package4'],
+            3: ['package3'],
+        })
+
+        with patch:
+            grid = grid_builder.GridBuilder(store)
+            html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+
+        self.assertNotIn("Installation failure", html_grid)
