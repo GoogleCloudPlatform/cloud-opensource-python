@@ -52,13 +52,15 @@ class CompatibilityChecker(object):
         python_version = args[1]
         return self.check(packages, python_version)
 
-    def get_self_compatibility(self, python_version):
+    def get_self_compatibility(self, python_version, packages=None):
+        if packages is None:
+            packages = configs.PKG_LIST
         """Get the self compatibility data for each package."""
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             pkg_set_results = p.map(
                 self.retrying_check,
-                (([pkg], python_version) for pkg in configs.PKG_LIST))
+                (([pkg], python_version) for pkg in packages))
 
             for result in zip(pkg_set_results):
                 yield result
@@ -75,15 +77,10 @@ class CompatibilityChecker(object):
             for result in zip(pkg_set_results):
                 yield result
 
-    # TODO: delete this method and refactor get_self_compatibility
     def get_dependency_info(self, package_name, python_version):
-        """Get the self compatibility data for each package."""
+        """Get the self dependency info for each package."""
         pkgs = [package_name]
-        with concurrent.futures.ThreadPoolExecutor(
-                max_workers=self.max_workers) as p:
-            pkg_set_results = p.map(
-                self.retrying_check,
-                (([pkg], python_version) for pkg in pkgs))
+        _result = self.get_self_compatibility(python_version, pkgs)
+        result = [item for item in _result]
+        return result[0][0].get('dependency_info')
 
-            for result in zip(pkg_set_results):
-                yield result
