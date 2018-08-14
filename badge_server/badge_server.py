@@ -23,13 +23,14 @@ gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:v1
 kubectl apply -f deployment/app-with-secret.yaml
 """
 import ast
-import flask
 import logging
+import os
 import requests
-import socket
 import threading
 
-from pymemcache.client.hash import HashClient
+import flask
+import redis
+
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
@@ -65,10 +66,10 @@ app = flask.Flask(__name__)
 #     },
 #     'pkg1_api_badge':{},
 # }
-_, _, ips = socket.gethostbyname_ex(
-    'badge-cache-memcached.default.svc.cluster.local')
-servers = [(ip, 11211) for ip in ips]
-client = HashClient(servers, use_pooling=True)
+
+redis_host = os.environ.get('REDISHOST', '10.0.0.3')
+redis_port = int(os.environ.get('REDISPORT', 6379))
+redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
 
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
@@ -155,12 +156,17 @@ def greetings():
     return 'hello world'
 
 
+# Endpoint for testing redis connection.
+@app.route('/redis')
+def index():
+    value = redis_client.incr('counter', 1)
+    return 'Visitor number: {}'.format(value)
+
+
 @app.route('/self_compatibility_badge/image')
 def self_compatibility_badge_image():
     """Badge showing whether a package is compatible with itself."""
     package_name = flask.request.args.get('package')
-    package = package_module.Package(package_name)
-    compatibility_status = store.get_self_compatibility(package)
 
     version_and_res = {
         'py2': {
@@ -175,6 +181,8 @@ def self_compatibility_badge_image():
 
     def run_check():
         # First see if this package is already stored in BigQuery.
+        package = package_module.Package(package_name)
+        compatibility_status = store.get_self_compatibility(package)
         if compatibility_status:
             for res in compatibility_status:
                 py_version = PY_VER_MAPPING[res.python_major_version]
@@ -200,11 +208,12 @@ def self_compatibility_badge_image():
 
         url = _get_badge_url(version_and_res, package_name)
 
-        # Write the result to cache
-        client.set('{}_self_comp_badge'.format(package_name), version_and_res)
+        # Write the result to memory store
+        redis_client.set(
+            '{}_self_comp_badge'.format(package_name), version_and_res)
         return requests.get(url).text
 
-    self_comp_res = client.get(
+    self_comp_res = redis_client.get(
         '{}_self_comp_badge'.format(package_name))
     threading.Thread(target=run_check).start()
 
@@ -243,7 +252,7 @@ def self_compatibility_badge_target():
       }
     """
     package_name = flask.request.args.get('package')
-    self_comp_res = client.get(
+    self_comp_res = redis_client.get(
         '{}_self_comp_badge'.format(package_name))
 
     return str(self_comp_res)
@@ -293,13 +302,13 @@ def google_compatibility_badge_image():
                             py_version]['details'][pkg_set[1]] = details
             result = default_version_and_res
 
-        # Write the result to cache
-        client.set(
+        # Write the result to memory store
+        redis_client.set(
             '{}_google_comp_badge'.format(package_name), result)
         url = _get_badge_url(result, package_name)
         return requests.get(url).text
 
-    google_comp_res = client.get(
+    google_comp_res = redis_client.get(
         '{}_google_comp_badge'.format(package_name))
     threading.Thread(target=run_check).start()
 
@@ -340,7 +349,7 @@ def google_compatibility_badge_target():
           }
     """
     package_name = flask.request.args.get('package')
-    google_comp_res = client.get(
+    google_comp_res = redis_client.get(
         '{}_google_comp_badge'.format(package_name))
 
     return str(google_comp_res)
