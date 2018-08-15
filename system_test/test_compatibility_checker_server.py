@@ -33,7 +33,7 @@ RETRY_MAX_ATTEMPT = 10 # Retry 10 times
 
 def run_application():
     """Start running the compatibility checker server."""
-    cmd = 'python ../compatibility_server/compatibility_checker_server.py ' \
+    cmd = 'python compatibility_server/compatibility_checker_server.py ' \
           '--host=\'0.0.0.0\' --port=8888'
     process = subprocess.Popen(
         cmd,

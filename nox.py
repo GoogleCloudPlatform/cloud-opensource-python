@@ -76,14 +76,11 @@ def system(session, py):
     # Install all test dependencies.
     session.install('-r', 'requirements-test.txt')
 
-    # Get into the system tests directory
-    session.chdir('system_test')
-
     # Run py.test against the system tests.
     session.run(
         'py.test',
         '-s',
-        '.',
+        'system_test/',
         *session.posargs
     )
 
