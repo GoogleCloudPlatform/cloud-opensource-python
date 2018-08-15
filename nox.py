@@ -64,7 +64,7 @@ def unit(session, py):
 
 
 @nox.session
-@nox.parametrize('py', ['3.5', '3.6'])
+@nox.parametrize('py', ['3.6'])
 def system(session, py):
     """Run the system test suite."""
 
