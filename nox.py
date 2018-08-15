@@ -63,6 +63,32 @@ def unit(session, py):
 
 
 @nox.session
+@nox.parametrize('py', ['3.5', '3.6'])
+def system(session, py):
+    """Run the system test suite."""
+
+    # Run the system tests against latest Python 2 and Python 3 only.
+    session.interpreter = 'python{}'.format(py)
+
+    # Set the virtualenv dirname.
+    session.virtualenv_dirname = 'sys-' + py
+
+    # Install all test dependencies.
+    session.install('-r', 'requirements-test.txt')
+
+    # Get into the system tests directory
+    session.chdir('system_test')
+
+    # Run py.test against the system tests.
+    session.run(
+        'py.test',
+        '-s',
+        '.',
+        *session.posargs
+    )
+
+
+@nox.session
 def update_dashboard(session):
     """Build the dashboard."""
 
