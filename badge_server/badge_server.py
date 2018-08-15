@@ -231,6 +231,8 @@ def self_compatibility_badge_image():
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
+    response.headers['Cache-Control'] = 'no-cache'
+    response.add_etag()
 
     return response
 
@@ -326,6 +328,8 @@ def google_compatibility_badge_image():
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
+    response.headers['Cache-Control'] = 'no-cache'
+    response.add_etag()
 
     return response
 
