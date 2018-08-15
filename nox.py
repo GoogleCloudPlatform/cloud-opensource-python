@@ -58,6 +58,7 @@ def unit(session, py):
         'py.test',
         '--quiet',
         *LINT_UNIT_DIR,
+        '--ignore=system_test',
         *session.posargs
     )
 
