@@ -56,6 +56,9 @@ class TestBadgeServer(unittest.TestCase):
         # Set the env var to run the badge server locally
         os.environ['RUN_LOCALLY'] = 'True'
 
+        # Enable the decryption for cloud credentials
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'JUST NOT NONE IS OK'
+
         # Run application
         self.process = run_application()
 
