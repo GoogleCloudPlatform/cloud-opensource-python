@@ -58,6 +58,30 @@ def unit(session, py):
         'py.test',
         '--quiet',
         *LINT_UNIT_DIR,
+        '--ignore=system_test',
+        *session.posargs
+    )
+
+
+@nox.session
+@nox.parametrize('py', ['3.6'])
+def system(session, py):
+    """Run the system test suite."""
+
+    # Run the system tests against latest Python 2 and Python 3 only.
+    session.interpreter = 'python{}'.format(py)
+
+    # Set the virtualenv dirname.
+    session.virtualenv_dirname = 'sys-' + py
+
+    # Install all test dependencies.
+    session.install('-r', 'requirements-test.txt')
+
+    # Run py.test against the system tests.
+    session.run(
+        'py.test',
+        '-s',
+        'system_test/',
         *session.posargs
     )
 
