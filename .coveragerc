@@ -1,0 +1,19 @@
+[run]
+branch = True
+omit = *.nox/*
+       */test_*.py
+       nox.py
+       */setup.py
+
+[report]
+fail_under = 100
+show_missing = True
+exclude_lines =
+    # Re-enable the standard pragma
+    pragma: NO COVER
+    # Ignore debug-only repr
+    def __repr__
+omit = *.nox/*
+       */test_*.py
+       nox.py
+       */setup.py

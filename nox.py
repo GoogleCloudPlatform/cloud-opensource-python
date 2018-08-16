@@ -16,8 +16,6 @@
 
 from __future__ import absolute_import
 
-import os
-
 import nox
 
 LINT_UNIT_DIR = ['compatibility_server', '.']
@@ -57,6 +55,11 @@ def unit(session, py):
     session.run(
         'py.test',
         '--quiet',
+        '--cov={}'.format('compatibility_lib'),
+        '--cov-append',
+        '--cov-config=.coveragerc',
+        '--cov-report=',
+        '--cov-fail-under=97',
         *LINT_UNIT_DIR,
         '--ignore=system_test',
         *session.posargs
@@ -87,18 +90,30 @@ def system(session, py):
 
 
 @nox.session
-def update_dashboard(session):
-    """Build the dashboard."""
-
+def cover(session):
+    """Run the final coverage report.
+    This outputs the coverage report aggregating coverage from the unit
+    test runs (not system test runs), and then erases coverage data.
+    """
     session.interpreter = 'python3.6'
-    session.install('-e', ','.join(LOCAL_DEPS))
-    session.install('-r', 'requirements-test.txt')
+    session.install('coverage', 'pytest-cov')
+    session.run('coverage', 'report', '--show-missing', '--fail-under=100')
+    session.run('coverage', 'erase')
 
-    # Set the virtualenv dirname.
-    session.virtualenv_dirname = 'dashboard'
 
-    session.chdir(os.path.realpath(os.path.dirname(__file__)))
-
-    # Build the dashboard!
-    session.run(
-        'bash', os.path.join('.', 'scripts', 'update_dashboard.sh'))
+# @nox.session
+# def update_dashboard(session):
+#     """Build the dashboard."""
+#
+#     session.interpreter = 'python3.6'
+#     session.install('-e', ','.join(LOCAL_DEPS))
+#     session.install('-r', 'requirements-test.txt')
+#
+#     # Set the virtualenv dirname.
+#     session.virtualenv_dirname = 'dashboard'
+#
+#     session.chdir(os.path.realpath(os.path.dirname(__file__)))
+#
+#     # Build the dashboard!
+#     session.run(
+#         'bash', os.path.join('.', 'scripts', 'update_dashboard.sh'))
