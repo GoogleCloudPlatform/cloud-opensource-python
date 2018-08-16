@@ -17,7 +17,6 @@ import os
 import requests
 import signal
 import subprocess
-import time
 
 from retrying import retry
 
