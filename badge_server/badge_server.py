@@ -31,11 +31,11 @@ import threading
 import flask
 import redis
 
-
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import package as package_module
+
 
 app = flask.Flask(__name__)
 
@@ -66,6 +66,28 @@ app = flask.Flask(__name__)
 #     },
 #     'pkg1_api_badge':{},
 # }
+
+REDIS_CACHE = {
+    'opencensus_self_comp_badge': None,
+    'opencensus_google_comp_badge': None,
+}
+
+def fake_redis_get(*args, **kwargs):
+    key = args[2][0]
+    return REDIS_CACHE[key]
+
+
+def fake_redis_set(*args, **kwargs):
+    key = args[2][0]
+    value = str(args[2][1]).encode('utf-8')
+    REDIS_CACHE[key] = value
+
+
+# Patch away the redis connections if run locally
+if os.environ.get('RUN_LOCALLY') is not None:
+    import wrapt
+    wrapt.wrap_function_wrapper('redis', 'StrictRedis.get', fake_redis_get)
+    wrapt.wrap_function_wrapper('redis', 'StrictRedis.set', fake_redis_set)
 
 redis_host = os.environ.get('REDISHOST', '10.0.0.3')
 redis_port = int(os.environ.get('REDISPORT', 6379))

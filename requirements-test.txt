@@ -1,5 +1,9 @@
+compatibility_lib==0.0.4
+Flask==1.0.2
 google-cloud-bigquery==1.3.0
 Jinja2==2.10
 mock==2.0.0
 pytest==3.6.1
+redis==2.10.6
 retrying==1.3.3
+wrapt==1.10.11
