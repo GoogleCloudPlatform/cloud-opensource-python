@@ -4,7 +4,6 @@ python:
 install:
 - pip install --upgrade nox-automation
 script:
-- nox -s system
 - nox -s update_dashboard
 - touch dashboard/.nojekyll
 branches:
