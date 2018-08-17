@@ -4,7 +4,6 @@ python:
 install:
 - pip install --upgrade nox-automation
 script:
-- nox -s system
 - nox -s update_dashboard
 - touch dashboard/.nojekyll
 branches:
@@ -18,8 +17,6 @@ deploy:
   github_token: "$GITHUB_TOKEN"
   on:
     branch: master
-env:
-  - GOOGLE_APPLICATION_CREDENTIALS=GOOGLE_APPLICATION_CREDENTIALS
 before_install:
 - if ! [ -z "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
     openssl aes-256-cbc -K $encrypted_415d6cfcbdfb_key -iv $encrypted_415d6cfcbdfb_iv
