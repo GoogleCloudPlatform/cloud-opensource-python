@@ -16,6 +16,7 @@ jobs:
       - run:
           name: Decrypt credentials
           command: |
+            echo $GOOGLE_CREDENTIALS_PASSPHRASE
             if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
               openssl aes-256-cbc -d -a -k "$GOOGLE_CREDENTIALS_PASSPHRASE" \
                   -in credentials.json.enc \
