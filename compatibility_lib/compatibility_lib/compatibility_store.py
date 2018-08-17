@@ -419,16 +419,20 @@ class CompatibilityStore:
         Returns:
             A mapping between the dependency names and the info (dict).
         """
-
         job_config = bigquery.QueryJobConfig()
         job_config.query_parameters = []
 
         tableid = self._release_time_table_id
-        query = ('SELECT *'
-                 'FROM `{}`'
-                 'WHERE install_name = "{}"'
-                 'AND DATE(timestamp) = CURRENT_DATE()'
-                 'ORDER BY dep_name'.format(tableid, package_name))
+        query = ('SELECT * '
+                 'FROM {0} s1 '
+                 'WHERE s1.install_name = "{1}" '
+                 'AND timestamp = ( '
+                 'SELECT MAX(timestamp) '
+                 'FROM {0} s2 '
+                 'WHERE s1.install_name = s2.install_name '
+                 'AND s1.dep_name = s2.dep_name) '
+                 'ORDER BY s1.dep_name'.format(tableid, package_name))
+
         query_job = self._client.query(query, job_config=job_config)
 
         dependency_info = {}

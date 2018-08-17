@@ -53,9 +53,9 @@ class CompatibilityChecker(object):
         return self.check(packages, python_version)
 
     def get_self_compatibility(self, python_version, packages=None):
+        """Get the self compatibility data for each package."""
         if packages is None:
             packages = configs.PKG_LIST
-        """Get the self compatibility data for each package."""
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             pkg_set_results = p.map(
@@ -76,11 +76,3 @@ class CompatibilityChecker(object):
 
             for result in zip(pkg_set_results):
                 yield result
-
-    def get_dependency_info(self, package_name, python_version):
-        """Get the self dependency info for each package."""
-        pkgs = [package_name]
-        _result = self.get_self_compatibility(python_version, pkgs)
-        result = [item for item in _result]
-        return result[0][0].get('dependency_info')
-
