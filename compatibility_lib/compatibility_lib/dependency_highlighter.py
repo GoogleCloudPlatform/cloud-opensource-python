@@ -63,7 +63,6 @@ class OutdatedDependency(object):
         self.installed_version_time = info['installed_version_time']
         self.latest_version = info['latest_version']
         self.latest_version_time = info['latest_version_time']
-        self.is_latest = info['is_latest']
         self.current_time = info['current_time']
 
     def __repr__(self):
@@ -110,7 +109,7 @@ class DependencyHighlighter(object):
             return None
 
     def _get_from_endpoint(self, package_name):
-        """Gets the package dependency info from the endpoint
+        """Gets the package dependency info from the compatibility checker endpoint
 
         Args:
             package_name: the name of the package to query (string)
@@ -230,6 +229,7 @@ class DependencyHighlighter(object):
 
 def _sanitize_release_tag(release):
     """Throws an error if the given release version is unstable
+    eg. 1.0.dev, 2.1a0, 1.1rc3
 
     Args:
         release: the semantic release as a string

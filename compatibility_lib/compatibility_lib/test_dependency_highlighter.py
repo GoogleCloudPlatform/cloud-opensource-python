@@ -106,9 +106,6 @@ class TestOutdatedDependency(unittest.TestCase):
             self.expected_info['latest_version_time'],
             self.outdated.latest_version_time)
         self.assertEqual(
-            self.expected_info['is_latest'],
-            self.outdated.is_latest)
-        self.assertEqual(
             self.expected_info['current_time'],
             self.outdated.current_time)
 
@@ -290,7 +287,8 @@ class TestUtilityFunctions(unittest.TestCase):
     ]
 
     bad_tags = [
-        '3', 'abc', '1.a2.0', '4..5.0', '6.30.1-dev', '2.2.2rc'
+        '3', 'abc', '1.a2.0', '4..5.0', '6.30.1-dev',
+        '2.2.2rc', '1.0.dev', '2.1a0', '1.1rc3'
     ]
 
     def test__sanitize_release_tag(self):
