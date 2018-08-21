@@ -411,7 +411,7 @@ class CompatibilityStore:
 
 
     def get_dependency_info(self, package_name):
-        """Returns dependency info for an indicated s/internal/Google OSS package.
+        """Returns dependency info for an indicated Google OSS package.
 
         Args:
             package_name: The package to lookup for.
