@@ -52,13 +52,15 @@ class CompatibilityChecker(object):
         python_version = args[1]
         return self.check(packages, python_version)
 
-    def get_self_compatibility(self, python_version):
+    def get_self_compatibility(self, python_version, packages=None):
         """Get the self compatibility data for each package."""
+        if packages is None:
+            packages = configs.PKG_LIST
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             pkg_set_results = p.map(
                 self.retrying_check,
-                (([pkg], python_version) for pkg in configs.PKG_LIST))
+                (([pkg], python_version) for pkg in packages))
 
             for result in zip(pkg_set_results):
                 yield result

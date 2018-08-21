@@ -408,3 +408,44 @@ class CompatibilityStore:
             self._client.insert_rows(
                 self._release_time_table,
                 row)
+
+
+    def get_dependency_info(self, package_name):
+        """Returns dependency info for an indicated Google OSS package.
+
+        Args:
+            package_name: The package to lookup for.
+
+        Returns:
+            A mapping between the dependency names and the info (dict).
+        """
+        job_config = bigquery.QueryJobConfig()
+        job_config.query_parameters = []
+
+        tableid = self._release_time_table_id
+        query = ('SELECT * '
+                 'FROM {0} s1 '
+                 'WHERE s1.install_name = "{1}" '
+                 'AND timestamp = ( '
+                 'SELECT MAX(timestamp) '
+                 'FROM {0} s2 '
+                 'WHERE s1.install_name = s2.install_name '
+                 'AND s1.dep_name = s2.dep_name) '
+                 'ORDER BY s1.dep_name'.format(tableid, package_name))
+
+        query_job = self._client.query(query, job_config=job_config)
+
+        dependency_info = {}
+        for row in query_job:
+            key = row.get('dep_name')
+            value = {
+                'installed_version': row.get('installed_version'),
+                'installed_version_time': row.get('installed_version_time'),
+                'latest_version': row.get('latest_version'),
+                'latest_version_time': row.get('latest_version_time'),
+                'is_latest': row.get('is_latest'),
+                'current_time': row.get('timestamp'),
+            }
+            dependency_info[key] = value
+
+        return dependency_info
