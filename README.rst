@@ -34,6 +34,103 @@ Dependency Management Toolkit for Google Cloud Python Projects
 .. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
    :target: http://35.226.8.89/self_compatibility_badge/target?package=compatibility_lib
 
+Development Workflow (Linux)
+---------------------------------
+
+Set Up Python Environment
+
+https://cloud.google.com/python/setup
+
+
+Install py 3.6 (may not be included in previous step)
+
+.. code-block:: bash
+
+    sudo apt install python3.6
+
+
+Clone the cloud-opensource-python project and cd to project
+
+.. code-block:: bash
+
+    git clone git@github.com:GoogleCloudPlatform/cloud-opensource-python.git
+    cd cloud-opensource-python
+
+
+Fork project and configure git remote settings
+
+.. code-block:: bash
+
+    git remote add upstream git@github.com:GoogleCloudPlatform/cloud-opensource-python.git
+    git config --global user.email "email@example.com"
+
+
+Install tox, create a virtualenv, and source
+
+.. code-block:: bash
+
+    pip install tox
+    tox -e py36
+    source .tox/py36/bin/activate
+
+Build compatibility_lib library from source and install
+
+.. code-block:: bash
+
+    python compatibility_lib/setup.py bdist_wheel
+    pip install compatibility_lib/dist/*
+
+Install Nox for testing
+
+.. code-block:: bash
+
+    pip install nox-automation
+
+Install gcloud SDK and initialize
+
+.. code-block:: bash
+
+    curl https://sdk.cloud.google.com | bash
+    gcloud init
+
+Install google-cloud-bigquery
+
+.. code-block:: bash
+
+    pip install google-cloud-bigquery
+
+Create new service account key (**do this on the workstation**)
+
+- in chrome browser, navigate to pantheon/
+
+- menu > IAM & admin > Service accounts
+
+- under bigquery-admin, actions > create new key 
+
+Set GOOGLE_APPLICATION_CREDENTIALS
+
+.. code-block:: bash
+    
+    export GOOGLE_APPLICATION_CREDENTIALS=”path/to/service/key.json”
+
+Test credentials within python interpreter (no errors means it’s working)
+
+.. code-block:: python
+    
+    from google.cloud import bigquery
+    bigquery.client.Client()
+
+Run tests:
+
+.. code-block:: bash
+
+    nox -s unit     # unit tests
+    nox -s lint     # linter
+    nox -s system   # system tests
+    nox -l          # see available options
+    nox             # run everything
+
+
 License
 -------
 
