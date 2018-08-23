@@ -20,7 +20,7 @@ import os
 
 import nox
 
-LINT_UNIT_DIR = ['compatibility_server', '.']
+LINT_UNIT_DIR = ['compatibility_server', 'dashboard', '.']
 
 LOCAL_DEPS = ['compatibility_lib']
 

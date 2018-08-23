@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Copyright 2018, Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,7 @@ set -ev
 # Build dashboard
 function build_dashboard {
     if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
-      python grid_builder.py > dashboard/index.html
+      python dashboard/grid_builder.py > dashboard/index.html
     else
       echo "No credentials. Dashboard will not build."
     fi

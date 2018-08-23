@@ -147,7 +147,7 @@ class GridBuilder:
         results = _ResultHolder(package_to_results, pairwise_to_results)
         current_timestamp = datetime.datetime.now().strftime(
             '%Y-%m-%d %H:%M:%S')
-        template = _JINJA2_ENVIRONMENT.get_template('grid-template.html')
+        template = _JINJA2_ENVIRONMENT.get_template('dashboard/grid-template.html')
         return template.render(
             packages=packages,
             results=results,
