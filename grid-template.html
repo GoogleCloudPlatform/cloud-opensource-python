@@ -85,8 +85,16 @@
         {% set column = loop.index0 %}
         {% if column <= row %}
             {% set result = results.get_result(row_package, col_package) %}
-            <td class="{% if result.self %}self-{% endif %}{{ result.status | lower }}"
-                ><pre>{{ result.details }}</pre></td>
+            {% set cellName = row | string + '-' + column | string %}
+            {% if result.self%}
+                {% set bgColorName = 'self-' + result.status | lower %}
+            {% else %}
+                {% set bgColorName = result.status | lower %}
+            {% endif %}
+            <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result|replace('\'', '\\\'')|safe }}')">
+                <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
+                </div>
+            </td>
         {% else %}
             <td><pre></pre></td>
         {% endif %}
@@ -94,5 +102,15 @@
     </tr>
     {% endfor %}
 </table>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script>
+      function showDialog(cellName, result) {
+        document.getElementById(cellName).innerHTML = "<p>" + result + "</p>";
+        $('#' + cellName).dialog({
+            width: 700});
+      }
+    </script>
 </body>
 </html>
