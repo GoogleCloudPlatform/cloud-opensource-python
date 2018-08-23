@@ -67,14 +67,11 @@ app = flask.Flask(__name__)
 #     'pkg1_api_badge':{},
 # }
 
-REDIS_CACHE = {
-    'opencensus_self_comp_badge': None,
-    'opencensus_google_comp_badge': None,
-}
+REDIS_CACHE = {}
 
 def fake_redis_get(*args, **kwargs):
     key = args[2][0]
-    return REDIS_CACHE[key]
+    return REDIS_CACHE.get(key)
 
 
 def fake_redis_set(*args, **kwargs):
