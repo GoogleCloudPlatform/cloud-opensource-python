@@ -26,6 +26,27 @@
             margin: 0.5em;
         }
 
+        legend {
+            display: block;
+            padding-left: 2px;
+            padding-right: 2px;
+            border: none;
+        }
+
+        .legend-box {
+          width: 240px;
+          height: 20px;
+          margin: 5px;
+          border: 1px solid rgba(0, 0, 0, .2);
+          position: relative;
+        }
+
+        .row {
+            display : flex;
+            align-items : center;
+            margin-bottom: 15px;
+        }
+
         td:hover pre {
             overflow: auto;
             min-height: 1.2em;
@@ -43,7 +64,7 @@
         }
 
         .self-install_error {
-            background-color: purple;
+            background-color: red;
         }
 
         .self-check_warning {
@@ -63,24 +84,39 @@
         }
 
         .check_warning {
-            background-color: yellow;
+            background-color: orange;
         }
     </style>
 </head>
 
 <body>
-<b>Dashboard updated on: </b><b>{{ current_timestamp }}</b>
+<font face="verdana"><b>Dashboard updated on: </b><b>{{ current_timestamp }}</b></font>
+<fieldset>
+    <legend><b><font face="verdana">Color legend:</font></b></legend>
+<div class="row">
+    <div class="legend-box self-unknown"><b><font face="verdana" color="white">Self-Unknown</font></b></div>
+    <div class="legend-box self-success"><b><font face="verdana" color="white">Self-Success</font></b></div>
+    <div class="legend-box self-install_error"><b><font face="verdana" color="white">Self-InstallError</font></b></div>
+    <div class="legend-box self-check_warning"><b><font face="verdana" color="white">Self-CheckWarning</font></b></div>
+</div>
+<div class="row">
+    <div class="legend-box unknown"><b><font face="verdana" color="white">Pairwise-Unknown</font></b></div>
+    <div class="legend-box success"><b><font face="verdana" color="white">Pairwise-Success</font></b></div>
+    <div class="legend-box install_error"><b><font face="verdana" color="white">Pairwise-InstallError</font></b></div>
+    <div class="legend-box check_warning"><b><font face="verdana" color="white">Pairwise-CheckWarning</font></b></div>
+</div>
+</fieldset>
 <table>
     <tr>
         <td></td>
         {% for col_package in packages %}
-        <td>{{ col_package.friendly_name }}</td>
+        <td><font face="verdana">{{ col_package.friendly_name }}</font></td>
         {% endfor %}
     </tr>
     {% for row_package in packages %}
     {% set row = loop.index0 %}
     <tr>
-        <td>{{ row_package.friendly_name }}</td>
+        <td><font face="verdana">{{ row_package.friendly_name }}</font></td>
         {% for col_package in packages %}
         {% set column = loop.index0 %}
         {% if column <= row %}
