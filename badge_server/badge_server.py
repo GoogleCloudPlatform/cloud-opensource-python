@@ -20,6 +20,7 @@ URL for creating the badge:
 Commands for build the docker image and deploy to GKE:
 docker build -t gcr.io/python-compatibility-tools/badge_server:v1 .
 gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:v1
+kubectl apply -f deployment/app-with-secret.yaml
 """
 import ast
 import logging
