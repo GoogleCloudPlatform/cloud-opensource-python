@@ -20,7 +20,6 @@ URL for creating the badge:
 Commands for build the docker image and deploy to GKE:
 docker build -t gcr.io/python-compatibility-tools/badge_server:v1 .
 gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:v1
-kubectl apply -f deployment/app-with-secret.yaml
 """
 import ast
 import logging
@@ -34,6 +33,7 @@ import redis
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
 from compatibility_lib import configs
+from compatibility_lib import dependency_highlighter
 from compatibility_lib import package as package_module
 
 
@@ -92,6 +92,8 @@ redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
 
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
+highlighter = dependency_highlighter.DependencyHighlighter()
+priority_level = dependency_highlighter.PriorityLevel
 
 URL_PREFIX = 'https://img.shields.io/badge/'
 
@@ -119,6 +121,20 @@ CONVERSION_ERROR_RES = {
         'details': None,
     }
 }
+
+DEP_STATUS_COLOR_MAPPING = {
+    'CALCULATING':                    'blue',
+    'CONVERSION_ERROR':               'orange',
+    priority_level.UP_TO_DATE.name:   'green',
+    priority_level.LOW.name:          'black',
+    priority_level.HIGH.name:         'red'
+}
+
+DEP_CONVERSION_ERROR_RES = {
+    'status': 'CONVERSION_ERROR',
+    'details': None,
+}
+
 
 SVG_CONTENT_TYPE = 'image/svg+xml'
 
@@ -164,6 +180,17 @@ def _get_badge_url(version_and_res, package_name):
         status = version_and_res['py2']['status']
 
     color = STATUS_COLOR_MAPPING[status]
+    url = URL_PREFIX + '{}-{}-{}.svg'.format(
+        package_name, status, color)
+
+    return url
+
+
+def _get_dep_badge_url(res, package_name):
+    package_name = package_name.replace('-', '.')
+    status = res['status']
+
+    color = DEP_STATUS_COLOR_MAPPING[status]
     url = URL_PREFIX + '{}-{}-{}.svg'.format(
         package_name, status, color)
 
@@ -277,6 +304,75 @@ def self_compatibility_badge_target():
         '{}_self_comp_badge'.format(package_name))
 
     return str(self_comp_res)
+
+
+@app.route('/self_dependency_badge/image')
+def self_dependency_badge_image():
+    """Badge showing whether a package is has outdated dependencies."""
+
+    package_name = flask.request.args.get('package')
+
+    res = {
+        'status': 'CALCULATING',
+        'details': None,
+    }
+
+    def run_check():
+        # First see if this package is already stored in BigQuery.
+        outdated = highlighter.check_package(package_name)
+
+        max_level = priority_level.UP_TO_DATE
+        details = []
+        for dep in outdated:
+            level = dep.priority.level
+            if level.value > max_level.value:
+                max_level = level
+            details.append(dep.priority.details)
+
+        res['status'] = max_level.name
+        res['details'] = EMPTY_DETAILS
+        if len(details) > 0:
+            res['details'] = '\n'.join(details)
+
+        url = _get_dep_badge_url(res, package_name)
+
+        # Write the result to memory store
+        redis_client.set(
+            '{}_dependency_badge'.format(package_name), res)
+        return requests.get(url).text
+
+    dependency_res = redis_client.get(
+        '{}_dependency_badge'.format(package_name))
+    threading.Thread(target=run_check).start()
+
+    if dependency_res is not None:
+        try:
+            details = ast.literal_eval(dependency_res.decode('utf-8'))
+        except SyntaxError:
+            logging.error(
+                'Error occurs while converting to dict, value is {}.'.format(
+                    dependency_res))
+            details = DEP_CONVERSION_ERROR_RES
+    else:
+        details = res
+
+    url = _get_dep_badge_url(details, package_name)
+    response = flask.make_response(requests.get(url).text)
+    response.content_type = SVG_CONTENT_TYPE
+    response.headers['Cache-Control'] = 'no-cache'
+    response.add_etag()
+
+    return response
+
+
+@app.route('/self_dependency_badge/target')
+def self_dependency_badge_target():
+    """Return a dict that contains dependency status and details."""
+    package_name = flask.request.args.get('package')
+    dependency_res = redis_client.get(
+        '{}_dependency_badge'.format(package_name))
+
+    return str(dependency_res)
 
 
 @app.route('/google_compatibility_badge/image')

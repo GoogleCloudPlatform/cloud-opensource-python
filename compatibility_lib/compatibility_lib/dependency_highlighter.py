@@ -30,9 +30,9 @@ class UnstableReleaseError(Exception):
 
 
 class PriorityLevel(enum.Enum):
-    NOT_SET = "UP_TO_DATE"
-    LOW = "LOW_PRIORITY"
-    HIGH = "HIGH_PRIORITY"
+    UP_TO_DATE = 0
+    LOW = 1
+    HIGH = 2
 
 
 class Priority(object):
@@ -40,7 +40,7 @@ class Priority(object):
 
     def __init__(self, level=None, details=None):
         if level is None:
-            level = PriorityLevel.NOT_SET
+            level = PriorityLevel.UP_TO_DATE
         if details is None:
             details = ""
         self.level = level
@@ -63,7 +63,7 @@ class OutdatedDependency(object):
 
     def __repr__(self):
         return ('OutdatedDependency<\'{}\', {}>'.format(
-            self.name, self.priority.level.value))
+            self.name, self.priority.level.name))
 
     def __str__(self):
         msg = ('Dependency Name:\t{}\n'
@@ -74,7 +74,7 @@ class OutdatedDependency(object):
                '{}\n')
         return msg.format(
             self.name,
-            self.priority.level.value,
+            self.priority.level.name,
             self.installed_version,
             self.latest_version,
             (self.current_time-self.latest_version_time).days,
@@ -90,7 +90,7 @@ class DependencyHighlighter(object):
         self._checker = utils.checker
         self._dependency_info_getter = utils.DependencyInfo(py_version)
 
-    def _get_update_priority(self, install, latest, elapsed_time):
+    def _get_update_priority(self, depname, install, latest, elapsed_time):
         """Returns the update priority level for an outdated dependency
 
         Args:
@@ -102,8 +102,8 @@ class DependencyHighlighter(object):
             the priority level and reason explanation
         """
         if install['major'] != latest['major']:
-            msg = ('this dependency is 1 or more major versions '
-                   'behind the latest version')
+            msg = ('%s is 1 or more major versions '
+                   'behind the latest version' % depname)
             if latest['major'] - install['major'] > 1:
                 return Priority(PriorityLevel.HIGH, msg)
 
@@ -111,21 +111,21 @@ class DependencyHighlighter(object):
                 return Priority(PriorityLevel.HIGH, msg)
 
             msg = ('it has been over 30 days since the major version '
-                   'for this dependency was released')
+                   'for %s was released' % depname)
             if MAJOR_GRACE_PERIOD_IN_DAYS < elapsed_time.days:
                 return Priority(PriorityLevel.HIGH, msg)
 
         if ALLOWED_MINOR_DIFF <= latest['minor'] - install['minor']:
-            msg = ('this dependency is 3 or more minor versions '
-                   'behind the latest version')
+            msg = ('%s is 3 or more minor versions '
+                   'behind the latest version' % depname)
             return Priority(PriorityLevel.HIGH, msg)
 
         if DEFAULT_GRACE_PERIOD_IN_DAYS < elapsed_time.days:
             msg = ('it has been over 6 months since the latest version '
-                   'for this dependency was released')
+                   'for %s was released' % depname)
             return Priority(PriorityLevel.HIGH, msg)
 
-        msg = 'this dependency is not up to date with the latest version'
+        msg = '%s is not up to date with the latest version' % depname
         return Priority(PriorityLevel.LOW, msg)
 
     def check_package(self, package_name):
@@ -146,13 +146,13 @@ class DependencyHighlighter(object):
             except UnstableReleaseError as err:
                 priority = Priority(PriorityLevel.HIGH, str(err))
 
-            if not info['is_latest'] or priority.level != PriorityLevel.NOT_SET:
+            if not info['is_latest'] or priority.level != PriorityLevel.UP_TO_DATE:
                 latest =  _sanitize_release_tag(info['latest_version'])
                 elapsed_time = info['current_time']-info['latest_version_time']
 
-                if priority.level == PriorityLevel.NOT_SET:
+                if priority.level == PriorityLevel.UP_TO_DATE:
                     priority = self._get_update_priority(
-                        install, latest, elapsed_time)
+                        name, install, latest, elapsed_time)
                 dependency = OutdatedDependency(
                     name, package_name, priority, info)
                 outdated_dependencies.append(dependency)
