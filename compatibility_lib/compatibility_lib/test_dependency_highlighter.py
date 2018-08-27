@@ -41,7 +41,7 @@ def _get_dep_info(datetime=True):
 class TestPriority(unittest.TestCase):
 
     def test_constructor_default(self):
-        expected_level = dependency_highlighter.PriorityLevel.NOT_SET
+        expected_level = dependency_highlighter.PriorityLevel.UP_TO_DATE
         expected_details = ''
 
         priority = dependency_highlighter.Priority()
@@ -71,11 +71,11 @@ class TestOutdatedDependency(unittest.TestCase):
 
     expected_repr = (
         "OutdatedDependency<'google-cloud-bigquery', "
-        "HIGH_PRIORITY>")
+        "HIGH>")
 
     expected_str = (
         'Dependency Name:\tgoogle-cloud-bigquery\n'
-        'Priority:\t\tHIGH_PRIORITY\n'
+        'Priority:\t\tHIGH\n'
         'Installed Version:\t0.25.0\n'
         'Latest Available:\t1.5.0\n'
         'Time Since Latest:\t14 days\n'
@@ -120,16 +120,16 @@ class TestDependencyHighlighter(unittest.TestCase):
     def setUp(self):
         self.expected_dep_info = _get_dep_info()
         self.expected_check_package_res = (
-            "OutdatedDependency<'apache-beam', LOW_PRIORITY>",
-            "OutdatedDependency<'dill', LOW_PRIORITY>",
-            "OutdatedDependency<'google-apitools', LOW_PRIORITY>",
-            "OutdatedDependency<'google-cloud-bigquery', HIGH_PRIORITY>",
-            "OutdatedDependency<'google-cloud-core', HIGH_PRIORITY>",
-            "OutdatedDependency<'google-cloud-pubsub', HIGH_PRIORITY>",
-            "OutdatedDependency<'google-gax', LOW_PRIORITY>",
-            "OutdatedDependency<'httplib2', LOW_PRIORITY>",
-            "OutdatedDependency<'pip', HIGH_PRIORITY>",
-            "OutdatedDependency<'ply', HIGH_PRIORITY>")
+            "OutdatedDependency<'apache-beam', LOW>",
+            "OutdatedDependency<'dill', LOW>",
+            "OutdatedDependency<'google-apitools', LOW>",
+            "OutdatedDependency<'google-cloud-bigquery', HIGH>",
+            "OutdatedDependency<'google-cloud-core', HIGH>",
+            "OutdatedDependency<'google-cloud-pubsub', HIGH>",
+            "OutdatedDependency<'google-gax', LOW>",
+            "OutdatedDependency<'httplib2', LOW>",
+            "OutdatedDependency<'pip', HIGH>",
+            "OutdatedDependency<'ply', HIGH>")
 
         self._store = mock.Mock(autospec=True)
         self._store.get_dependency_info.return_value = _get_dep_info()
@@ -148,27 +148,26 @@ class TestDependencyHighlighter(unittest.TestCase):
     def setup_test__get_update_priority(self):
         priority = dependency_highlighter.Priority
         level = dependency_highlighter.PriorityLevel
-
-        not_updated = 'this dependency is not up to date with the latest version'
+        not_updated = 'PACKAGE is not up to date with the latest version'
 
         six_months = ('it has been over 6 months since the latest version '
-                      'for this dependency was released')
+                      'for PACKAGE was released')
 
-        three_minor = ('this dependency is 3 or more minor versions '
+        three_minor = ('PACKAGE is 3 or more minor versions '
                        'behind the latest version')
 
         thirty_days = ('it has been over 30 days since the major version '
-                       'for this dependency was released')
+                       'for PACKAGE was released')
 
-        major_version = ('this dependency is 1 or more major versions '
+        major_version = ('PACKAGE is 1 or more major versions '
                          'behind the latest version')
 
         with self.patch_checker, self.patch_store:
             highlighter = dependency_highlighter.DependencyHighlighter()
-            ptemp = ("highlighter._get_update_priority("
-                     "{'major':%d, 'minor':%d, 'patch':%d}, "
-                     "{'major':%d, 'minor':%d, 'patch':%d}, "
-                     "timedelta(days=%d))")
+        ptemp = ("highlighter._get_update_priority('PACKAGE', "
+                 "{'major':%d, 'minor':%d, 'patch':%d}, "
+                 "{'major':%d, 'minor':%d, 'patch':%d}, "
+                 "timedelta(days=%d))")
 
         cases = []
         cases.append((
