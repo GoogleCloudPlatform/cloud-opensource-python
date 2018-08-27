@@ -16,15 +16,13 @@ import json
 import mock
 import unittest
 
-from datetime import timedelta
 from compatibility_lib import dependency_highlighter
-from compatibility_lib import compatibility_store
-from compatibility_lib import fake_compatibility_store
-from compatibility_lib import mock_data
+from compatibility_lib import utils
+from compatibility_lib.testdata import mock_depinfo_data
 
 
 def _get_dep_info(datetime=True):
-    dep_info = json.loads(mock_data.DEP_INFO)
+    dep_info = json.loads(mock_depinfo_data.DEP_INFO)
     if not datetime:
         return dep_info
 
@@ -35,7 +33,7 @@ def _get_dep_info(datetime=True):
     for _, info in dep_info.items():
         for field in fields:
             time = info[field]
-            info[field] = dependency_highlighter._parse_datetime(time)
+            info[field] = utils._parse_datetime(time)
     return dep_info
 
 
@@ -129,6 +127,7 @@ class TestDependencyHighlighter(unittest.TestCase):
             fake_value = [[{'dependency_info': _get_dep_info(False)}]]
             self._checker = mock.Mock()
             self._checker.get_self_compatibility.return_value = fake_value
+            self._dependency_info_getter = mock.Mock()
 
     def setUp(self):
         self.expected_dep_info = _get_dep_info()
@@ -302,9 +301,3 @@ class TestUtilityFunctions(unittest.TestCase):
         for tag in self.bad_tags:
             with self.assertRaises(dependency_highlighter.UnstableReleaseError):
                 dependency_highlighter._sanitize_release_tag(tag)
-
-    def test__parse_datetime(self):
-        date_string = '2018-08-16T15:42:04.351677'
-        expected = '2018-08-16 00:00:00'
-        res = dependency_highlighter._parse_datetime(date_string)
-        self.assertEqual(str(res), expected)

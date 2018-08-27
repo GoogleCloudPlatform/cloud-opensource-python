@@ -18,12 +18,8 @@ import re
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
-from compatibility_lib import configs
+from compatibility_lib import utils
 
-from datetime import datetime
-
-
-DATETIME_FORMAT = "%Y-%m-%d"
 DEFAULT_GRACE_PERIOD_IN_DAYS = 183  # applies to any version updates
 MAJOR_GRACE_PERIOD_IN_DAYS = 30     # applies to major version updates only
 ALLOWED_MINOR_DIFF = 3
@@ -92,55 +88,7 @@ class DependencyHighlighter(object):
         self.py_version = py_version
         self._store = compatibility_store.CompatibilityStore()
         self._checker = compatibility_checker.CompatibilityChecker()
-
-    def _get_from_bigquery(self, package_name):
-        """Gets the package dependency info from bigquery
-
-        Args:
-            package_name: the name of the package to query
-        Returns:
-            a dict mapping from dependency package name (string) to
-            the info (dict)
-        """
-        if package_name in configs.PKG_LIST:
-            depinfo = self._store.get_dependency_info(package_name)
-            return depinfo
-        else:
-            return None
-
-    def _get_from_endpoint(self, package_name):
-        """Gets the package dependency info from the compatibility checker endpoint
-
-        Args:
-            package_name: the name of the package to query (string)
-        Returns:
-            a dict mapping from dependency package name (string) to
-            the info (dict)
-        """
-        _result = self._checker.get_self_compatibility(self.py_version, [package_name])
-        result = [item for item in _result]
-        depinfo = result[0][0].get('dependency_info')
-
-        fields = ('installed_version_time', 'current_time', 'latest_version_time')
-        for pkgname in depinfo.keys():
-            for field in fields:
-                depinfo[pkgname][field] = _parse_datetime(depinfo[pkgname][field])
-
-        return depinfo
-
-    def _get_dependency_info(self, package_name):
-        """Gets the package dependency info
-
-        Args:
-            package_name: the name of the package to query (string)
-        Returns:
-            a dict mapping from dependency package name (string) to
-            the info (dict)
-        """
-        depinfo = self._get_from_bigquery(package_name)
-        if depinfo is None:
-            depinfo = self._get_from_endpoint(package_name)
-        return depinfo
+        self._dependency_info_getter = utils.DependencyInfo(py_version)
 
     def _get_update_priority(self, install, latest, elapsed_time):
         """Returns the update priority level for an outdated dependency
@@ -188,7 +136,8 @@ class DependencyHighlighter(object):
         Returns:
             a list of outdated dependencies
         """
-        dependency_info = self._get_dependency_info(package_name)
+        dependency_info = self._dependency_info_getter.get_dependency_info(
+            package_name)
         outdated_dependencies = []
         for name, info in dependency_info.items():
             priority = Priority()
@@ -252,16 +201,3 @@ def _sanitize_release_tag(release):
         'patch': int(segments[2])
     }
     return release_info
-
-
-def _parse_datetime(date_string):
-    """Converts a date string into a datetime obj
-
-    Args:
-        date_string: a date as a string
-    Returns:
-        the date as a datetime obj
-    """
-    date_string = date_string.replace('T', ' ')
-    short_date = date_string.split(' ')[0]
-    return datetime.strptime(short_date, DATETIME_FORMAT)
