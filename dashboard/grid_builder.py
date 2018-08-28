@@ -29,7 +29,7 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 import argparse
 import datetime
 import tempfile
-from typing import Iterable, Mapping
+from typing import Any, Iterable, List, FrozenSet, Mapping
 import webbrowser
 
 import jinja2
@@ -45,7 +45,14 @@ _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 
 class _ResultHolder():
-    def __init__(self, package_to_results, pairwise_to_results):
+    def __init__(
+        self,
+        package_to_results:
+            Mapping[package.Package,
+                    List[compatibility_store.CompatibilityResult]],
+        pairwise_to_results:
+            Mapping[FrozenSet[package.Package],
+                    List[compatibility_store.CompatibilityResult]]):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
 
@@ -61,10 +68,20 @@ class _ResultHolder():
                         return True
         return False
 
+    def has_issues(self, p: package.Package) -> bool:
+        """Returns true if the given package has any compatibility issues."""
+        for package_2 in self._package_to_results.keys():
+            result = self.get_result(p, package_2)
+            # Don't report the package as having issues if it is purely the
+            # result of a self-incompatibility of another package.
+            if result['status'] != compatibility_store.Status.SUCCESS.name and (
+                    not result['self'] or p == package_2):
+                return True
+        return False
 
     def get_result(self,
                    package_1: package.Package,
-                   package_2: package.Package) -> Mapping[str, str]:
+                   package_2: package.Package) -> Mapping[str, Any]:
         """Returns the installation result of two packages.
 
         Args:
