@@ -86,8 +86,8 @@ class DependencyHighlighter(object):
 
     def __init__(self, py_version='3'):
         self.py_version = py_version
-        self._store = compatibility_store.CompatibilityStore()
-        self._checker = compatibility_checker.CompatibilityChecker()
+        self._store = utils.store
+        self._checker = utils.checker
         self._dependency_info_getter = utils.DependencyInfo(py_version)
 
     def _get_update_priority(self, install, latest, elapsed_time):
