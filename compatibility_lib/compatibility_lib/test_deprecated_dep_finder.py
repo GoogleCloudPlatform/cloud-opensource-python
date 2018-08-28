@@ -149,4 +149,4 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             deprecated_deps = finder.get_deprecated_deps('opencensus')
 
         expected_deprecated_deps = ['dep1', 'dep2', 'dep3']
-        self.assertEqual(deprecated_deps, expected_deprecated_deps)
+        self.assertEqual(set(deprecated_deps), set(expected_deprecated_deps))
