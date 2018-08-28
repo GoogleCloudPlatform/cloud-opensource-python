@@ -21,6 +21,22 @@ from compatibility_lib import fake_compatibility_store
 
 
 class TestDeprecatedDepFinder(unittest.TestCase):
+    PKG_INFO = {
+        'info': {
+            'classifiers': [
+                "Development Status :: 7 - Inactive",
+                "Intended Audience :: Developers",
+                "License :: OSI Approved:: Apache Software License",
+                "Operating System :: POSIX",
+                "Programming Language:: Python :: 2",
+                "Programming Language:: Python :: 2.7",
+                "Programming Language:: Python :: 3",
+                "Programming Language:: Python :: 3.4",
+                "Programming Language:: Python :: 3.5",
+                "Topic :: Internet :: WWW / HTTP",
+            ]
+        }
+    }
 
     def setUp(self):
         self.DEP_INFO = {
@@ -84,10 +100,53 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             isinstance(finder._dependency_info_getter, utils.DependencyInfo))
 
     def test__get_development_status_from_pypi_error(self):
-        pass
+        PKG_INFO = {
+            'test': {
+                'test_key_error': [],
+            }
+        }
+
+        mock_call_pypi_json_api = mock.Mock()
+        mock_call_pypi_json_api.return_value = PKG_INFO
+
+        patch_utils = mock.patch(
+            'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
+            mock_call_pypi_json_api)
+
+        with patch_utils, self.patch_checker, self.patch_store:
+            finder = deprecated_dep_finder.DeprecatedDepFinder()
+            development_status = finder._get_development_status_from_pypi(
+                'package1')
+
+        self.assertIsNone(development_status)
 
     def test__get_development_status_from_pypi(self):
-        pass
+        mock_call_pypi_json_api = mock.Mock()
+        mock_call_pypi_json_api.return_value = self.PKG_INFO
+
+        patch_utils = mock.patch(
+            'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
+            mock_call_pypi_json_api)
+
+        with patch_utils, self.patch_checker, self.patch_store:
+            finder = deprecated_dep_finder.DeprecatedDepFinder()
+            development_status = finder._get_development_status_from_pypi(
+                'package1')
+
+        expected_development_status = "Development Status :: 7 - Inactive"
+        self.assertEqual(development_status, expected_development_status)
 
     def test_get_deprecated_deps(self):
-        pass
+        mock_call_pypi_json_api = mock.Mock()
+        mock_call_pypi_json_api.return_value = self.PKG_INFO
+
+        patch_utils = mock.patch(
+            'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
+            mock_call_pypi_json_api)
+
+        with patch_utils, self.patch_checker, self.patch_store:
+            finder = deprecated_dep_finder.DeprecatedDepFinder()
+            deprecated_deps = finder.get_deprecated_deps('opencensus')
+
+        expected_deprecated_deps = ['dep1', 'dep2', 'dep3']
+        self.assertEqual(deprecated_deps, expected_deprecated_deps)
