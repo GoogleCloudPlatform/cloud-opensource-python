@@ -29,7 +29,7 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 import argparse
 import datetime
 import tempfile
-from typing import Iterable, Mapping
+from typing import Any, Iterable, List, FrozenSet, Mapping
 import webbrowser
 
 import jinja2
@@ -45,7 +45,14 @@ _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 
 class _ResultHolder():
-    def __init__(self, package_to_results, pairwise_to_results):
+    def __init__(
+        self,
+        package_to_results:
+            Mapping[package.Package,
+                    List[compatibility_store.CompatibilityResult]],
+        pairwise_to_results:
+            Mapping[FrozenSet[package.Package],
+                    List[compatibility_store.CompatibilityResult]]):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
 
@@ -74,7 +81,7 @@ class _ResultHolder():
 
     def get_result(self,
                    package_1: package.Package,
-                   package_2: package.Package) -> Mapping[str, str]:
+                   package_2: package.Package) -> Mapping[str, Any]:
         """Returns the installation result of two packages.
 
         Args:
