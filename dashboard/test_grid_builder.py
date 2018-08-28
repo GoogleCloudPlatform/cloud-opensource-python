@@ -33,7 +33,7 @@ class TestResultHolderGetResult(unittest.TestCase):
 
     def test_self_compatibility_success(self):
         package_to_results = {
-            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_1: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
@@ -42,12 +42,12 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
         self.assertEqual(
-            rh.get_result(PACKAGE_1.install_name, PACKAGE_1.install_name),
+            rh.get_result(PACKAGE_1, PACKAGE_1),
             {'status': 'SUCCESS', 'self': True})
 
     def test_self_compatibility_error(self):
         package_to_results = {
-            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_1: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
@@ -57,33 +57,33 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
         self.assertEqual(
-            rh.get_result(PACKAGE_1.install_name, PACKAGE_1.install_name),
+            rh.get_result(PACKAGE_1, PACKAGE_1),
             {'status': 'INSTALL_ERROR', 'details': 'Installation failure',
              'self': True})
 
     def test_self_compatibility_no_entry(self):
-        package_to_results = {PACKAGE_1.install_name: []}
+        package_to_results = {PACKAGE_1: []}
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
         self.assertEqual(
-            rh.get_result(PACKAGE_1.install_name, PACKAGE_1.install_name),
+            rh.get_result(PACKAGE_1, PACKAGE_1),
             {'status': 'UNKNOWN', 'self': True})
 
     def test_pairwise_success(self):
         package_to_results = {
-            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_1: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
             )],
-            PACKAGE_2.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_2: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
             )]
         }
         pairwise_to_results = {
-            frozenset([PACKAGE_1.install_name, PACKAGE_2.install_name]): [
+            frozenset([PACKAGE_1, PACKAGE_2]): [
                 compatibility_store.CompatibilityResult(
                     packages=[PACKAGE_1, PACKAGE_2],
                     python_major_version=3,
@@ -94,24 +94,24 @@ class TestResultHolderGetResult(unittest.TestCase):
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
         self.assertEqual(
-            rh.get_result(PACKAGE_1.install_name, PACKAGE_2.install_name),
+            rh.get_result(PACKAGE_1, PACKAGE_2),
             {'status': 'SUCCESS', 'self': False})
 
     def test_pairwise_error(self):
         package_to_results = {
-            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_1: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
             )],
-            PACKAGE_2.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_2: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
             )]
         }
         pairwise_to_results = {
-            frozenset([PACKAGE_1.install_name, PACKAGE_2.install_name]): [
+            frozenset([PACKAGE_1, PACKAGE_2]): [
                 compatibility_store.CompatibilityResult(
                     packages=[PACKAGE_1, PACKAGE_2],
                     python_major_version=3,
@@ -123,31 +123,31 @@ class TestResultHolderGetResult(unittest.TestCase):
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
         self.assertEqual(
-            rh.get_result(PACKAGE_1.install_name, PACKAGE_2.install_name),
+            rh.get_result(PACKAGE_1, PACKAGE_2),
             {'status': 'INSTALL_ERROR', 'details': 'Installation failure',
              'self': False})
 
     def test_pairwise_no_entry(self):
         package_to_results = {
-            PACKAGE_1.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_1: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
             )],
-            PACKAGE_2.install_name: [compatibility_store.CompatibilityResult(
+            PACKAGE_2: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
             )]
         }
         pairwise_to_results = {
-            frozenset([PACKAGE_1.install_name, PACKAGE_2.install_name]): []
+            frozenset([PACKAGE_1, PACKAGE_2]): []
         }
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
         self.assertEqual(
-            rh.get_result(PACKAGE_1.install_name, PACKAGE_2.install_name),
+            rh.get_result(PACKAGE_1, PACKAGE_2),
             {'status': 'UNKNOWN', 'self': False})
 
 
