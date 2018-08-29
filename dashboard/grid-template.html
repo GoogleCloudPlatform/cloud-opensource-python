@@ -71,19 +71,19 @@
             background-color: purple;
         }
 
-        .unknown {
+        .pairwise-unknown {
             background-color: blue;
         }
 
-        .success {
+        .pairwise-success {
             background-color: green;
         }
 
-        .install_error {
+        .pairwise-install_error {
             background-color: red;
         }
 
-        .check_warning {
+        .pairwise-check_warning {
             background-color: orange;
         }
     </style>
@@ -100,10 +100,10 @@
     <div class="legend-box self-check_warning"><b><font face="verdana" color="white">Self-CheckWarning</font></b></div>
 </div>
 <div class="row">
-    <div class="legend-box unknown"><b><font face="verdana" color="white">Pairwise-Unknown</font></b></div>
-    <div class="legend-box success"><b><font face="verdana" color="white">Pairwise-Success</font></b></div>
-    <div class="legend-box install_error"><b><font face="verdana" color="white">Pairwise-InstallError</font></b></div>
-    <div class="legend-box check_warning"><b><font face="verdana" color="white">Pairwise-CheckWarning</font></b></div>
+    <div class="legend-box pairwise-unknown"><b><font face="verdana" color="white">Pairwise-Unknown</font></b></div>
+    <div class="legend-box pairwise-success"><b><font face="verdana" color="white">Pairwise-Success</font></b></div>
+    <div class="legend-box pairwise-install_error"><b><font face="verdana" color="white">Pairwise-InstallError</font></b></div>
+    <div class="legend-box pairwise-check_warning"><b><font face="verdana" color="white">Pairwise-CheckWarning</font></b></div>
 </div>
 </fieldset>
 <table>
@@ -124,11 +124,7 @@
         {% if column <= row %}
             {% set result = results.get_result(row_package, col_package) %}
             {% set cellName = row | string + '-' + column | string %}
-            {% if result.self%}
-                {% set bgColorName = 'self-' + result.status | lower %}
-            {% else %}
-                {% set bgColorName = result.status | lower %}
-            {% endif %}
+            {% set bgColorName = result.color_status | lower %}
             <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result|replace('\'', '\\\'')|safe }}')">
                 <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
                 </div>
