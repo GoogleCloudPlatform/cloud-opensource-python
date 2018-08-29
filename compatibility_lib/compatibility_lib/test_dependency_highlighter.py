@@ -131,11 +131,11 @@ class TestDependencyHighlighter(unittest.TestCase):
             "OutdatedDependency<'pip', HIGH_PRIORITY>",
             "OutdatedDependency<'ply', HIGH_PRIORITY>")
 
-        self._store = mock.Mock()
+        self._store = mock.Mock(autospec=True)
         self._store.get_dependency_info.return_value = _get_dep_info()
 
         fake_value = [[{'dependency_info': _get_dep_info(False)}]]
-        self._checker = mock.Mock()
+        self._checker = mock.Mock(autospec=True)
         self._checker.get_self_compatibility.return_value = fake_value
 
         self.patch_checker = mock.patch(

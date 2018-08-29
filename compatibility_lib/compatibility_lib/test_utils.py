@@ -49,7 +49,7 @@ class TestDependencyInfo(unittest.TestCase):
                 'dependency_info': self.DEP_INFO,
             },
         ),)
-        self.mock_checker = mock.Mock()
+        self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
 
         self.mock_checker.get_self_compatibility.return_value = \

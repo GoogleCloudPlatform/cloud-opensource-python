@@ -66,7 +66,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
                 'dependency_info': self.DEP_INFO,
             },
         ),)
-        self.mock_checker = mock.Mock()
+        self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
 
         self.mock_checker.get_self_compatibility.return_value = \
@@ -96,8 +96,8 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             finder = deprecated_dep_finder.DeprecatedDepFinder(py_version='2')
 
         self.assertEqual(finder.py_version, '2')
-        self.assertTrue(
-            isinstance(finder._dependency_info_getter, utils.DependencyInfo))
+        self.assertIsInstance(
+            finder._dependency_info_getter, utils.DependencyInfo)
 
     def test__get_development_status_from_pypi_error(self):
         PKG_INFO = {
@@ -106,7 +106,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             }
         }
 
-        mock_call_pypi_json_api = mock.Mock()
+        mock_call_pypi_json_api = mock.Mock(autospec=True)
         mock_call_pypi_json_api.return_value = PKG_INFO
 
         patch_utils = mock.patch(
@@ -121,7 +121,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         self.assertIsNone(development_status)
 
     def test__get_development_status_from_pypi(self):
-        mock_call_pypi_json_api = mock.Mock()
+        mock_call_pypi_json_api = mock.Mock(autospec=True)
         mock_call_pypi_json_api.return_value = self.PKG_INFO
 
         patch_utils = mock.patch(
@@ -137,7 +137,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         self.assertEqual(development_status, expected_development_status)
 
     def test_get_deprecated_deps(self):
-        mock_call_pypi_json_api = mock.Mock()
+        mock_call_pypi_json_api = mock.Mock(autospec=True)
         mock_call_pypi_json_api.return_value = self.PKG_INFO
 
         patch_utils = mock.patch(

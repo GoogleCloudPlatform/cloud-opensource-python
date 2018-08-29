@@ -68,7 +68,7 @@ class DeprecatedDepFinder(object):
             package_name)
         deprecated_deps = []
 
-        for dep_name in dependency_info.keys():
+        for dep_name in dependency_info:
             development_status = self._get_development_status_from_pypi(
                 dep_name)
             if development_status == DEPRECATED_STATUS:
