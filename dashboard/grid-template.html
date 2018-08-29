@@ -116,7 +116,9 @@
     {% for row_package in packages %}
     {% set row = loop.index0 %}
     <tr>
-        <td><font face="verdana">{{ row_package.friendly_name }}</font></td>
+        <td><font face="verdana">{{ row_package.friendly_name }}</font>{% if results.has_issues(row_package) %}
+                <img class="warning-img" src="https://www.gstatic.com/images/icons/material/system/1x/warning_amber_18dp.png">
+            {% endif %}</td>
         {% for col_package in packages %}
         {% set column = loop.index0 %}
         {% if column <= row %}
