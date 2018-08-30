@@ -40,7 +40,7 @@ def _get_dep_info(datetime=True):
 
 class TestPriority(unittest.TestCase):
 
-    def test_constructor_default(self):
+  def test_constructor_default(self):
         expected_level = dependency_highlighter.PriorityLevel.UP_TO_DATE
         expected_details = ''
 
@@ -49,8 +49,8 @@ class TestPriority(unittest.TestCase):
         self.assertEqual(expected_level, priority.level)
         self.assertEqual(expected_details, priority.details)
 
-    def test_constructor_explicit(self):
-        expected_level = dependency_highlighter.PriorityLevel.LOW
+  def test_constructor_explicit(self):
+        expected_level = dependency_highlighter.PriorityLevel.LOW_PRIORITY
         expected_details = 'this is a test'
 
         priority = dependency_highlighter.Priority(
@@ -65,17 +65,17 @@ class TestOutdatedDependency(unittest.TestCase):
     expected_pkgname = 'google-cloud-bigquery'
     expected_parent = 'google-cloud-dataflow'
     expected_priority = dependency_highlighter.Priority(
-        dependency_highlighter.PriorityLevel.HIGH,
+        dependency_highlighter.PriorityLevel.HIGH_PRIORITY,
         'this dependency is 1 or more major versions behind the latest')
     expected_info = _get_dep_info()[expected_pkgname]
 
     expected_repr = (
         "OutdatedDependency<'google-cloud-bigquery', "
-        "HIGH>")
+        "HIGH_PRIORITY>")
 
     expected_str = (
         'Dependency Name:\tgoogle-cloud-bigquery\n'
-        'Priority:\t\tHIGH\n'
+        'Priority:\t\tHIGH_PRIORITY\n'
         'Installed Version:\t0.25.0\n'
         'Latest Available:\t1.5.0\n'
         'Time Since Latest:\t14 days\n'
@@ -120,16 +120,16 @@ class TestDependencyHighlighter(unittest.TestCase):
     def setUp(self):
         self.expected_dep_info = _get_dep_info()
         self.expected_check_package_res = (
-            "OutdatedDependency<'apache-beam', LOW>",
-            "OutdatedDependency<'dill', LOW>",
-            "OutdatedDependency<'google-apitools', LOW>",
-            "OutdatedDependency<'google-cloud-bigquery', HIGH>",
-            "OutdatedDependency<'google-cloud-core', HIGH>",
-            "OutdatedDependency<'google-cloud-pubsub', HIGH>",
-            "OutdatedDependency<'google-gax', LOW>",
-            "OutdatedDependency<'httplib2', LOW>",
-            "OutdatedDependency<'pip', HIGH>",
-            "OutdatedDependency<'ply', HIGH>")
+            "OutdatedDependency<'apache-beam', LOW_PRIORITY>",
+            "OutdatedDependency<'dill', LOW_PRIORITY>",
+            "OutdatedDependency<'google-apitools', LOW_PRIORITY>",
+            "OutdatedDependency<'google-cloud-bigquery', HIGH_PRIORITY>",
+            "OutdatedDependency<'google-cloud-core', HIGH_PRIORITY>",
+            "OutdatedDependency<'google-cloud-pubsub', HIGH_PRIORITY>",
+            "OutdatedDependency<'google-gax', LOW_PRIORITY>",
+            "OutdatedDependency<'httplib2', LOW_PRIORITY>",
+            "OutdatedDependency<'pip', HIGH_PRIORITY>",
+            "OutdatedDependency<'ply', HIGH_PRIORITY>")
 
         self._store = mock.Mock(autospec=True)
         self._store.get_dependency_info.return_value = _get_dep_info()
@@ -171,37 +171,37 @@ class TestDependencyHighlighter(unittest.TestCase):
 
         cases = []
         cases.append((
-            priority(level.LOW, not_updated),
+            priority(level.LOW_PRIORITY, not_updated),
             eval(ptemp % ((2,5,0)+(2,6,0)+(5,)))
         ))
 
         cases.append((
-            priority(level.HIGH, six_months),
+            priority(level.HIGH_PRIORITY, six_months),
             eval(ptemp % ((2,5,0)+(2,6,0)+(200,)))
         ))
 
         cases.append((
-            priority(level.HIGH, three_minor),
+            priority(level.HIGH_PRIORITY, three_minor),
             eval(ptemp % ((2,5,0)+(2,8,0)+(13,)))
         ))
 
         cases.append((
-            priority(level.LOW, not_updated),
+            priority(level.LOW_PRIORITY, not_updated),
             eval(ptemp % ((2,5,0)+(3,0,0)+(29,)))
         ))
 
         cases.append((
-            priority(level.HIGH, thirty_days),
+            priority(level.HIGH_PRIORITY, thirty_days),
             eval(ptemp % ((2,5,0)+(3,0,0)+(50,)))
         ))
 
         cases.append((
-            priority(level.HIGH, major_version),
+            priority(level.HIGH_PRIORITY, major_version),
             eval(ptemp % ((2,5,0)+(3,0,4)+(1,)))
         ))
 
         cases.append((
-            priority(level.HIGH, major_version),
+            priority(level.HIGH_PRIORITY, major_version),
             eval(ptemp % ((2,5,0)+(5,0,4)+(1,)))
         ))
 

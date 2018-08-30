@@ -31,8 +31,8 @@ class UnstableReleaseError(Exception):
 
 class PriorityLevel(enum.Enum):
     UP_TO_DATE = 0
-    LOW = 1
-    HIGH = 2
+    LOW_PRIORITY = 1
+    HIGH_PRIORITY = 2
 
 
 class Priority(object):
@@ -105,28 +105,28 @@ class DependencyHighlighter(object):
             msg = ('%s is 1 or more major versions '
                    'behind the latest version' % depname)
             if latest['major'] - install['major'] > 1:
-                return Priority(PriorityLevel.HIGH, msg)
+                return Priority(PriorityLevel.HIGH_PRIORITY, msg)
 
             if latest['minor'] > 0 or latest['patch'] > 0:
-                return Priority(PriorityLevel.HIGH, msg)
+                return Priority(PriorityLevel.HIGH_PRIORITY, msg)
 
             msg = ('it has been over 30 days since the major version '
                    'for %s was released' % depname)
             if MAJOR_GRACE_PERIOD_IN_DAYS < elapsed_time.days:
-                return Priority(PriorityLevel.HIGH, msg)
+                return Priority(PriorityLevel.HIGH_PRIORITY, msg)
 
         if ALLOWED_MINOR_DIFF <= latest['minor'] - install['minor']:
             msg = ('%s is 3 or more minor versions '
                    'behind the latest version' % depname)
-            return Priority(PriorityLevel.HIGH, msg)
+            return Priority(PriorityLevel.HIGH_PRIORITY, msg)
 
         if DEFAULT_GRACE_PERIOD_IN_DAYS < elapsed_time.days:
             msg = ('it has been over 6 months since the latest version '
                    'for %s was released' % depname)
-            return Priority(PriorityLevel.HIGH, msg)
+            return Priority(PriorityLevel.HIGH_PRIORITY, msg)
 
         msg = '%s is not up to date with the latest version' % depname
-        return Priority(PriorityLevel.LOW, msg)
+        return Priority(PriorityLevel.LOW_PRIORITY, msg)
 
     def check_package(self, package_name):
         """Looks for and returns outdated dependencies for a single package
@@ -144,7 +144,7 @@ class DependencyHighlighter(object):
             try:
                 install = _sanitize_release_tag(info['installed_version'])
             except UnstableReleaseError as err:
-                priority = Priority(PriorityLevel.HIGH, str(err))
+                priority = Priority(PriorityLevel.HIGH_PRIORITY, str(err))
 
             if not info['is_latest'] or priority.level != PriorityLevel.UP_TO_DATE:
                 latest =  _sanitize_release_tag(info['latest_version'])

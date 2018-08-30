@@ -124,18 +124,17 @@ CONVERSION_ERROR_RES = {
 }
 
 DEP_STATUS_COLOR_MAPPING = {
-    'CALCULATING':                    'blue',
-    'CONVERSION_ERROR':               'orange',
-    priority_level.UP_TO_DATE.name:   'green',
-    priority_level.LOW.name:          'black',
-    priority_level.HIGH.name:         'red'
+    'CALCULATING':                      'blue',
+    'CONVERSION_ERROR':                 'orange',
+    priority_level.UP_TO_DATE.name:     'green',
+    priority_level.LOW_PRIORITY.name:   'black',
+    priority_level.HIGH_PRIORITY.name:  'red'
 }
 
 DEP_CONVERSION_ERROR_RES = {
     'status': 'CONVERSION_ERROR',
     'details': None,
 }
-
 
 SVG_CONTENT_TYPE = 'image/svg+xml'
 
