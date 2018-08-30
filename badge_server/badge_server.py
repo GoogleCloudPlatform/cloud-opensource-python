@@ -170,27 +170,47 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-def _get_badge_url(version_and_res, package_name):
-    # By default use the status of py3, if it is not SUCCESS, and it can be
-    # installed with python2, then use the result of python2.
+#def _get_badge_url(version_and_res, package_name):
+#    # By default use the status of py3, if it is not SUCCESS, and it can be
+#    # installed with python2, then use the result of python2.
+#    package_name = package_name.replace('-', '.')
+#    status = version_and_res['py3']['status']
+#    if status != 'SUCCESS' and \
+#            package_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
+#        status = version_and_res['py2']['status']
+#
+#    color = STATUS_COLOR_MAPPING[status]
+#    url = URL_PREFIX + '{}-{}-{}.svg'.format(
+#        package_name, status, color)
+#
+#    return url
+#
+#
+#def _get_dep_badge_url(res, package_name):
+#    package_name = package_name.replace('-', '.')
+#    status = res['status']
+#
+#    color = DEP_STATUS_COLOR_MAPPING[status]
+#    url = URL_PREFIX + '{}-{}-{}.svg'.format(
+#        package_name, status, color)
+#
+#    return url
+
+
+def _get_badge_url(res, package_name):
     package_name = package_name.replace('-', '.')
-    status = version_and_res['py3']['status']
-    if status != 'SUCCESS' and \
-            package_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
-        status = version_and_res['py2']['status']
 
-    color = STATUS_COLOR_MAPPING[status]
-    url = URL_PREFIX + '{}-{}-{}.svg'.format(
-        package_name, status, color)
+    status = res.get('status')
+    if status is not None:
+        color = DEP_STATUS_COLOR_MAPPING[status]
+    else:
+        status = res['py3']['status']
+        if (status != 'SUCCESS' and
+            package_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2)):
+            status = res['py2']['status']
 
-    return url
+        color = STATUS_COLOR_MAPPING[status]
 
-
-def _get_dep_badge_url(res, package_name):
-    package_name = package_name.replace('-', '.')
-    status = res['status']
-
-    color = DEP_STATUS_COLOR_MAPPING[status]
     url = URL_PREFIX + '{}-{}-{}.svg'.format(
         package_name, status, color)
 
@@ -318,7 +338,6 @@ def self_dependency_badge_image():
     }
 
     def run_check():
-        # First see if this package is already stored in BigQuery.
         outdated = highlighter.check_package(package_name)
 
         max_level = priority_level.UP_TO_DATE
@@ -334,7 +353,7 @@ def self_dependency_badge_image():
         if len(details) > 0:
             res['details'] = '\n'.join(details)
 
-        url = _get_dep_badge_url(res, package_name)
+        url = _get_badge_url(res, package_name)
 
         # Write the result to memory store
         redis_client.set(
@@ -356,7 +375,7 @@ def self_dependency_badge_image():
     else:
         details = res
 
-    url = _get_dep_badge_url(details, package_name)
+    url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
