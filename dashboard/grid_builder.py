@@ -43,6 +43,8 @@ _JINJA2_ENVIRONMENT = jinja2.Environment(
 
 _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
+SELF_SUCCESS = {'status': 'SUCCESS', 'self': True}
+
 
 class _ResultHolder():
     def __init__(
@@ -70,14 +72,18 @@ class _ResultHolder():
 
     def has_issues(self, p: package.Package) -> bool:
         """Returns true if the given package has any compatibility issues."""
+        # Get self result
         for package_2 in self._package_to_results.keys():
             results = self.get_result(p, package_2)
             # Don't report the package as having issues if it is purely the
             # result of a self-incompatibility of another package.
-            self_res = results.get('self_compatibility_check')
+            pure_self_conflict = False
+            self_res = self.get_result(package_2, package_2)
+            if SELF_SUCCESS not in self_res.get('self_compatibility_check'):
+                pure_self_conflict = True
             pair_res = results.get('pairwise_compatibility_check')
             for result in pair_res:
-                if not self_res and result['status'] != 'SUCCESS':
+                if not pure_self_conflict and result['status'] != 'SUCCESS':
                     return True
         return False
 
@@ -105,7 +111,7 @@ class _ResultHolder():
         """
         self_result = []
         pair_result = []
-        cell_color_status = 'SELF-SUCCESS'
+        cell_color_status = 'Self-SUCCESS'
 
         if (not self._package_to_results[package_1] or
             not self._package_to_results[package_2]):
@@ -134,12 +140,13 @@ class _ResultHolder():
                 cell_color_status = 'Self-' + pr.status.value
 
         if package_1 == package_2:
-            self_result.append(
-                {
-                    'status': compatibility_store.Status.SUCCESS.name,
-                    'self': True,
-                }
-            )
+            if not self_result:
+                self_result.append(
+                    {
+                        'status': compatibility_store.Status.SUCCESS.name,
+                        'self': True,
+                    }
+                )
         else:
             pairwise_results = self._pairwise_to_results[
                 frozenset([package_1, package_2])]
@@ -163,14 +170,15 @@ class _ResultHolder():
                     )
                     cell_color_status = 'Pairwise-' + pr.status.value
 
-            if not self_result and not pair_result:
+            if not pair_result:
                 pair_result.append(
                     {
                         'status': compatibility_store.Status.SUCCESS.name,
                         'self': False,
                     }
                 )
-                cell_color_status = 'Pairwise-SUCCESS'
+                if cell_color_status is 'Self-SUCCESS':
+                    cell_color_status = 'Pairwise-SUCCESS'
 
         result = {
             'color_status': cell_color_status,

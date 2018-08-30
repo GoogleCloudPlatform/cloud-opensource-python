@@ -41,9 +41,15 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
+        expected = {
+            'color_status': 'Self-SUCCESS',
+            'self_compatibility_check': [
+                {'status': 'SUCCESS', 'self': True}],
+            'pairwise_compatibility_check': []
+        }
         self.assertEqual(
             rh.get_result(PACKAGE_1, PACKAGE_1),
-            {'status': 'SUCCESS', 'self': True})
+            expected)
 
     def test_self_compatibility_error(self):
         package_to_results = {
@@ -56,18 +62,38 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
+        expected = {
+            'color_status': 'Self-INSTALL_ERROR',
+            'self_compatibility_check': [
+                {'status': 'INSTALL_ERROR',
+                 'self': True,
+                 'details': 'Installation failure'
+                 },
+                {'status': 'INSTALL_ERROR',
+                 'self': True,
+                 'details': 'Installation failure'
+                 },
+            ],
+            'pairwise_compatibility_check': []
+        }
         self.assertEqual(
             rh.get_result(PACKAGE_1, PACKAGE_1),
-            {'status': 'INSTALL_ERROR', 'details': 'Installation failure',
-             'self': True})
+            expected)
 
     def test_self_compatibility_no_entry(self):
         package_to_results = {PACKAGE_1: []}
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
+        expected = {
+            'color_status': 'Self-UNKNOWN',
+            'self_compatibility_check': [
+                {'status': 'UNKNOWN', 'self': True},
+            ],
+            'pairwise_compatibility_check': []
+        }
         self.assertEqual(
             rh.get_result(PACKAGE_1, PACKAGE_1),
-            {'status': 'UNKNOWN', 'self': True})
+            expected)
 
     def test_pairwise_success(self):
         package_to_results = {
@@ -93,9 +119,16 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
+        expected = {
+            'color_status': 'Pairwise-SUCCESS',
+            'self_compatibility_check': [],
+            'pairwise_compatibility_check': [
+                {'status': 'SUCCESS', 'self': False}
+            ]
+        }
         self.assertEqual(
             rh.get_result(PACKAGE_1, PACKAGE_2),
-            {'status': 'SUCCESS', 'self': False})
+            expected)
 
     def test_pairwise_error(self):
         package_to_results = {
@@ -122,10 +155,19 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
+        expected = {
+            'color_status': 'Pairwise-INSTALL_ERROR',
+            'self_compatibility_check': [],
+            'pairwise_compatibility_check': [
+                {'status': 'INSTALL_ERROR',
+                 'self': False,
+                 'details': 'Installation failure'
+                 }
+            ]
+        }
         self.assertEqual(
             rh.get_result(PACKAGE_1, PACKAGE_2),
-            {'status': 'INSTALL_ERROR', 'details': 'Installation failure',
-             'self': False})
+            expected)
 
     def test_pairwise_no_entry(self):
         package_to_results = {
@@ -146,9 +188,16 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
+        expected = {
+            'color_status': 'Pairwise-UNKNOWN',
+            'self_compatibility_check': [],
+            'pairwise_compatibility_check': [
+                {'status': 'UNKNOWN', 'self': False}
+            ]
+        }
         self.assertEqual(
             rh.get_result(PACKAGE_1, PACKAGE_2),
-            {'status': 'UNKNOWN', 'self': False})
+            expected)
 
 
 class TestResultHolderHasIssues(unittest.TestCase):
@@ -186,8 +235,8 @@ class TestResultHolderHasIssues(unittest.TestCase):
             PACKAGE_1: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
-                status=compatibility_store.Status.INSTALL_ERROR,
-                details='Installation failure',
+                status=compatibility_store.Status.CHECK_WARNING,
+                details='Self Conflict',
             )],
             PACKAGE_2: [compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
@@ -200,8 +249,8 @@ class TestResultHolderHasIssues(unittest.TestCase):
                 compatibility_store.CompatibilityResult(
                     packages=[PACKAGE_1, PACKAGE_2],
                     python_major_version=3,
-                    status=compatibility_store.Status.INSTALL_ERROR,
-                    details='Installation failure',
+                    status=compatibility_store.Status.CHECK_WARNING,
+                    details='Conflict',
                 )]
         }
         rh = grid_builder._ResultHolder(
