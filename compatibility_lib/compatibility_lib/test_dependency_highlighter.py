@@ -18,13 +18,12 @@ import unittest
 
 from datetime import timedelta
 from compatibility_lib import dependency_highlighter
-from compatibility_lib import compatibility_store
-from compatibility_lib import fake_compatibility_store
-from compatibility_lib import mock_data
+from compatibility_lib import utils
+from compatibility_lib.testdata import mock_depinfo_data
 
 
 def _get_dep_info(datetime=True):
-    dep_info = json.loads(mock_data.DEP_INFO)
+    dep_info = json.loads(mock_depinfo_data.DEP_INFO)
     if not datetime:
         return dep_info
 
@@ -35,12 +34,12 @@ def _get_dep_info(datetime=True):
     for _, info in dep_info.items():
         for field in fields:
             time = info[field]
-            info[field] = dependency_highlighter._parse_datetime(time)
+            info[field] = utils._parse_datetime(time)
     return dep_info
 
 
 class TestPriority(unittest.TestCase):
-    
+
     def test_constructor_default(self):
         expected_level = dependency_highlighter.PriorityLevel.NOT_SET
         expected_details = ''
@@ -88,7 +87,7 @@ class TestOutdatedDependency(unittest.TestCase):
         parent=expected_parent,
         priority=expected_priority,
         info=expected_info)
-    
+
     def test_constructor(self):
         self.assertEqual(self.expected_pkgname, self.outdated.name)
         self.assertEqual(self.expected_parent, self.outdated.parent)
@@ -118,18 +117,6 @@ class TestOutdatedDependency(unittest.TestCase):
 
 class TestDependencyHighlighter(unittest.TestCase):
 
-    class FakeDependencyHighlighter(dependency_highlighter.DependencyHighlighter):
-
-        def __init__(self, py_version='3'):
-            self.py_version = py_version
-
-            self._store = mock.Mock()
-            self._store.get_dependency_info.return_value = _get_dep_info()
-
-            fake_value = [[{'dependency_info': _get_dep_info(False)}]]
-            self._checker = mock.Mock()
-            self._checker.get_self_compatibility.return_value = fake_value
-
     def setUp(self):
         self.expected_dep_info = _get_dep_info()
         self.expected_check_package_res = (
@@ -144,11 +131,24 @@ class TestDependencyHighlighter(unittest.TestCase):
             "OutdatedDependency<'pip', HIGH_PRIORITY>",
             "OutdatedDependency<'ply', HIGH_PRIORITY>")
 
+        self._store = mock.Mock(autospec=True)
+        self._store.get_dependency_info.return_value = _get_dep_info()
+
+        fake_value = [[{'dependency_info': _get_dep_info(False)}]]
+        self._checker = mock.Mock(autospec=True)
+        self._checker.get_self_compatibility.return_value = fake_value
+
+        self.patch_checker = mock.patch(
+            'compatibility_lib.dependency_highlighter.utils.checker',
+            self._checker)
+        self.patch_store = mock.patch(
+            'compatibility_lib.dependency_highlighter.utils.store',
+            self._store)
+
     def setup_test__get_update_priority(self):
         priority = dependency_highlighter.Priority
         level = dependency_highlighter.PriorityLevel
-        highlighter = self.FakeDependencyHighlighter()
-        
+
         not_updated = 'this dependency is not up to date with the latest version'
 
         six_months = ('it has been over 6 months since the latest version '
@@ -163,14 +163,16 @@ class TestDependencyHighlighter(unittest.TestCase):
         major_version = ('this dependency is 1 or more major versions '
                          'behind the latest version')
 
-        ptemp = ("highlighter._get_update_priority("
-                 "{'major':%d, 'minor':%d, 'patch':%d}, "
-                 "{'major':%d, 'minor':%d, 'patch':%d}, "
-                 "timedelta(days=%d))")
+        with self.patch_checker, self.patch_store:
+            highlighter = dependency_highlighter.DependencyHighlighter()
+            ptemp = ("highlighter._get_update_priority("
+                     "{'major':%d, 'minor':%d, 'patch':%d}, "
+                     "{'major':%d, 'minor':%d, 'patch':%d}, "
+                     "timedelta(days=%d))")
 
         cases = []
         cases.append((
-            priority(level.LOW, not_updated), 
+            priority(level.LOW, not_updated),
             eval(ptemp % ((2,5,0)+(2,6,0)+(5,)))
         ))
 
@@ -206,33 +208,6 @@ class TestDependencyHighlighter(unittest.TestCase):
 
         return cases
 
-    def test__get_from_bigquery(self):
-        highlighter = self.FakeDependencyHighlighter()
-
-        res = highlighter._get_from_bigquery('google-cloud-dataflow')
-        self.assertEqual(self.expected_dep_info, res)
-
-        res = highlighter._get_from_bigquery('not-in-bigquery')
-        self.assertEqual(None, res)
-
-    def test__get_from_endpoint(self):
-        highlighter = self.FakeDependencyHighlighter()
-        res = highlighter._get_from_endpoint('google-cloud-dataflow')
-        self.assertEqual(self.expected_dep_info, res)
-
-        highlighter = self.FakeDependencyHighlighter()
-        res = highlighter._get_from_endpoint('not-in-bigquery')
-        self.assertEqual(self.expected_dep_info, res)
-
-    def test__get_dependency_info(self):
-        highlighter = self.FakeDependencyHighlighter()
-        res = highlighter._get_dependency_info('google-cloud-dataflow')
-        self.assertEqual(self.expected_dep_info, res)
-
-        highlighter = self.FakeDependencyHighlighter()
-        res = highlighter._get_dependency_info('not-in-bigquery')
-        self.assertEqual(self.expected_dep_info, res)
-
     def test__get_update_priority(self):
         def comp(p1, p2):
             if p1.level != p2.level:
@@ -240,43 +215,48 @@ class TestDependencyHighlighter(unittest.TestCase):
             if p1.details != p2.details:
                 return False
             return True
-        
+
         cases = self.setup_test__get_update_priority()
 
         for expected, res in cases:
             self.assertTrue(comp(expected, res))
 
     def test_check_package(self):
-        highlighter = self.FakeDependencyHighlighter()
-        res = highlighter.check_package('google-cloud-dataflow')
-        reprs = [repr(dep) for dep in res]
-        reprs.sort()
+        with self.patch_checker, self.patch_store:
+            highlighter = dependency_highlighter.DependencyHighlighter()
+            res = highlighter.check_package('google-cloud-dataflow')
 
-        zipped = zip(self.expected_check_package_res, reprs)
-        for expected, got in zipped:
-            self.assertEqual(expected, got)
-
-        highlighter = self.FakeDependencyHighlighter()
-        res = highlighter.check_package('not-in-bigquery')
-        reprs = [repr(dep) for dep in res]
-        reprs.sort()
-
-        zipped = zip(self.expected_check_package_res, reprs)
-        for expected, got in zipped:
-            self.assertEqual(expected, got)
-
-    def test_check_packages(self):
-        highlighter = self.FakeDependencyHighlighter()
-        packages = ['google-cloud-dataflow', 'not-in-bigquery']
-        res = highlighter.check_packages(packages)
-
-        for pkgname, outdated in res.items():
-            reprs = [repr(dep) for dep in outdated]
+            reprs = [repr(dep) for dep in res]
             reprs.sort()
 
             zipped = zip(self.expected_check_package_res, reprs)
             for expected, got in zipped:
                 self.assertEqual(expected, got)
+
+        with self.patch_checker, self.patch_store:
+            highlighter = dependency_highlighter.DependencyHighlighter()
+            res = highlighter.check_package('not-in-bigquery')
+
+            reprs = [repr(dep) for dep in res]
+            reprs.sort()
+
+            zipped = zip(self.expected_check_package_res, reprs)
+            for expected, got in zipped:
+                self.assertEqual(expected, got)
+
+    def test_check_packages(self):
+        packages = ['google-cloud-dataflow', 'not-in-bigquery']
+        with self.patch_checker, self.patch_store:
+            highlighter = dependency_highlighter.DependencyHighlighter()
+            res = highlighter.check_packages(packages)
+
+            for pkgname, outdated in res.items():
+                reprs = [repr(dep) for dep in outdated]
+                reprs.sort()
+
+                zipped = zip(self.expected_check_package_res, reprs)
+                for expected, got in zipped:
+                    self.assertEqual(expected, got)
 
 
 class TestUtilityFunctions(unittest.TestCase):
@@ -302,9 +282,3 @@ class TestUtilityFunctions(unittest.TestCase):
         for tag in self.bad_tags:
             with self.assertRaises(dependency_highlighter.UnstableReleaseError):
                 dependency_highlighter._sanitize_release_tag(tag)
-
-    def test__parse_datetime(self):
-        date_string = '2018-08-16T15:42:04.351677'
-        expected = '2018-08-16 00:00:00'
-        res = dependency_highlighter._parse_datetime(date_string)
-        self.assertEqual(str(res), expected)
