@@ -111,7 +111,7 @@ class _ResultHolder():
         """
         self_result = []
         pair_result = []
-        cell_color_status = 'Self-SUCCESS'
+        cell_color_status = 'self-success'
 
         if (not self._package_to_results[package_1] or
             not self._package_to_results[package_2]):
@@ -121,7 +121,7 @@ class _ResultHolder():
                     'self': True,
                 }
             )
-            cell_color_status = 'Self-UNKNOWN'
+            cell_color_status = 'self-unknown'
 
         package_results = (
                 self._package_to_results[package_1] +
@@ -137,7 +137,7 @@ class _ResultHolder():
                         'details': pr.details
                     }
                 )
-                cell_color_status = 'Self-' + pr.status.value
+                cell_color_status = 'self-' + pr.status.value.lower()
 
         if package_1 == package_2:
             if not self_result:
@@ -157,7 +157,7 @@ class _ResultHolder():
                         'self': False,
                     }
                 )
-                cell_color_status = 'Pairwise-UNKNOWN'
+                cell_color_status = 'pairwise-unknown'
             for pr in pairwise_results:
                 if not self._is_py_version_incompatible(pr) and \
                             pr.status != compatibility_store.Status.SUCCESS:
@@ -168,7 +168,7 @@ class _ResultHolder():
                             'details': pr.details
                         }
                     )
-                    cell_color_status = 'Pairwise-' + pr.status.value
+                    cell_color_status = 'pairwise-' + pr.status.value.lower()
 
             if not pair_result:
                 pair_result.append(
@@ -177,8 +177,8 @@ class _ResultHolder():
                         'self': False,
                     }
                 )
-                if cell_color_status is 'Self-SUCCESS':
-                    cell_color_status = 'Pairwise-SUCCESS'
+                if cell_color_status is 'self-success':
+                    cell_color_status = 'pairwise-success'
 
         result = {
             'color_status': cell_color_status,
