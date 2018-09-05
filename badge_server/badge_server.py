@@ -170,33 +170,6 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-#def _get_badge_url(version_and_res, package_name):
-#    # By default use the status of py3, if it is not SUCCESS, and it can be
-#    # installed with python2, then use the result of python2.
-#    package_name = package_name.replace('-', '.')
-#    status = version_and_res['py3']['status']
-#    if status != 'SUCCESS' and \
-#            package_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
-#        status = version_and_res['py2']['status']
-#
-#    color = STATUS_COLOR_MAPPING[status]
-#    url = URL_PREFIX + '{}-{}-{}.svg'.format(
-#        package_name, status, color)
-#
-#    return url
-#
-#
-#def _get_dep_badge_url(res, package_name):
-#    package_name = package_name.replace('-', '.')
-#    status = res['status']
-#
-#    color = DEP_STATUS_COLOR_MAPPING[status]
-#    url = URL_PREFIX + '{}-{}-{}.svg'.format(
-#        package_name, status, color)
-#
-#    return url
-
-
 def _get_badge_url(res, package_name):
     package_name = package_name.replace('-', '.')
 
