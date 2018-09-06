@@ -74,16 +74,19 @@ class _ResultHolder():
         """Returns true if the given package has any compatibility issues."""
         # Get self result
         for package_2 in self._package_to_results.keys():
-            results = self.get_result(p, package_2)
+            p_and_package_2_result = self.get_result(p, package_2)
             # Don't report the package as having issues if it is purely the
             # result of a self-incompatibility of another package.
-            pure_self_conflict = False
-            self_res = self.get_result(package_2, package_2)
-            if SELF_SUCCESS not in self_res.get('self_compatibility_check'):
-                pure_self_conflict = True
-            pair_res = results.get('pairwise_compatibility_check')
+            package_2_self_conflict = False
+            package_2_self_res = self.get_result(package_2, package_2)
+            if SELF_SUCCESS not in package_2_self_res.get(
+                    'self_compatibility_check'):
+                package_2_self_conflict = True
+            pair_res = p_and_package_2_result.get(
+                'pairwise_compatibility_check')
             for result in pair_res:
-                if not pure_self_conflict and result['status'] != 'SUCCESS':
+                if not package_2_self_conflict and \
+                                result['status'] != 'SUCCESS':
                     return True
         return False
 
