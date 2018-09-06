@@ -43,6 +43,8 @@ _JINJA2_ENVIRONMENT = jinja2.Environment(
 
 _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
+SELF_SUCCESS = {'status': 'SUCCESS', 'self': True}
+
 
 class _ResultHolder():
     def __init__(
@@ -70,13 +72,22 @@ class _ResultHolder():
 
     def has_issues(self, p: package.Package) -> bool:
         """Returns true if the given package has any compatibility issues."""
+        # Get self result
         for package_2 in self._package_to_results.keys():
-            result = self.get_result(p, package_2)
+            p_and_package_2_result = self.get_result(p, package_2)
             # Don't report the package as having issues if it is purely the
             # result of a self-incompatibility of another package.
-            if result['status'] != compatibility_store.Status.SUCCESS.name and (
-                    not result['self'] or p == package_2):
-                return True
+            package_2_self_conflict = False
+            package_2_self_res = self.get_result(package_2, package_2)
+            if SELF_SUCCESS not in package_2_self_res.get(
+                    'self_compatibility_check'):
+                package_2_self_conflict = True
+            pair_res = p_and_package_2_result.get(
+                'pairwise_compatibility_check')
+            for result in pair_res:
+                if not package_2_self_conflict and \
+                                result['status'] != 'SUCCESS':
+                    return True
         return False
 
     def get_result(self,
@@ -101,12 +112,19 @@ class _ResultHolder():
                             May be None.>
             }
         """
+        self_result = []
+        pair_result = []
+        status_type = 'self-success'
+
         if (not self._package_to_results[package_1] or
             not self._package_to_results[package_2]):
-            return {
-                'status': compatibility_store.Status.UNKNOWN.name,
-                'self': True,
-            }
+            self_result.append(
+                {
+                    'status': compatibility_store.Status.UNKNOWN.name,
+                    'self': True,
+                }
+            )
+            status_type = 'self-unknown'
 
         package_results = (
                 self._package_to_results[package_1] +
@@ -115,37 +133,63 @@ class _ResultHolder():
         for pr in package_results:
             if not self._is_py_version_incompatible(pr) and \
                             pr.status != compatibility_store.Status.SUCCESS:
-                return {
-                    'status': pr.status.value,
-                    'self': True,
-                    'details': pr.details
-                }
+                self_result.append(
+                    {
+                        'status': pr.status.value,
+                        'self': True,
+                        'details': pr.details
+                    }
+                )
+                status_type = 'self-' + pr.status.value.lower()
 
         if package_1 == package_2:
-            return {
-                'status': compatibility_store.Status.SUCCESS.name,
-                'self': True,
-            }
+            if not self_result:
+                self_result.append(
+                    {
+                        'status': compatibility_store.Status.SUCCESS.name,
+                        'self': True,
+                    }
+                )
         else:
             pairwise_results = self._pairwise_to_results[
                 frozenset([package_1, package_2])]
             if not pairwise_results:
-                return {
-                    'status': compatibility_store.Status.UNKNOWN.name,
-                    'self': False,
-                }
+                pair_result.append(
+                    {
+                        'status': compatibility_store.Status.UNKNOWN.name,
+                        'self': False,
+                    }
+                )
+                status_type = 'pairwise-unknown'
             for pr in pairwise_results:
                 if not self._is_py_version_incompatible(pr) and \
                             pr.status != compatibility_store.Status.SUCCESS:
-                    return {
-                        'status': pr.status.value,
+                    pair_result.append(
+                        {
+                            'status': pr.status.value,
+                            'self': False,
+                            'details': pr.details
+                        }
+                    )
+                    status_type = 'pairwise-' + pr.status.value.lower()
+
+            if not pair_result:
+                pair_result.append(
+                    {
+                        'status': compatibility_store.Status.SUCCESS.name,
                         'self': False,
-                        'details': pr.details
                     }
-            return {
-                'status': compatibility_store.Status.SUCCESS.name,
-                'self': False,
-            }
+                )
+                if status_type is 'self-success':
+                    status_type = 'pairwise-success'
+
+        result = {
+            'status_type': status_type,
+            'self_compatibility_check': self_result,
+            'pairwise_compatibility_check': pair_result
+        }
+
+        return result
 
 
 class GridBuilder:
