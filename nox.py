@@ -78,6 +78,9 @@ def system(session, py):
     # Set the virtualenv dirname.
     session.virtualenv_dirname = 'sys-' + py
 
+    # Build and install compatibility_lib
+    session.install('-e', ','.join(LOCAL_DEPS))
+
     # Install all test dependencies.
     session.install('-r', 'requirements-test.txt')
 
