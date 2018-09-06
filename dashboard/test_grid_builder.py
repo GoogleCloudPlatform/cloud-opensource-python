@@ -42,7 +42,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
         expected = {
-            'color_status': 'self-success',
+            'status_type': 'self-success',
             'self_compatibility_check': [
                 {'status': 'SUCCESS', 'self': True}],
             'pairwise_compatibility_check': []
@@ -63,7 +63,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
         expected = {
-            'color_status': 'self-install_error',
+            'status_type': 'self-install_error',
             'self_compatibility_check': [
                 {'status': 'INSTALL_ERROR',
                  'self': True,
@@ -85,7 +85,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         rh = grid_builder._ResultHolder(
             package_to_results=package_to_results, pairwise_to_results={})
         expected = {
-            'color_status': 'self-unknown',
+            'status_type': 'self-unknown',
             'self_compatibility_check': [
                 {'status': 'UNKNOWN', 'self': True},
             ],
@@ -120,7 +120,7 @@ class TestResultHolderGetResult(unittest.TestCase):
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
         expected = {
-            'color_status': 'pairwise-success',
+            'status_type': 'pairwise-success',
             'self_compatibility_check': [],
             'pairwise_compatibility_check': [
                 {'status': 'SUCCESS', 'self': False}
@@ -156,7 +156,7 @@ class TestResultHolderGetResult(unittest.TestCase):
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
         expected = {
-            'color_status': 'pairwise-install_error',
+            'status_type': 'pairwise-install_error',
             'self_compatibility_check': [],
             'pairwise_compatibility_check': [
                 {'status': 'INSTALL_ERROR',
@@ -189,7 +189,7 @@ class TestResultHolderGetResult(unittest.TestCase):
             package_to_results=package_to_results,
             pairwise_to_results=pairwise_to_results)
         expected = {
-            'color_status': 'pairwise-unknown',
+            'status_type': 'pairwise-unknown',
             'self_compatibility_check': [],
             'pairwise_compatibility_check': [
                 {'status': 'UNKNOWN', 'self': False}
