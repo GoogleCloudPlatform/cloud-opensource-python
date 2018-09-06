@@ -114,7 +114,7 @@ class _ResultHolder():
         """
         self_result = []
         pair_result = []
-        cell_color_status = 'self-success'
+        status_type = 'self-success'
 
         if (not self._package_to_results[package_1] or
             not self._package_to_results[package_2]):
@@ -124,7 +124,7 @@ class _ResultHolder():
                     'self': True,
                 }
             )
-            cell_color_status = 'self-unknown'
+            status_type = 'self-unknown'
 
         package_results = (
                 self._package_to_results[package_1] +
@@ -140,7 +140,7 @@ class _ResultHolder():
                         'details': pr.details
                     }
                 )
-                cell_color_status = 'self-' + pr.status.value.lower()
+                status_type = 'self-' + pr.status.value.lower()
 
         if package_1 == package_2:
             if not self_result:
@@ -160,7 +160,7 @@ class _ResultHolder():
                         'self': False,
                     }
                 )
-                cell_color_status = 'pairwise-unknown'
+                status_type = 'pairwise-unknown'
             for pr in pairwise_results:
                 if not self._is_py_version_incompatible(pr) and \
                             pr.status != compatibility_store.Status.SUCCESS:
@@ -171,7 +171,7 @@ class _ResultHolder():
                             'details': pr.details
                         }
                     )
-                    cell_color_status = 'pairwise-' + pr.status.value.lower()
+                    status_type = 'pairwise-' + pr.status.value.lower()
 
             if not pair_result:
                 pair_result.append(
@@ -180,11 +180,11 @@ class _ResultHolder():
                         'self': False,
                     }
                 )
-                if cell_color_status is 'self-success':
-                    cell_color_status = 'pairwise-success'
+                if status_type is 'self-success':
+                    status_type = 'pairwise-success'
 
         result = {
-            'color_status': cell_color_status,
+            'status_type': status_type,
             'self_compatibility_check': self_result,
             'pairwise_compatibility_check': pair_result
         }

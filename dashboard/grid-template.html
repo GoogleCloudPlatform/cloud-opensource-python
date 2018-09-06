@@ -124,7 +124,7 @@
         {% if column <= row %}
             {% set result = results.get_result(row_package, col_package) %}
             {% set cellName = row | string + '-' + column | string %}
-            {% set bgColorName = result.color_status | lower %}
+            {% set bgColorName = result.status_type | lower %}
             <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result|replace('\'', '\\\'')|safe }}')">
                 <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
                 </div>
