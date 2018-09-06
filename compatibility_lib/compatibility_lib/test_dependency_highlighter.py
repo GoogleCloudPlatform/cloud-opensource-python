@@ -146,8 +146,9 @@ class TestDependencyHighlighter(unittest.TestCase):
             self._store)
 
     def setup_test__get_update_priority(self):
-        priority = dependency_highlighter.Priority
-        level = dependency_highlighter.PriorityLevel
+        LOW = dependency_highlighter.PriorityLevel.LOW_PRIORITY
+        HIGH = dependency_highlighter.PriorityLevel.HIGH_PRIORITY
+
         not_updated = 'PACKAGE is not up to date with the latest version'
 
         six_months = ('it has been over 6 months since the latest version '
@@ -164,46 +165,29 @@ class TestDependencyHighlighter(unittest.TestCase):
 
         with self.patch_checker, self.patch_store:
             highlighter = dependency_highlighter.DependencyHighlighter()
-        ptemp = ("highlighter._get_update_priority('PACKAGE', "
-                 "{'major':%d, 'minor':%d, 'patch':%d}, "
-                 "{'major':%d, 'minor':%d, 'patch':%d}, "
-                 "timedelta(days=%d))")
 
-        cases = []
-        cases.append((
-            priority(level.LOW_PRIORITY, not_updated),
-            eval(ptemp % ((2,5,0)+(2,6,0)+(5,)))
-        ))
+        def dictify(args):
+            major, minor, patch = args
+            return {'major': major, 'minor': minor, 'patch': patch}
 
-        cases.append((
-            priority(level.HIGH_PRIORITY, six_months),
-            eval(ptemp % ((2,5,0)+(2,6,0)+(200,)))
-        ))
+        def expect(level, msg):
+            return dependency_highlighter.Priority(level, msg)
 
-        cases.append((
-            priority(level.HIGH_PRIORITY, three_minor),
-            eval(ptemp % ((2,5,0)+(2,8,0)+(13,)))
-        ))
+        def run(install_tup, latest_tup, numdays):
+            install, latest = dictify(install_tup), dictify(latest_tup)
+            res = highlighter._get_update_priority(
+                'PACKAGE', install, latest, timedelta(days=numdays))
+            return res
 
-        cases.append((
-            priority(level.LOW_PRIORITY, not_updated),
-            eval(ptemp % ((2,5,0)+(3,0,0)+(29,)))
-        ))
-
-        cases.append((
-            priority(level.HIGH_PRIORITY, thirty_days),
-            eval(ptemp % ((2,5,0)+(3,0,0)+(50,)))
-        ))
-
-        cases.append((
-            priority(level.HIGH_PRIORITY, major_version),
-            eval(ptemp % ((2,5,0)+(3,0,4)+(1,)))
-        ))
-
-        cases.append((
-            priority(level.HIGH_PRIORITY, major_version),
-            eval(ptemp % ((2,5,0)+(5,0,4)+(1,)))
-        ))
+        cases = [
+            (expect(LOW, not_updated),    run((2,5,0), (2,6,0), 5)),
+            (expect(HIGH, six_months),    run((2,5,0), (2,6,0), 200)),
+            (expect(HIGH, three_minor),   run((2,5,0), (2,8,0), 13)),
+            (expect(LOW, not_updated),    run((2,5,0), (3,0,0), 29)),
+            (expect(HIGH, thirty_days),   run((2,5,0), (3,0,0), 50)),
+            (expect(HIGH, major_version), run((2,5,0), (3,0,4), 1)),
+            (expect(HIGH, major_version), run((2,5,0), (5,0,4), 1)),
+        ]
 
         return cases
 
