@@ -40,8 +40,8 @@ def _get_dep_info(datetime=True):
 
 class TestPriority(unittest.TestCase):
 
-    def test_constructor_default(self):
-        expected_level = dependency_highlighter.PriorityLevel.NOT_SET
+  def test_constructor_default(self):
+        expected_level = dependency_highlighter.PriorityLevel.UP_TO_DATE
         expected_details = ''
 
         priority = dependency_highlighter.Priority()
@@ -49,8 +49,8 @@ class TestPriority(unittest.TestCase):
         self.assertEqual(expected_level, priority.level)
         self.assertEqual(expected_details, priority.details)
 
-    def test_constructor_explicit(self):
-        expected_level = dependency_highlighter.PriorityLevel.LOW
+  def test_constructor_explicit(self):
+        expected_level = dependency_highlighter.PriorityLevel.LOW_PRIORITY
         expected_details = 'this is a test'
 
         priority = dependency_highlighter.Priority(
@@ -65,7 +65,7 @@ class TestOutdatedDependency(unittest.TestCase):
     expected_pkgname = 'google-cloud-bigquery'
     expected_parent = 'google-cloud-dataflow'
     expected_priority = dependency_highlighter.Priority(
-        dependency_highlighter.PriorityLevel.HIGH,
+        dependency_highlighter.PriorityLevel.HIGH_PRIORITY,
         'this dependency is 1 or more major versions behind the latest')
     expected_info = _get_dep_info()[expected_pkgname]
 
@@ -148,61 +148,60 @@ class TestDependencyHighlighter(unittest.TestCase):
     def setup_test__get_update_priority(self):
         priority = dependency_highlighter.Priority
         level = dependency_highlighter.PriorityLevel
-
-        not_updated = 'this dependency is not up to date with the latest version'
+        not_updated = 'PACKAGE is not up to date with the latest version'
 
         six_months = ('it has been over 6 months since the latest version '
-                      'for this dependency was released')
+                      'for PACKAGE was released')
 
-        three_minor = ('this dependency is 3 or more minor versions '
+        three_minor = ('PACKAGE is 3 or more minor versions '
                        'behind the latest version')
 
         thirty_days = ('it has been over 30 days since the major version '
-                       'for this dependency was released')
+                       'for PACKAGE was released')
 
-        major_version = ('this dependency is 1 or more major versions '
+        major_version = ('PACKAGE is 1 or more major versions '
                          'behind the latest version')
 
         with self.patch_checker, self.patch_store:
             highlighter = dependency_highlighter.DependencyHighlighter()
-            ptemp = ("highlighter._get_update_priority("
-                     "{'major':%d, 'minor':%d, 'patch':%d}, "
-                     "{'major':%d, 'minor':%d, 'patch':%d}, "
-                     "timedelta(days=%d))")
+        ptemp = ("highlighter._get_update_priority('PACKAGE', "
+                 "{'major':%d, 'minor':%d, 'patch':%d}, "
+                 "{'major':%d, 'minor':%d, 'patch':%d}, "
+                 "timedelta(days=%d))")
 
         cases = []
         cases.append((
-            priority(level.LOW, not_updated),
+            priority(level.LOW_PRIORITY, not_updated),
             eval(ptemp % ((2,5,0)+(2,6,0)+(5,)))
         ))
 
         cases.append((
-            priority(level.HIGH, six_months),
+            priority(level.HIGH_PRIORITY, six_months),
             eval(ptemp % ((2,5,0)+(2,6,0)+(200,)))
         ))
 
         cases.append((
-            priority(level.HIGH, three_minor),
+            priority(level.HIGH_PRIORITY, three_minor),
             eval(ptemp % ((2,5,0)+(2,8,0)+(13,)))
         ))
 
         cases.append((
-            priority(level.LOW, not_updated),
+            priority(level.LOW_PRIORITY, not_updated),
             eval(ptemp % ((2,5,0)+(3,0,0)+(29,)))
         ))
 
         cases.append((
-            priority(level.HIGH, thirty_days),
+            priority(level.HIGH_PRIORITY, thirty_days),
             eval(ptemp % ((2,5,0)+(3,0,0)+(50,)))
         ))
 
         cases.append((
-            priority(level.HIGH, major_version),
+            priority(level.HIGH_PRIORITY, major_version),
             eval(ptemp % ((2,5,0)+(3,0,4)+(1,)))
         ))
 
         cases.append((
-            priority(level.HIGH, major_version),
+            priority(level.HIGH_PRIORITY, major_version),
             eval(ptemp % ((2,5,0)+(5,0,4)+(1,)))
         ))
 
