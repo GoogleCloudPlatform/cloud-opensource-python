@@ -18,6 +18,7 @@ from __future__ import absolute_import
 
 import os
 
+
 import nox
 
 LINT_UNIT_DIR = ['compatibility_server', 'dashboard', '.']
