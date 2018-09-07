@@ -146,8 +146,8 @@ class TestDependencyHighlighter(unittest.TestCase):
             self._store)
 
     def setup_test__get_update_priority(self):
-        LOW = dependency_highlighter.PriorityLevel.LOW_PRIORITY
-        HIGH = dependency_highlighter.PriorityLevel.HIGH_PRIORITY
+        low = dependency_highlighter.PriorityLevel.LOW_PRIORITY
+        high = dependency_highlighter.PriorityLevel.HIGH_PRIORITY
 
         not_updated = 'PACKAGE is not up to date with the latest version'
 
@@ -180,13 +180,13 @@ class TestDependencyHighlighter(unittest.TestCase):
             return res
 
         cases = [
-            (expect(LOW, not_updated),    run((2,5,0), (2,6,0), 5)),
-            (expect(HIGH, six_months),    run((2,5,0), (2,6,0), 200)),
-            (expect(HIGH, three_minor),   run((2,5,0), (2,8,0), 13)),
-            (expect(LOW, not_updated),    run((2,5,0), (3,0,0), 29)),
-            (expect(HIGH, thirty_days),   run((2,5,0), (3,0,0), 50)),
-            (expect(HIGH, major_version), run((2,5,0), (3,0,4), 1)),
-            (expect(HIGH, major_version), run((2,5,0), (5,0,4), 1)),
+            (expect(low, not_updated),    run((2,5,0), (2,6,0), 5)),
+            (expect(high, six_months),    run((2,5,0), (2,6,0), 200)),
+            (expect(high, three_minor),   run((2,5,0), (2,8,0), 13)),
+            (expect(low, not_updated),    run((2,5,0), (3,0,0), 29)),
+            (expect(high, thirty_days),   run((2,5,0), (3,0,0), 50)),
+            (expect(high, major_version), run((2,5,0), (3,0,4), 1)),
+            (expect(high, major_version), run((2,5,0), (5,0,4), 1)),
         ]
 
         return cases
