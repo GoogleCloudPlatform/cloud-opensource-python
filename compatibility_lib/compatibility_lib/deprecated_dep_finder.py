@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import concurrent.futures
 import logging
 
+from compatibility_lib import configs
 from compatibility_lib import utils
 
 DEPRECATED_STATUS = "Development Status :: 7 - Inactive"
@@ -27,10 +29,11 @@ class DeprecatedDepFinder(object):
     the package is deprecated.
     """
 
-    def __init__(self, py_version=None):
+    def __init__(self, py_version=None, max_workers=20):
         if py_version is None:
             py_version = '3'
 
+        self.max_workers = max_workers
         self.py_version = py_version
         self._dependency_info_getter = utils.DependencyInfo(py_version)
 
@@ -63,7 +66,8 @@ class DeprecatedDepFinder(object):
 
         return development_status
 
-    def get_deprecated_deps(self, package_name):
+    def get_deprecated_dep(self, package_name):
+        """Get deprecated dep for a single package."""
         dependency_info = self._dependency_info_getter.get_dependency_info(
             package_name)
         deprecated_deps = []
@@ -75,3 +79,16 @@ class DeprecatedDepFinder(object):
                 deprecated_deps.append(dep_name)
 
         return deprecated_deps
+
+    def get_deprecated_deps(self, packages=None):
+        """Get deprecated deps for all the Google OSS packages."""
+        if packages is None:
+            packages = configs.PKG_LIST
+        with concurrent.futures.ThreadPoolExecutor(
+                max_workers=self.max_workers) as p:
+            results = p.map(
+                self.get_deprecated_dep,
+                ((pkg) for pkg in packages))
+
+            for result in zip(results):
+                yield result
