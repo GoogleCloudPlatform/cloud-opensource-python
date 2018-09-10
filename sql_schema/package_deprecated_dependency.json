@@ -1,0 +1,20 @@
+[
+  {
+    "mode": "REQUIRED",
+    "name": "install_name",
+    "type": "STRING"
+  },
+  {
+    "mode": "REQUIRED",
+    "name": "has_deprecated_deps",
+    "type": "BOOLEAN"
+  },
+  {
+    "name": "details",
+    "type": "STRING"
+  },
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP"
+  }
+]
