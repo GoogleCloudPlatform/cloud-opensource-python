@@ -117,7 +117,9 @@
     {% set row = loop.index0 %}
     <tr>
         <td><font face="verdana">{{ row_package.friendly_name }}</font>{% if results.has_issues(row_package) %}
-                <img class="warning-img" src="https://www.gstatic.com/images/icons/material/system/1x/warning_amber_18dp.png">
+                {% set issues = results.get_deprecated_deps(row_package.friendly_name) %}
+                <img class="warning-img" class="dialog" onclick="showIssues('{{ row_package.friendly_name|safe }}', '{{ issues|replace('\'', '\\\'')|safe }}')" src="https://www.gstatic.com/images/icons/material/system/1x/warning_amber_18dp.png">
+                <div id="{{ row_package.friendly_name }}" class="dialog" title="{{ row_package.friendly_name }}"></div>
             {% endif %}</td>
         {% for col_package in packages %}
         {% set column = loop.index0 %}
@@ -125,7 +127,7 @@
             {% set result = results.get_result(row_package, col_package) %}
             {% set cellName = row | string + '-' + column | string %}
             {% set bgColorName = result.status_type | lower %}
-            <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result|replace('\'', '\\\'')|safe }}')">
+            <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result| string | safe }}')">
                 <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
                 </div>
             </td>
@@ -143,6 +145,12 @@
   function showDialog(cellName, result) {
     document.getElementById(cellName).innerHTML = "<p>" + result + "</p>";
     $('#' + cellName).dialog({
+        width: 700});
+  }
+
+  function showIssues(packageName, deprecated_deps) {
+    document.getElementById(packageName).innerHTML = "<p>Deprecated dependencies: " + deprecated_deps + "</p>";
+    $('#' + packageName).dialog({
         width: 700});
   }
 </script>

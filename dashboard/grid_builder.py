@@ -36,6 +36,7 @@ import jinja2
 
 from compatibility_lib import configs
 from compatibility_lib import compatibility_store
+from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package
 
 _JINJA2_ENVIRONMENT = jinja2.Environment(
@@ -71,7 +72,13 @@ class _ResultHolder():
         return False
 
     def has_issues(self, p: package.Package) -> bool:
-        """Returns true if the given package has any compatibility issues."""
+        """Returns true if the given package has any issues.
+        
+        Currently check for:
+            1. Self compatibility
+            2. Pairwise compatibility
+            3. Deprecated dependencies
+        """
         # Get self result
         for package_2 in self._package_to_results.keys():
             p_and_package_2_result = self.get_result(p, package_2)
@@ -88,7 +95,22 @@ class _ResultHolder():
                 if not package_2_self_conflict and \
                                 result['status'] != 'SUCCESS':
                     return True
+
+            deprecated_deps = self.get_deprecated_deps(p.install_name)
+            if deprecated_deps:
+                return True
+
         return False
+
+    def get_deprecated_deps(self, package_name: str) -> List:
+        """
+        Returns True if there are deprecated dependencies for a
+        given package.
+        """
+        finder = deprecated_dep_finder.DeprecatedDepFinder()
+        deprecated_deps = finder.get_deprecated_deps(package_name)
+
+        return deprecated_deps
 
     def get_result(self,
                    package_1: package.Package,
