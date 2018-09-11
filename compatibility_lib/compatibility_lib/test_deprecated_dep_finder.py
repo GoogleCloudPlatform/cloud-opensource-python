@@ -136,7 +136,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         expected_development_status = "Development Status :: 7 - Inactive"
         self.assertEqual(development_status, expected_development_status)
 
-    def test_get_deprecated_deps(self):
+    def test_get_deprecated_dep(self):
         mock_call_pypi_json_api = mock.Mock(autospec=True)
         mock_call_pypi_json_api.return_value = self.PKG_INFO
 
@@ -146,7 +146,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
 
         with patch_utils, self.patch_checker, self.patch_store:
             finder = deprecated_dep_finder.DeprecatedDepFinder()
-            deprecated_deps = finder.get_deprecated_deps('opencensus')
+            deprecated_deps = finder.get_deprecated_dep('opencensus')
 
-        expected_deprecated_deps = ['dep1', 'dep2', 'dep3']
-        self.assertEqual(set(deprecated_deps), set(expected_deprecated_deps))
+        expected_deprecated_deps = ('opencensus', ['dep1', 'dep2', 'dep3'])
+        self.assertEqual(deprecated_deps, expected_deprecated_deps)

@@ -28,8 +28,22 @@ PACKAGE_2 = package.Package("package2")
 PACKAGE_3 = package.Package("package3")
 
 
+class _DeprecatedDepFinder(object):
+
+    def get_deprecated_deps(self, packages=None):
+        deprecated_deps = [
+            (('gsutil', ['gcs-oauth2-boto-plugin', 'oauth2client']),),
+            (('opencensus', []),),
+            (('package1', []),),
+            (('package2', []),),
+            (('package3', ['deprecated_dep1', 'deprecated_dep2']),),
+            (('gcloud', ['oauth2client']),)]
+
+        return deprecated_deps
+
 class TestResultHolderGetResult(unittest.TestCase):
     """Tests for grid_builder._ResultHolder.get_result()."""
+    patch_finder = mock.patch('grid_builder.deprecated_dep_finder.DeprecatedDepFinder', _DeprecatedDepFinder)
 
     def test_self_compatibility_success(self):
         package_to_results = {
@@ -39,8 +53,11 @@ class TestResultHolderGetResult(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS,
             )]
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results, pairwise_to_results={})
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results, pairwise_to_results={})
+
         expected = {
             'status_type': 'self-success',
             'self_compatibility_check': [
@@ -60,8 +77,10 @@ class TestResultHolderGetResult(unittest.TestCase):
                 details='Installation failure',
             )]
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results, pairwise_to_results={})
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results, pairwise_to_results={})
         expected = {
             'status_type': 'self-install_error',
             'self_compatibility_check': [
@@ -82,8 +101,11 @@ class TestResultHolderGetResult(unittest.TestCase):
 
     def test_self_compatibility_no_entry(self):
         package_to_results = {PACKAGE_1: []}
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results, pairwise_to_results={})
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results, pairwise_to_results={})
+
         expected = {
             'status_type': 'self-unknown',
             'self_compatibility_check': [
@@ -116,9 +138,12 @@ class TestResultHolderGetResult(unittest.TestCase):
                     status=compatibility_store.Status.SUCCESS,
                 )]
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results,
-            pairwise_to_results=pairwise_to_results)
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results)
+
         expected = {
             'status_type': 'pairwise-success',
             'self_compatibility_check': [],
@@ -152,9 +177,11 @@ class TestResultHolderGetResult(unittest.TestCase):
                     details='Installation failure',
                 )]
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results,
-            pairwise_to_results=pairwise_to_results)
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results)
         expected = {
             'status_type': 'pairwise-install_error',
             'self_compatibility_check': [],
@@ -185,9 +212,11 @@ class TestResultHolderGetResult(unittest.TestCase):
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): []
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results,
-            pairwise_to_results=pairwise_to_results)
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results)
         expected = {
             'status_type': 'pairwise-unknown',
             'self_compatibility_check': [],
@@ -202,6 +231,9 @@ class TestResultHolderGetResult(unittest.TestCase):
 
 class TestResultHolderHasIssues(unittest.TestCase):
     """Tests for grid_builder._ResultHolder.has_issues()."""
+    patch_finder = mock.patch(
+        'grid_builder.deprecated_dep_finder.DeprecatedDepFinder',
+        _DeprecatedDepFinder)
 
     def test_no_issues(self):
         package_to_results = {
@@ -224,9 +256,11 @@ class TestResultHolderHasIssues(unittest.TestCase):
                     status=compatibility_store.Status.SUCCESS,
                 )]
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results,
-            pairwise_to_results=pairwise_to_results)
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results)
         self.assertFalse(rh.has_issues(PACKAGE_1))
         self.assertFalse(rh.has_issues(PACKAGE_2))
 
@@ -242,7 +276,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
                 packages=[PACKAGE_2],
                 python_major_version=3,
                 status=compatibility_store.Status.SUCCESS,
-            )]
+            )],
         }
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): [
@@ -251,11 +285,13 @@ class TestResultHolderHasIssues(unittest.TestCase):
                     python_major_version=3,
                     status=compatibility_store.Status.CHECK_WARNING,
                     details='Conflict',
-                )]
+                )],
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results,
-            pairwise_to_results=pairwise_to_results)
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results)
         self.assertTrue(rh.has_issues(PACKAGE_1))
         self.assertFalse(rh.has_issues(PACKAGE_2))
 
@@ -281,15 +317,20 @@ class TestResultHolderHasIssues(unittest.TestCase):
                     details='Installation failure',
                 )]
         }
-        rh = grid_builder._ResultHolder(
-            package_to_results=package_to_results,
-            pairwise_to_results=pairwise_to_results)
+
+        with self.patch_finder:
+            rh = grid_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results)
         self.assertTrue(rh.has_issues(PACKAGE_1))
         self.assertTrue(rh.has_issues(PACKAGE_2))
 
 
 class TestGridBuilder(unittest.TestCase):
     """Tests for grid_builder.GridBuilder."""
+    patch_finder = mock.patch(
+        'grid_builder.deprecated_dep_finder.DeprecatedDepFinder',
+        _DeprecatedDepFinder)
 
     def test_success(self):
         """CompatibilityResult available for all packages and pairs."""
@@ -311,8 +352,10 @@ class TestGridBuilder(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS
             ),
         ])
-        grid = grid_builder.GridBuilder(store)
-        grid.build_grid([PACKAGE_1, PACKAGE_2])
+
+        with self.patch_finder:
+            grid = grid_builder.GridBuilder(store)
+            grid.build_grid([PACKAGE_1, PACKAGE_2])
 
     def test_self_failure(self):
         """CompatibilityResult failure installing a single package."""
@@ -330,9 +373,11 @@ class TestGridBuilder(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS
             ),
         ])
-        grid = grid_builder.GridBuilder(store)
-        html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
-        self.assertIn("Installation failure", html_grid)
+
+        with self.patch_finder:
+            grid = grid_builder.GridBuilder(store)
+            html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+            self.assertIn("Installation failure", html_grid)
 
     def test_missing_pairwise(self):
         """CompatibilityResult not available for a pair of packages."""
@@ -349,8 +394,10 @@ class TestGridBuilder(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS
             ),
         ])
-        grid = grid_builder.GridBuilder(store)
-        grid.build_grid([PACKAGE_1, PACKAGE_2])
+
+        with self.patch_finder:
+            grid = grid_builder.GridBuilder(store)
+            grid.build_grid([PACKAGE_1, PACKAGE_2])
 
     def test_missing_self(self):
         """CompatibilityResult not available for individual packages."""
@@ -362,8 +409,10 @@ class TestGridBuilder(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS
             ),
         ])
-        grid = grid_builder.GridBuilder(store)
-        grid.build_grid([PACKAGE_1, PACKAGE_2])
+
+        with self.patch_finder:
+            grid = grid_builder.GridBuilder(store)
+            grid.build_grid([PACKAGE_1, PACKAGE_2])
 
     def test_pairwise_failure(self):
         """CompatibilityResult failure between pair of packages."""
@@ -386,9 +435,11 @@ class TestGridBuilder(unittest.TestCase):
                 details="Installation failure"
             ),
         ])
-        grid = grid_builder.GridBuilder(store)
-        html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
-        self.assertIn("Installation failure", html_grid)
+
+        with self.patch_finder:
+            grid = grid_builder.GridBuilder(store)
+            html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+            self.assertIn("Installation failure", html_grid)
 
     def test_not_show_py_ver_incompatible_results(self):
         """CompatibilityResult failure between pair of packages. Do not display
@@ -419,7 +470,7 @@ class TestGridBuilder(unittest.TestCase):
             3: ['package3'],
         })
 
-        with patch:
+        with patch, self.patch_finder:
             grid = grid_builder.GridBuilder(store)
             html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
 
