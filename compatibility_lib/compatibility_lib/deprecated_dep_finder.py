@@ -29,7 +29,7 @@ class DeprecatedDepFinder(object):
     the package is deprecated.
     """
 
-    def __init__(self, py_version=None, max_workers=20):
+    def __init__(self, py_version=None, max_workers=10):
         if py_version is None:
             py_version = '3'
 
@@ -78,12 +78,13 @@ class DeprecatedDepFinder(object):
             if development_status == DEPRECATED_STATUS:
                 deprecated_deps.append(dep_name)
 
-        return deprecated_deps
+        return package_name, deprecated_deps
 
     def get_deprecated_deps(self, packages=None):
         """Get deprecated deps for all the Google OSS packages."""
         if packages is None:
             packages = configs.PKG_LIST
+
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             results = p.map(

@@ -117,7 +117,7 @@
     {% set row = loop.index0 %}
     <tr>
         <td><font face="verdana">{{ row_package.friendly_name }}</font>{% if results.has_issues(row_package) %}
-                {% set issues = results.get_deprecated_deps(row_package.friendly_name) %}
+                {% set issues = results.deprecated_deps[row_package.friendly_name][0] %}
                 <img class="warning-img" class="dialog" onclick="showIssues('{{ row_package.friendly_name|safe }}', '{{ issues|replace('\'', '\\\'')|safe }}')" src="https://www.gstatic.com/images/icons/material/system/1x/warning_amber_18dp.png">
                 <div id="{{ row_package.friendly_name }}" class="dialog" title="{{ row_package.friendly_name }}"></div>
             {% endif %}</td>

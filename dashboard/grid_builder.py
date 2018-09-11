@@ -58,6 +58,7 @@ class _ResultHolder():
                     List[compatibility_store.CompatibilityResult]]):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
+        self.deprecated_deps = self.get_deprecated_deps()
 
     def _is_py_version_incompatible(self, result):
         if result.status == compatibility_store.Status.INSTALL_ERROR:
@@ -96,21 +97,30 @@ class _ResultHolder():
                                 result['status'] != 'SUCCESS':
                     return True
 
-            deprecated_deps = self.get_deprecated_deps(p.install_name)
-            if deprecated_deps:
+            # Whether the package has deprecated dependencies or not
+            if self.deprecated_deps[p.install_name][1]:
                 return True
 
         return False
 
-    def get_deprecated_deps(self, package_name: str) -> List:
+    def get_deprecated_deps(self):
         """
         Returns True if there are deprecated dependencies for a
         given package.
         """
         finder = deprecated_dep_finder.DeprecatedDepFinder()
-        deprecated_deps = finder.get_deprecated_deps(package_name)
+        deprecated_deps = list(finder.get_deprecated_deps())
 
-        return deprecated_deps
+        results = {}
+        for item in deprecated_deps:
+            has_deprecated_deps = False
+            pkg_name = item[0][0]
+            deps = item[0][1]
+            if deps:
+                has_deprecated_deps = True
+            results[pkg_name] = (deps, has_deprecated_deps)
+
+        return results
 
     def get_result(self,
                    package_1: package.Package,
