@@ -29,13 +29,14 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 import argparse
 import datetime
 import tempfile
-from typing import Any, Iterable, List, FrozenSet, Mapping
+from typing import Any, Iterable, List, FrozenSet, Mapping, Tuple
 import webbrowser
 
 import jinja2
 
 from compatibility_lib import configs
 from compatibility_lib import compatibility_store
+from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package
 
 _JINJA2_ENVIRONMENT = jinja2.Environment(
@@ -57,6 +58,7 @@ class _ResultHolder():
                     List[compatibility_store.CompatibilityResult]]):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
+        self.deprecated_deps = self.get_deprecated_deps()
 
     def _is_py_version_incompatible(self, result):
         if result.status == compatibility_store.Status.INSTALL_ERROR:
@@ -71,7 +73,13 @@ class _ResultHolder():
         return False
 
     def has_issues(self, p: package.Package) -> bool:
-        """Returns true if the given package has any compatibility issues."""
+        """Returns true if the given package has any issues.
+        
+        Currently check for:
+            1. Self compatibility
+            2. Pairwise compatibility
+            3. Deprecated dependencies
+        """
         # Get self result
         for package_2 in self._package_to_results.keys():
             p_and_package_2_result = self.get_result(p, package_2)
@@ -88,7 +96,30 @@ class _ResultHolder():
                 if not package_2_self_conflict and \
                                 result['status'] != 'SUCCESS':
                     return True
+
+            # Whether the package has deprecated dependencies or not
+            if self.deprecated_deps[p.install_name][1]:
+                return True
+
         return False
+
+    def get_deprecated_deps(self) -> Mapping[str, Tuple[List, bool]]:
+        """
+        Returns if there are deprecated dependencies for a
+        given package as well as the list of deprecated deps for a package.
+        """
+        finder = deprecated_dep_finder.DeprecatedDepFinder()
+        deprecated_deps = list(finder.get_deprecated_deps())
+
+        results = {}
+        for item in deprecated_deps:
+            has_deprecated_deps = False
+            (pkg_name, deps) = item[0]
+            if deps:
+                has_deprecated_deps = True
+            results[pkg_name] = (deps, has_deprecated_deps)
+
+        return results
 
     def get_result(self,
                    package_1: package.Package,
