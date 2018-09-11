@@ -29,7 +29,7 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 import argparse
 import datetime
 import tempfile
-from typing import Any, Iterable, List, FrozenSet, Mapping
+from typing import Any, Iterable, List, FrozenSet, Mapping, Tuple
 import webbrowser
 
 import jinja2
@@ -103,10 +103,10 @@ class _ResultHolder():
 
         return False
 
-    def get_deprecated_deps(self):
+    def get_deprecated_deps(self) -> Mapping[str, Tuple[List, bool]]:
         """
-        Returns True if there are deprecated dependencies for a
-        given package.
+        Returns if there are deprecated dependencies for a
+        given package as well as the list of deprecated deps for a package.
         """
         finder = deprecated_dep_finder.DeprecatedDepFinder()
         deprecated_deps = list(finder.get_deprecated_deps())
@@ -114,8 +114,7 @@ class _ResultHolder():
         results = {}
         for item in deprecated_deps:
             has_deprecated_deps = False
-            pkg_name = item[0][0]
-            deps = item[0][1]
+            (pkg_name, deps) = item[0]
             if deps:
                 has_deprecated_deps = True
             results[pkg_name] = (deps, has_deprecated_deps)
