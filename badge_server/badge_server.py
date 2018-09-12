@@ -164,6 +164,11 @@ def _get_pair_status_for_packages(pkg_sets):
             py_version = PY_VER_MAPPING[res.python_major_version]
             # Status showing one of the check failures
             if res.status.value != 'SUCCESS':
+                # Ignore the package that not support for given py_ver
+                if pkg_set[1] in \
+                        configs.PKG_PY_VERSION_NOT_SUPPORTED.get(
+                            res.python_major_version):
+                    continue
                 version_and_res[py_version]['status'] = res.status.value
                 version_and_res[py_version]['details'][pkg_set[1]] = \
                     res.details if res.details is not None else EMPTY_DETAILS
