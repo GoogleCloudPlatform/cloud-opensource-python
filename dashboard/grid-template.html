@@ -127,7 +127,21 @@
             {% set result = results.get_result(row_package, col_package) %}
             {% set cellName = row | string + '-' + column | string %}
             {% set bgColorName = result.status_type | lower %}
-            <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result|replace('\'', '\\\'')|safe }}')">
+            {% if result.pairwise_compatibility_check | length > 0 %}
+                {% set pairwise_status = result.pairwise_compatibility_check[0].status %}
+                {% set pairwise_details = result.pairwise_compatibility_check[0].details %}
+            {% endif %}
+            {% if result.self_compatibility_check | length > 0 %}
+                {% set self_1_status = result.self_compatibility_check[0].status %}
+                {% set self_1_details = result.self_compatibility_check[0].details %}
+                {% if result.self_compatibility_check | length > 1 %}
+                    {% set self_2_status = result.self_compatibility_check[1].status %}
+                    {% set self_2_details = result.self_compatibility_check[1].details %}
+                {% endif %}
+            {% endif %}
+
+            <td class="{{ bgColorName }}" onclick="showDialog(
+                '{{ cellName|safe }}', '{{ result.status_type|safe }}', '{{ self_1_status|safe }}', '{{ self_2_status|safe }}','{{ pairwise_status|safe }}', '{{ self_1_details|replace('\n', ' ')|safe}}', '{{ self_2_details|replace('\n', ' ')|safe}}', '{{ pairwise_details|replace('\n', ' ')|safe }}')">
                 <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
                 </div>
             </td>
@@ -142,8 +156,16 @@
 <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 <script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
 <script>
-  function showDialog(cellName, result) {
-    document.getElementById(cellName).innerHTML = "<p>" + result + "</p>";
+  function showDialog(cellName, status_type,
+        self_1_status,  self_2_status, pairwise_status, self_1_details, self_2_details, pairwise_details) {
+    document.getElementById(cellName).innerHTML = "<p><b>Compatibility Status: </b>" + status_type + "<br><br><b>Self compatibility result: </b>" +
+        "<br><ul><li>Left Status: " + self_1_status +
+        "</li><br><li>Left Details: " + self_1_details +
+        "</li><br><li>Right Status: " + self_2_status +
+        "</li><br><li>Right Details: " + self_2_details +
+        "</ul><br><b>Pairwise compatibility result: </b>" +
+        "<br><ul><li>Status: " + pairwise_status +
+        "</li><br><li>Details: " + pairwise_details + "</ul></p>";
     $('#' + cellName).dialog({
         width: 700});
   }
