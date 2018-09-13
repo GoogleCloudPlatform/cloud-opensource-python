@@ -60,7 +60,7 @@ class DeprecatedDepFinder(object):
 
         try:
             development_status = pkg_info['info']['classifiers'][0]
-        except (KeyError, IndexError):
+        except (KeyError, IndexError, TypeError):
             logging.warning("No development status available.")
             development_status = None
 
