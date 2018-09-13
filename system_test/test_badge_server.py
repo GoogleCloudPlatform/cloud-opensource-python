@@ -74,6 +74,7 @@ class TestBadgeServer(unittest.TestCase):
                 BASE_URL, PACKAGE_FOR_TEST))
         status_code = response.status_code
         content = response.content
+        print(content)
 
         self.assertEqual(status_code, 200)
         self.assertEqual(content, EXPECTED_SVG)
