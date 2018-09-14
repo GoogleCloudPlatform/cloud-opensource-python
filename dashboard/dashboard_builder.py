@@ -28,7 +28,8 @@ tensorflow   |   Good   |     Bad     |  Good  |    Good    |
 
 import argparse
 import datetime
-import tempfile
+import logging
+import os
 from typing import Any, Iterable, List, FrozenSet, Mapping, Tuple
 import webbrowser
 
@@ -46,8 +47,10 @@ _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 SELF_SUCCESS = {'status': 'SUCCESS', 'self': True}
 
+store = compatibility_store.CompatibilityStore()
 
-class _ResultHolder():
+
+class _ResultHolder(object):
     def __init__(
         self,
         package_to_results:
@@ -78,7 +81,6 @@ class _ResultHolder():
         Currently check for:
             1. Self compatibility
             2. Pairwise compatibility
-            3. Deprecated dependencies
         """
         # Get self result
         for package_2 in self._package_to_results.keys():
@@ -96,10 +98,6 @@ class _ResultHolder():
                 if not package_2_self_conflict and \
                                 result['status'] != 'SUCCESS':
                     return True
-
-            # Whether the package has deprecated dependencies or not
-            if self.deprecated_deps[p.install_name][1]:
-                return True
 
         return False
 
@@ -120,6 +118,30 @@ class _ResultHolder():
             results[pkg_name] = (deps, has_deprecated_deps)
 
         return results
+
+    def has_deprecated_deps(self, p: package.Package) -> bool:
+        return self.deprecated_deps[p.install_name][1]
+
+    def needs_update(self, p: package.Package) -> bool:
+        # TODO: to be implemented.
+        return False
+
+    def get_statistics(self, packages):
+        """Get the total number of packages that has issues."""
+        total_packages = len(configs.PKG_LIST)
+        total_have_conflicts = 0
+        total_have_deprecated_deps = 0
+        total_needs_update = 0
+        for pkg in packages:
+            if self.has_issues(pkg):
+                total_have_conflicts += 1
+            if self.has_deprecated_deps(pkg):
+                total_have_deprecated_deps += 1
+            if self.needs_update(pkg):
+                total_needs_update += 1
+
+        return total_packages, total_have_conflicts,\
+               total_have_deprecated_deps, total_needs_update
 
     def get_result(self,
                    package_1: package.Package,
@@ -223,26 +245,22 @@ class _ResultHolder():
         return result
 
 
-class GridBuilder:
-    """Build a web page that shows package compatibility as a grid."""
+class DashboardBuilder():
+    """Build a web page that shows package compatibility status."""
 
-    def __init__(self, store: compatibility_store.CompatibilityStore):
-        self._store = store
+    def __init__(self, packages: Iterable[package.Package],
+                 results: _ResultHolder):
+        self._packages = packages
+        self._results = results
 
-    def build_grid(self, packages: Iterable[package.Package]) -> str:
+    def build_dashboard(self, template_name) -> str:
         """Returns a web page compatibility grid given a list of packages."""
-        packages = list(packages)
-        package_to_results = self._store.get_self_compatibilities(packages)
-        pairwise_to_results = self._store.get_compatibility_combinations(
-            packages)
-
-        results = _ResultHolder(package_to_results, pairwise_to_results)
         current_timestamp = datetime.datetime.now().strftime(
             '%Y-%m-%d %H:%M:%S')
-        template = _JINJA2_ENVIRONMENT.get_template('dashboard/grid-template.html')
+        template = _JINJA2_ENVIRONMENT.get_template(template_name)
         return template.render(
-            packages=packages,
-            results=results,
+            packages=self._packages,
+            results=self._results,
             current_timestamp=current_timestamp)
 
 
@@ -262,18 +280,33 @@ def main():
 
     args = parser.parse_args()
 
-    store = compatibility_store.CompatibilityStore()
-    grid_builder = GridBuilder(store)
-    grid_html = grid_builder.build_grid(
-        (package.Package(install_name) for install_name in args.packages))
+    packages = [
+        package.Package(install_name) for install_name in args.packages]
+    package_to_results = store.get_self_compatibilities(packages)
+    pairwise_to_results = store.get_compatibility_combinations(packages)
+    results = _ResultHolder(package_to_results, pairwise_to_results)
+
+    dashboard_builder = DashboardBuilder(packages, results)
+
+    # Build the pairwise grid dashboard
+    logging.warning('Starting build the grid...')
+    grid_html = dashboard_builder.build_dashboard(
+        'dashboard/grid-template.html')
+    grid_path = os.path.dirname(os.path.abspath(__file__)) + '/grid.html'
+    with open(grid_path, 'wt') as f:
+        f.write(grid_html)
+
+    # Build the dashboard main page
+    logging.warning('Starting build the main dashboard...')
+    main_html = dashboard_builder.build_dashboard(
+        'dashboard/main-template.html')
+
+    main_path = os.path.dirname(os.path.abspath(__file__)) + '/index.html'
+    with open(main_path, 'wt') as f:
+        f.write(main_html)
 
     if args.browser:
-        _, grid_path = tempfile.mkstemp(suffix='.html')
-        with open(grid_path, 'wt') as f:
-            f.write(grid_html)
-        webbrowser.open_new_tab('file://' + grid_path)
-    else:
-        print(grid_html, end='')
+        webbrowser.open_new_tab('file://' + main_path)
 
 
 if __name__ == '__main__':

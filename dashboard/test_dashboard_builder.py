@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Tests for grid_builder."""
+"""Tests for dashboard_builder."""
 
 import mock
 import unittest
@@ -21,7 +21,7 @@ from compatibility_lib import compatibility_store
 from compatibility_lib import fake_compatibility_store
 from compatibility_lib import package
 
-import grid_builder
+import dashboard_builder
 
 PACKAGE_1 = package.Package("package1")
 PACKAGE_2 = package.Package("package2")
@@ -42,8 +42,8 @@ class _DeprecatedDepFinder(object):
         return deprecated_deps
 
 class TestResultHolderGetResult(unittest.TestCase):
-    """Tests for grid_builder._ResultHolder.get_result()."""
-    patch_finder = mock.patch('grid_builder.deprecated_dep_finder.DeprecatedDepFinder', _DeprecatedDepFinder)
+    """Tests for dashboard_builder._ResultHolder.get_result()."""
+    patch_finder = mock.patch('dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder', _DeprecatedDepFinder)
 
     def test_self_compatibility_success(self):
         package_to_results = {
@@ -55,7 +55,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
 
         expected = {
@@ -79,7 +79,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
         expected = {
             'status_type': 'self-install_error',
@@ -103,7 +103,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         package_to_results = {PACKAGE_1: []}
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
 
         expected = {
@@ -140,7 +140,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
 
@@ -179,7 +179,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
         expected = {
@@ -214,7 +214,7 @@ class TestResultHolderGetResult(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
         expected = {
@@ -230,9 +230,9 @@ class TestResultHolderGetResult(unittest.TestCase):
 
 
 class TestResultHolderHasIssues(unittest.TestCase):
-    """Tests for grid_builder._ResultHolder.has_issues()."""
+    """Tests for dashboard_builder._ResultHolder.has_issues()."""
     patch_finder = mock.patch(
-        'grid_builder.deprecated_dep_finder.DeprecatedDepFinder',
+        'dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder',
         _DeprecatedDepFinder)
 
     def test_no_issues(self):
@@ -258,7 +258,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
         self.assertFalse(rh.has_issues(PACKAGE_1))
@@ -289,7 +289,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
         self.assertTrue(rh.has_issues(PACKAGE_1))
@@ -319,7 +319,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
         }
 
         with self.patch_finder:
-            rh = grid_builder._ResultHolder(
+            rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
         self.assertTrue(rh.has_issues(PACKAGE_1))
@@ -327,13 +327,14 @@ class TestResultHolderHasIssues(unittest.TestCase):
 
 
 class TestGridBuilder(unittest.TestCase):
-    """Tests for grid_builder.GridBuilder."""
+    """Tests for dashboard_builder.GridBuilder."""
     patch_finder = mock.patch(
-        'grid_builder.deprecated_dep_finder.DeprecatedDepFinder',
+        'dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder',
         _DeprecatedDepFinder)
 
     def test_success(self):
         """CompatibilityResult available for all packages and pairs."""
+        packages = [PACKAGE_1, PACKAGE_2]
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
@@ -352,13 +353,18 @@ class TestGridBuilder(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS
             ),
         ])
-
         with self.patch_finder:
-            grid = grid_builder.GridBuilder(store)
-            grid.build_grid([PACKAGE_1, PACKAGE_2])
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            builder.build_dashboard('dashboard/grid-template.html')
 
     def test_self_failure(self):
         """CompatibilityResult failure installing a single package."""
+        packages = [PACKAGE_1, PACKAGE_2]
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
@@ -375,12 +381,18 @@ class TestGridBuilder(unittest.TestCase):
         ])
 
         with self.patch_finder:
-            grid = grid_builder.GridBuilder(store)
-            html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            html_grid = builder.build_dashboard('dashboard/grid-template.html')
             self.assertIn("Installation failure", html_grid)
 
     def test_missing_pairwise(self):
         """CompatibilityResult not available for a pair of packages."""
+        packages = [PACKAGE_1, PACKAGE_2]
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
@@ -396,11 +408,17 @@ class TestGridBuilder(unittest.TestCase):
         ])
 
         with self.patch_finder:
-            grid = grid_builder.GridBuilder(store)
-            grid.build_grid([PACKAGE_1, PACKAGE_2])
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            builder.build_dashboard('dashboard/grid-template.html')
 
     def test_missing_self(self):
         """CompatibilityResult not available for individual packages."""
+        packages = [PACKAGE_1, PACKAGE_2]
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
@@ -411,11 +429,17 @@ class TestGridBuilder(unittest.TestCase):
         ])
 
         with self.patch_finder:
-            grid = grid_builder.GridBuilder(store)
-            grid.build_grid([PACKAGE_1, PACKAGE_2])
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            builder.build_dashboard('dashboard/grid-template.html')
 
     def test_pairwise_failure(self):
         """CompatibilityResult failure between pair of packages."""
+        packages = [PACKAGE_1, PACKAGE_2]
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
@@ -437,14 +461,20 @@ class TestGridBuilder(unittest.TestCase):
         ])
 
         with self.patch_finder:
-            grid = grid_builder.GridBuilder(store)
-            html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            html_grid = builder.build_dashboard('dashboard/grid-template.html')
             self.assertIn("Installation failure", html_grid)
 
     def test_not_show_py_ver_incompatible_results(self):
         """CompatibilityResult failure between pair of packages. Do not display
         the packages that are incompatible with a specific Python version.
         """
+        packages = [PACKAGE_1, PACKAGE_2]
         store = fake_compatibility_store.CompatibilityStore()
         store.save_compatibility_statuses([
             compatibility_store.CompatibilityResult(
@@ -471,7 +501,13 @@ class TestGridBuilder(unittest.TestCase):
         })
 
         with patch, self.patch_finder:
-            grid = grid_builder.GridBuilder(store)
-            html_grid = grid.build_grid([PACKAGE_1, PACKAGE_2])
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            html_grid = builder.build_dashboard('dashboard/grid-template.html')
 
         self.assertNotIn("Installation failure", html_grid)
