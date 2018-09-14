@@ -18,6 +18,7 @@ import re
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
+from compatibility_lib import configs
 from compatibility_lib import utils
 
 DEFAULT_GRACE_PERIOD_IN_DAYS = 183  # applies to any version updates
@@ -140,6 +141,8 @@ class DependencyHighlighter(object):
             package_name)
         outdated_dependencies = []
         for name, info in dependency_info.items():
+            if name in configs.IGNORED_DEPENDENCIES:
+                continue
             priority = Priority()
             try:
                 install = _sanitize_release_tag(info['installed_version'])
@@ -201,3 +204,4 @@ def _sanitize_release_tag(release):
         'patch': int(segments[2])
     }
     return release_info
+
