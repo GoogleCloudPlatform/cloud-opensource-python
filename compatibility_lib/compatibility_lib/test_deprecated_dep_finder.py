@@ -72,18 +72,11 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         self.mock_checker.get_self_compatibility.return_value = \
             self.SELF_COMP_RES
 
-        self.patch_checker = mock.patch(
-            'compatibility_lib.deprecated_dep_finder.utils.checker',
-            self.mock_checker)
-        self.patch_store = mock.patch(
-            'compatibility_lib.deprecated_dep_finder.utils.store',
-            self.fake_store)
-
     def test_constructor_default(self):
         from compatibility_lib import utils
 
-        with self.patch_checker, self.patch_store:
-            finder = deprecated_dep_finder.DeprecatedDepFinder()
+        finder = deprecated_dep_finder.DeprecatedDepFinder(
+            checker=self.mock_checker, store=self.fake_store)
 
         self.assertEqual(finder.py_version, '3')
         self.assertTrue(
@@ -92,8 +85,8 @@ class TestDeprecatedDepFinder(unittest.TestCase):
     def test_constructor_explicit(self):
         from compatibility_lib import utils
 
-        with self.patch_checker, self.patch_store:
-            finder = deprecated_dep_finder.DeprecatedDepFinder(py_version='2')
+        finder = deprecated_dep_finder.DeprecatedDepFinder(
+            py_version='2', checker=self.mock_checker, store=self.fake_store)
 
         self.assertEqual(finder.py_version, '2')
         self.assertIsInstance(
@@ -113,8 +106,8 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
             mock_call_pypi_json_api)
 
-        with patch_utils, self.patch_checker, self.patch_store:
-            finder = deprecated_dep_finder.DeprecatedDepFinder()
+        with patch_utils:
+            finder = deprecated_dep_finder.DeprecatedDepFinder(checker=self.mock_checker, store=self.fake_store)
             development_status = finder._get_development_status_from_pypi(
                 'package1')
 
@@ -128,8 +121,9 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
             mock_call_pypi_json_api)
 
-        with patch_utils, self.patch_checker, self.patch_store:
-            finder = deprecated_dep_finder.DeprecatedDepFinder()
+        with patch_utils:
+            finder = deprecated_dep_finder.DeprecatedDepFinder(
+                checker=self.mock_checker, store=self.fake_store)
             development_status = finder._get_development_status_from_pypi(
                 'package1')
 
@@ -144,8 +138,9 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
             mock_call_pypi_json_api)
 
-        with patch_utils, self.patch_checker, self.patch_store:
-            finder = deprecated_dep_finder.DeprecatedDepFinder()
+        with patch_utils:
+            finder = deprecated_dep_finder.DeprecatedDepFinder(
+                checker=self.mock_checker, store=self.fake_store)
             deprecated_deps = finder.get_deprecated_dep('opencensus')
 
         expected_deprecated_deps = set(['dep1', 'dep2', 'dep3'])

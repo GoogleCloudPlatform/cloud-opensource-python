@@ -130,19 +130,12 @@ class TestDependencyHighlighter(unittest.TestCase):
             "OutdatedDependency<'httplib2', LOW_PRIORITY>",
             "OutdatedDependency<'ply', HIGH_PRIORITY>")
 
-        self._store = mock.Mock(autospec=True)
+        self._store = mock.Mock()
         self._store.get_dependency_info.return_value = _get_dep_info()
 
         fake_value = [[{'dependency_info': _get_dep_info(False)}]]
-        self._checker = mock.Mock(autospec=True)
+        self._checker = mock.Mock()
         self._checker.get_self_compatibility.return_value = fake_value
-
-        self.patch_checker = mock.patch(
-            'compatibility_lib.dependency_highlighter.utils.checker',
-            self._checker)
-        self.patch_store = mock.patch(
-            'compatibility_lib.dependency_highlighter.utils.store',
-            self._store)
 
     def setup_test__get_update_priority(self):
         low = dependency_highlighter.PriorityLevel.LOW_PRIORITY
@@ -162,8 +155,8 @@ class TestDependencyHighlighter(unittest.TestCase):
         major_version = ('PACKAGE is 1 or more major versions '
                          'behind the latest version')
 
-        with self.patch_checker, self.patch_store:
-            highlighter = dependency_highlighter.DependencyHighlighter()
+        highlighter = dependency_highlighter.DependencyHighlighter(
+            checker=self._checker, store=self._store)
 
         def dictify(args):
             major, minor, patch = args
@@ -204,41 +197,41 @@ class TestDependencyHighlighter(unittest.TestCase):
             self.assertTrue(comp(expected, res))
 
     def test_check_package(self):
-        with self.patch_checker, self.patch_store:
-            highlighter = dependency_highlighter.DependencyHighlighter()
-            res = highlighter.check_package('google-cloud-dataflow')
+        highlighter = dependency_highlighter.DependencyHighlighter(
+            checker=self._checker, store=self._store)
+        res = highlighter.check_package('google-cloud-dataflow')
 
-            reprs = [repr(dep) for dep in res]
-            reprs.sort()
+        reprs = [repr(dep) for dep in res]
+        reprs.sort()
 
-            zipped = zip(self.expected_check_package_res, reprs)
-            for expected, got in zipped:
-                self.assertEqual(expected, got)
+        zipped = zip(self.expected_check_package_res, reprs)
+        for expected, got in zipped:
+            self.assertEqual(expected, got)
 
-        with self.patch_checker, self.patch_store:
-            highlighter = dependency_highlighter.DependencyHighlighter()
-            res = highlighter.check_package('not-in-bigquery')
+        highlighter = dependency_highlighter.DependencyHighlighter(
+            checker=self._checker, store=self._store)
+        res = highlighter.check_package('not-in-bigquery')
 
-            reprs = [repr(dep) for dep in res]
-            reprs.sort()
+        reprs = [repr(dep) for dep in res]
+        reprs.sort()
 
-            zipped = zip(self.expected_check_package_res, reprs)
-            for expected, got in zipped:
-                self.assertEqual(expected, got)
+        zipped = zip(self.expected_check_package_res, reprs)
+        for expected, got in zipped:
+            self.assertEqual(expected, got)
 
     def test_check_packages(self):
         packages = ['google-cloud-dataflow', 'not-in-bigquery']
-        with self.patch_checker, self.patch_store:
-            highlighter = dependency_highlighter.DependencyHighlighter()
-            res = highlighter.check_packages(packages)
+        highlighter = dependency_highlighter.DependencyHighlighter(
+            checker=self._checker, store=self._store)
+        res = highlighter.check_packages(packages)
 
-            for pkgname, outdated in res.items():
-                reprs = [repr(dep) for dep in outdated]
-                reprs.sort()
+        for pkgname, outdated in res.items():
+            reprs = [repr(dep) for dep in outdated]
+            reprs.sort()
 
-                zipped = zip(self.expected_check_package_res, reprs)
-                for expected, got in zipped:
-                    self.assertEqual(expected, got)
+            zipped = zip(self.expected_check_package_res, reprs)
+            for expected, got in zipped:
+                self.assertEqual(expected, got)
 
 
 class TestUtilityFunctions(unittest.TestCase):

@@ -55,57 +55,50 @@ class TestDependencyInfo(unittest.TestCase):
         self.mock_checker.get_self_compatibility.return_value = \
             self.SELF_COMP_RES
 
-        self.patch_checker = mock.patch(
-            'compatibility_lib.utils.checker',
-            self.mock_checker)
-        self.patch_store = mock.patch(
-            'compatibility_lib.utils.store',
-            self.fake_store)
-
     def test_constructor_default(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo()
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
 
         self.assertEqual(dep_info_getter.py_version, '3')
 
     def test_constructor_explicit(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo(py_version='2')
+        dep_info_getter = utils.DependencyInfo(
+            py_version='2', checker=self.mock_checker, store=self.fake_store)
 
         self.assertEqual(dep_info_getter.py_version, '2')
 
     def test__get_from_bigquery_exists(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo()
-            dep_info = dep_info_getter._get_from_bigquery('opencensus')
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
+        dep_info = dep_info_getter._get_from_bigquery('opencensus')
 
         self.assertIsNotNone(dep_info)
 
     def test__get_from_bigquery_not_exists(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo()
-            dep_info = dep_info_getter._get_from_bigquery('pkg_not_in_config')
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
+        dep_info = dep_info_getter._get_from_bigquery('pkg_not_in_config')
 
         self.assertIsNone(dep_info)
 
     def test__get_from_endpoint(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo()
-            dep_info = dep_info_getter._get_from_endpoint('package1')
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
+        dep_info = dep_info_getter._get_from_endpoint('package1')
 
         self.assertEqual(dep_info, self.DEP_INFO)
 
     def test_get_dependency_info_bigquery(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo()
-            dep_info = dep_info_getter.get_dependency_info('opencensus')
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
+        dep_info = dep_info_getter.get_dependency_info('opencensus')
 
         self.assertIsNotNone(dep_info)
 
     def test_get_dependency_info_endpoint(self):
-        with self.patch_checker, self.patch_store:
-            dep_info_getter = utils.DependencyInfo()
-            dep_info = dep_info_getter.get_dependency_info('package1')
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
+        dep_info = dep_info_getter.get_dependency_info('package1')
 
         self.assertEqual(dep_info, self.DEP_INFO)
 
