@@ -36,7 +36,9 @@ import webbrowser
 import jinja2
 
 from compatibility_lib import configs
+from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
+from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package
 
@@ -47,8 +49,6 @@ _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 SELF_SUCCESS = {'status': 'SUCCESS', 'self': True}
 
-store = compatibility_store.CompatibilityStore()
-
 
 class _ResultHolder(object):
     def __init__(
@@ -58,9 +58,13 @@ class _ResultHolder(object):
                     List[compatibility_store.CompatibilityResult]],
         pairwise_to_results:
             Mapping[FrozenSet[package.Package],
-                    List[compatibility_store.CompatibilityResult]]):
+                    List[compatibility_store.CompatibilityResult]],
+        checker=None,
+        store=None):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
+        self.checker = checker
+        self.store = store
         self.deprecated_deps = self.get_deprecated_deps()
 
     def _is_py_version_incompatible(self, result):
@@ -106,7 +110,8 @@ class _ResultHolder(object):
         Returns if there are deprecated dependencies for a
         given package as well as the list of deprecated deps for a package.
         """
-        finder = deprecated_dep_finder.DeprecatedDepFinder()
+        finder = deprecated_dep_finder.DeprecatedDepFinder(
+            py_version='3', checker=self.checker, store=self.store)
         deprecated_deps = list(finder.get_deprecated_deps())
 
         results = {}
@@ -123,8 +128,8 @@ class _ResultHolder(object):
         return self.deprecated_deps[p.install_name][1]
 
     def needs_update(self, p: package.Package) -> bool:
-        # TODO: to be implemented.
-        return False
+        # Returns True if the given package needs update.
+        pass
 
     def get_statistics(self, packages):
         """Get the total number of packages that has issues."""
@@ -280,11 +285,15 @@ def main():
 
     args = parser.parse_args()
 
+    checker = compatibility_checker.CompatibilityChecker()
+    store = compatibility_store.CompatibilityStore()
+
     packages = [
         package.Package(install_name) for install_name in args.packages]
     package_to_results = store.get_self_compatibilities(packages)
     pairwise_to_results = store.get_compatibility_combinations(packages)
-    results = _ResultHolder(package_to_results, pairwise_to_results)
+    results = _ResultHolder(
+        package_to_results, pairwise_to_results, checker, store)
 
     dashboard_builder = DashboardBuilder(packages, results)
 

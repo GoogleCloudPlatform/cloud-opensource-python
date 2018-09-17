@@ -30,6 +30,11 @@ PACKAGE_3 = package.Package("package3")
 
 class _DeprecatedDepFinder(object):
 
+    def __init__(self, py_version='3', checker=None, store=None):
+        self.py_version = py_version
+        self.checker = checker
+        self.store = store
+
     def get_deprecated_deps(self, packages=None):
         deprecated_deps = [
             (('gsutil', ['gcs-oauth2-boto-plugin', 'oauth2client']),),

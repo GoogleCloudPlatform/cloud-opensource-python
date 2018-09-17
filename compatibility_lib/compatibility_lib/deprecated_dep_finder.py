@@ -15,6 +15,8 @@
 import concurrent.futures
 import logging
 
+from compatibility_lib import compatibility_checker
+from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import utils
 
@@ -29,13 +31,26 @@ class DeprecatedDepFinder(object):
     the package is deprecated.
     """
 
-    def __init__(self, py_version=None, max_workers=10):
+    def __init__(self,
+                 py_version=None,
+                 checker=None,
+                 store=None,
+                 max_workers=10):
         if py_version is None:
             py_version = '3'
 
+        if checker is None:
+            checker = compatibility_checker.CompatibilityChecker()
+
+        if store is None:
+            store = compatibility_store.CompatibilityStore()
+
         self.max_workers = max_workers
         self.py_version = py_version
-        self._dependency_info_getter = utils.DependencyInfo(py_version)
+        self._checker = checker
+        self._store = store
+        self._dependency_info_getter = utils.DependencyInfo(
+            py_version, self._checker, self._store)
 
     def _get_development_status_from_pypi(self, package_name):
         """Get the development status for a package.

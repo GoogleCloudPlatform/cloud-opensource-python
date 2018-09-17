@@ -85,11 +85,21 @@ class OutdatedDependency(object):
 class DependencyHighlighter(object):
     """Highlights outdated dependencies"""
 
-    def __init__(self, py_version='3'):
+    def __init__(self, py_version=None, checker=None, store=None):
+        if py_version is None:
+            py_version = '3'
+
+        if checker is None:
+            checker = compatibility_checker.CompatibilityChecker()
+
+        if store is None:
+            store = compatibility_store.CompatibilityStore()
+
         self.py_version = py_version
-        self._store = utils.store
-        self._checker = utils.checker
-        self._dependency_info_getter = utils.DependencyInfo(py_version)
+        self._checker = checker
+        self._store = store
+        self._dependency_info_getter = utils.DependencyInfo(
+            py_version, self._checker, self._store)
 
     def _get_update_priority(self, depname, install, latest, elapsed_time):
         """Returns the update priority level for an outdated dependency

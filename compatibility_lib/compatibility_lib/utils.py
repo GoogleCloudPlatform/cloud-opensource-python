@@ -27,9 +27,6 @@ DATETIME_FORMAT = "%Y-%m-%d"
 
 PYPI_URL = 'https://pypi.org/pypi/'
 
-checker = compatibility_checker.CompatibilityChecker()
-store = compatibility_store.CompatibilityStore()
-
 
 def call_pypi_json_api(package_name, pkg_version=None):
     if pkg_version is not None:
@@ -52,11 +49,19 @@ def call_pypi_json_api(package_name, pkg_version=None):
 class DependencyInfo(object):
     """Common utils of getting dependency info for a package."""
 
-    def __init__(self, py_version=None):
+    def __init__(self, py_version=None, checker=None, store=None):
         if py_version is None:
             py_version = '3'
 
+        if checker is None:
+            checker = compatibility_checker.CompatibilityChecker()
+
+        if store is None:
+            store = compatibility_store.CompatibilityStore()
+
         self.py_version = py_version
+        self.checker = checker
+        self.store = store
 
     def _get_from_bigquery(self, package_name):
         """Gets the package dependency info from bigquery
@@ -68,7 +73,7 @@ class DependencyInfo(object):
             the info (dict)
         """
         if package_name in configs.PKG_LIST:
-            depinfo = store.get_dependency_info(package_name)
+            depinfo = self.store.get_dependency_info(package_name)
             return depinfo
         else:
             return None
@@ -83,7 +88,7 @@ class DependencyInfo(object):
             a dict mapping from dependency package name (string) to
             the info (dict)
         """
-        _result = checker.get_self_compatibility(
+        _result = self.checker.get_self_compatibility(
             self.py_version, [package_name])
         result = [item for item in _result]
         depinfo = result[0][0].get('dependency_info')

@@ -93,7 +93,8 @@ redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
 
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
-highlighter = dependency_highlighter.DependencyHighlighter()
+highlighter = dependency_highlighter.DependencyHighlighter(
+    checker=checker, store=store)
 priority_level = dependency_highlighter.PriorityLevel
 
 URL_PREFIX = 'https://img.shields.io/badge/'
