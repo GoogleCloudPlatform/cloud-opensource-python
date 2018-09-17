@@ -128,7 +128,6 @@ class TestDependencyHighlighter(unittest.TestCase):
             "OutdatedDependency<'google-cloud-pubsub', HIGH_PRIORITY>",
             "OutdatedDependency<'google-gax', LOW_PRIORITY>",
             "OutdatedDependency<'httplib2', LOW_PRIORITY>",
-            "OutdatedDependency<'pip', HIGH_PRIORITY>",
             "OutdatedDependency<'ply', HIGH_PRIORITY>")
 
         self._store = mock.Mock(autospec=True)

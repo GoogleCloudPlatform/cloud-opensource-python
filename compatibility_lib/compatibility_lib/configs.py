@@ -14,6 +14,15 @@
 
 """Common configs for compatibility_lib."""
 
+
+"""IGNORED_DEPENDENCIES are not direct dependencies
+for many packages and are not installed via pip,
+resulting in unresolvable high priority warnings."""
+IGNORED_DEPENDENCIES = [
+    'pip',
+    'setuptools',
+]
+
 PKG_LIST = [
     'google-api-core',
     'google-api-python-client',
@@ -61,3 +70,4 @@ PKG_PY_VERSION_NOT_SUPPORTED = {
     2: ['tensorflow', ],
     3: ['google-cloud-dataflow', ],
 }
+
