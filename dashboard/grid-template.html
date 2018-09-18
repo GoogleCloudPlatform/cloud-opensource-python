@@ -116,38 +116,39 @@
     {% for row_package in packages %}
     {% set row = loop.index0 %}
     <tr>
-        <td><font face="verdana">{{ row_package.friendly_name }}</font>{% if results.has_issues(row_package) %}
+        <td><font face="verdana">{{ row_package.friendly_name }}</font>
+            {% if results.has_issues(row_package) %}
                 {% set issues = results.deprecated_deps[row_package.friendly_name][0] %}
                 <img class="warning-img" class="dialog" onclick="showIssues('{{ row_package.friendly_name|safe }}', '{{ issues|replace('\'', '\\\'')|safe }}')" src="https://www.gstatic.com/images/icons/material/system/1x/warning_amber_18dp.png">
                 <div id="{{ row_package.friendly_name }}" class="dialog" title="{{ row_package.friendly_name }}"></div>
-            {% endif %}</td>
+            {% endif %}
+        </td>
         {% for col_package in packages %}
-        {% set column = loop.index0 %}
-        {% if column <= row %}
-            {% set result = results.get_result(row_package, col_package) %}
-            {% set cellName = row | string + '-' + column | string %}
-            {% set bgColorName = result.status_type | lower %}
-            {% if result.pairwise_compatibility_check | length > 0 %}
-                {% set pairwise_status = result.pairwise_compatibility_check[0].status %}
-                {% set pairwise_details = result.pairwise_compatibility_check[0].details %}
-            {% endif %}
-            {% if result.self_compatibility_check | length > 0 %}
-                {% set self_1_status = result.self_compatibility_check[0].status %}
-                {% set self_1_details = result.self_compatibility_check[0].details %}
-                {% if result.self_compatibility_check | length > 1 %}
-                    {% set self_2_status = result.self_compatibility_check[1].status %}
-                    {% set self_2_details = result.self_compatibility_check[1].details %}
+            {% set column = loop.index0 %}
+            {% if column <= row %}
+                {% set result = results.get_result(row_package, col_package) %}
+                {% set cellName = row | string + '-' + column | string %}
+                {% set bgColorName = result.status_type | lower %}
+                {% if result.pairwise_compatibility_check | length > 0 %}
+                    {% set pairwise_status = result.pairwise_compatibility_check[0].status %}
+                    {% set pairwise_details = result.pairwise_compatibility_check[0].details %}
                 {% endif %}
+                {% if result.self_compatibility_check | length > 0 %}
+                    {% set self_1_status = result.self_compatibility_check[0].status %}
+                    {% set self_1_details = result.self_compatibility_check[0].details %}
+                    {% if result.self_compatibility_check | length > 1 %}
+                        {% set self_2_status = result.self_compatibility_check[1].status %}
+                        {% set self_2_details = result.self_compatibility_check[1].details %}
+                    {% endif %}
+                {% endif %}
+                <td class="{{ bgColorName }}" onclick="showDialog(
+                    '{{ cellName|safe }}', '{{ result.status_type|safe }}', '{{ self_1_status|safe }}', '{{ self_2_status|safe }}','{{ pairwise_status|safe }}', '{{ self_1_details|replace('\n', ' ')|safe}}', '{{ self_2_details|replace('\n', ' ')|safe}}', '{{ pairwise_details|replace('\n', ' ')|safe }}')">
+                    <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
+                    </div>
+                </td>
+            {% else %}
+                <td><pre></pre></td>
             {% endif %}
-
-            <td class="{{ bgColorName }}" onclick="showDialog(
-                '{{ cellName|safe }}', '{{ result.status_type|safe }}', '{{ self_1_status|safe }}', '{{ self_2_status|safe }}','{{ pairwise_status|safe }}', '{{ self_1_details|replace('\n', ' ')|safe}}', '{{ self_2_details|replace('\n', ' ')|safe}}', '{{ pairwise_details|replace('\n', ' ')|safe }}')">
-                <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
-                </div>
-            </td>
-        {% else %}
-            <td><pre></pre></td>
-        {% endif %}
         {% endfor %}
     </tr>
     {% endfor %}
