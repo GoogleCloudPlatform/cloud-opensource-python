@@ -191,7 +191,7 @@
                             <div class="chart-percent-2">
                                 <h3 class="title-3 m-b-30">Compatibility Status</h3>
                                 <div class="chart-wrap">
-                                    <canvas id="percent-chart"></canvas>
+                                    <canvas id="percent-chart" data-success="{{ statistics[0] - statistics[1] }}" data-conflict="{{ statistics[1] }}"></canvas>
                                     <div id="chartjs-tooltip">
                                         <table></table>
                                     </div>

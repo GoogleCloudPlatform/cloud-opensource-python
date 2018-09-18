@@ -1,20 +1,20 @@
-
 (function ($) {
   // USE STRICT
   "use strict";
 
   try {
     // Percent Chart
-    var ctx = document.getElementById("percent-chart");
-    if (ctx) {
-      ctx.height = 280;
-      var myChart = new Chart(ctx, {
+    var doughnutChart = document.getElementById("percent-chart");
+    var num_success = doughnutChart.getAttribute("data-success");
+    var num_conflict = doughnutChart.getAttribute("data-conflict");
+    doughnutChart.height = 280;
+    new Chart(doughnutChart, {
         type: 'doughnut',
         data: {
           datasets: [
             {
               label: "Compatibility Status",
-              data: [31, 8],
+              data: [num_success, num_conflict],
               backgroundColor: [
                 '#00b5e9',
                 '#fa4251'
@@ -56,8 +56,7 @@
             bodyFontSize: 16
           }
         }
-      });
-    }
+    });
 
   } catch (error) {
     console.log(error);
