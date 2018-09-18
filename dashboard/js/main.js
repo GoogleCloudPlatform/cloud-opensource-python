@@ -1,4 +1,9 @@
 (function ($) {
+  // USE STRICT
+  "use strict";
+
+  try {
+    // Percent Chart
     var doughnutChart = document.getElementById("percent-chart");
     var num_success = doughnutChart.getAttribute("data-success");
     var num_conflict = doughnutChart.getAttribute("data-conflict");
@@ -52,6 +57,11 @@
           }
         }
     });
+
+  } catch (error) {
+    console.log(error);
+  }
+
 })(jQuery);
 
 (function ($) {
