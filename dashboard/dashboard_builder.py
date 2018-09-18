@@ -66,6 +66,7 @@ class _ResultHolder(object):
         self.checker = checker
         self.store = store
         self.deprecated_deps = self.get_deprecated_deps()
+        self.dependency_to_update = self.get_dependencies_needed_to_update()
 
     def _is_py_version_incompatible(self, result):
         if result.status == compatibility_store.Status.INSTALL_ERROR:
@@ -105,7 +106,7 @@ class _ResultHolder(object):
 
         return False
 
-    def get_deprecated_deps(self) -> Mapping[str, Tuple[List, bool]]:
+    def get_deprecated_deps(self) -> Mapping[str, List]:
         """
         Returns if there are deprecated dependencies for a
         given package as well as the list of deprecated deps for a package.
@@ -116,20 +117,29 @@ class _ResultHolder(object):
 
         results = {}
         for item in deprecated_deps:
-            has_deprecated_deps = False
             (pkg_name, deps) = item[0]
-            if deps:
-                has_deprecated_deps = True
-            results[pkg_name] = (deps, has_deprecated_deps)
+            results[pkg_name] = deps
 
         return results
 
     def has_deprecated_deps(self, p: package.Package) -> bool:
-        return self.deprecated_deps[p.install_name][1]
+        return bool(self.deprecated_deps[p.install_name])
+
+    def get_dependencies_needed_to_update(self) -> Mapping[str, List]:
+        """
+        Returns a dict of package names together with the dependencies that
+        they need to update.
+        """
+        highlighter = dependency_highlighter.DependencyHighlighter(
+            py_version='3', checker=self.checker, store=self.store)
+        result = highlighter.check_packages(
+            packages=configs.PKG_LIST, max_workers=10)
+        return result
 
     def needs_update(self, p: package.Package) -> bool:
-        # Returns True if the given package needs update.
-        pass
+        """Returns whether the dependencies for a given package needs to
+        update."""
+        return bool(self.dependency_to_update[p.install_name])
 
     def get_statistics(self, packages):
         """Get the total number of packages that has issues."""
