@@ -29,4 +29,4 @@ python3 -m pip install --upgrade twine wheel setuptools
 
 # Build the distribution and upload.
 python3 setup.py bdist_wheel
-twine upload dist/*
+#twine upload dist/*
