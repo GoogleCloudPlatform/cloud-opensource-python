@@ -28,5 +28,6 @@ echo -e "password = $PYPI_PASSWORD" >> ~/.pypirc
 python3 -m pip install --upgrade twine wheel setuptools
 
 # Build the distribution and upload.
+cd compatibility_lib
 python3 setup.py bdist_wheel
 twine upload dist/*
