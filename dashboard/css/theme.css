@@ -612,6 +612,10 @@ a {
     background: #fa4251;
 }
 
+.dot--yellow {
+    background: #f1c40f;
+}
+
 .chart-note-wrap {
     margin-top: 20px;
 }
