@@ -187,14 +187,11 @@
                             <!-- END TOP CAMPAIGN-->
                         </div>
                         <div class="col-md-6 col-lg-4">
-                            <!-- CHART PERCENT-->
+                            <!-- CHART PERCENT: COMPATIBILITY STATUS-->
                             <div class="chart-percent-2">
                                 <h3 class="title-3 m-b-30">Compatibility Status</h3>
                                 <div class="chart-wrap">
-                                    <canvas id="percent-chart" data-success="{{ statistics[0] - statistics[1] }}" data-conflict="{{ statistics[1] }}"></canvas>
-                                    <div id="chartjs-tooltip">
-                                        <table></table>
-                                    </div>
+                                    <canvas id="percent-chart-compatibility" data-success="{{ statistics[0] - statistics[1] }}" data-conflict="{{ statistics[1] }}"></canvas>
                                 </div>
                                 <div class="chart-info">
                                     <div class="chart-note">
@@ -207,7 +204,32 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- END CHART PERCENT-->
+                            <!-- END CHART PERCENT: COMPATIBILITY STATUS-->
+                        </div>
+                        <div class="col-md-6 col-lg-4">
+                            <!-- CHART PERCENT: DEPENDENCY STATUS-->
+                            <div class="chart-percent-2">
+                                <h3 class="title-3 m-b-30">Dependency Status</h3>
+                                <div class="chart-wrap">
+                                    <canvas id="percent-chart-dependency" data-success="{{ statistics[0] - statistics[2] - statistics[3] }}"
+                                            data-deprecated="{{ statistics[2] }}" data-outdated="{{ statistics[3] }}"></canvas>
+                                </div>
+                                <div class="chart-info">
+                                    <div class="chart-note">
+                                        <span class="dot dot--blue"></span>
+                                        <span>Success</span>
+                                    </div>
+                                    <div class="chart-note">
+                                        <span class="dot dot--red"></span>
+                                        <span>Deprecated</span>
+                                    </div>
+                                    <div class="chart-note">
+                                        <span class="dot dot--yellow"></span>
+                                        <span>Outdated</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- END CHART PERCENT: DEPENDENCY STATUS-->
                         </div>
                     </div>
                 </div>
