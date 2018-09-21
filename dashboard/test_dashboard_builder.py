@@ -46,9 +46,27 @@ class _DeprecatedDepFinder(object):
 
         return deprecated_deps
 
+
+class _DependencyHighlighter(object):
+
+    def __init__(self, py_version=None, checker=None, store=None):
+        self.py_version = py_version
+        self.checker = checker
+        self.store = store
+
+    def check_packages(self, packages, max_workers=20):
+        results = {
+            'opencensus': [],
+            'google-gax': [mock.Mock(name='ply', priority=2)],
+            'oauth2client': []}
+
+        return results
+
+
 class TestResultHolderGetResult(unittest.TestCase):
     """Tests for dashboard_builder._ResultHolder.get_result()."""
     patch_finder = mock.patch('dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder', _DeprecatedDepFinder)
+    patch_highlighter = mock.patch('dashboard_builder.dependency_highlighter.DependencyHighlighter', _DependencyHighlighter)
 
     def test_self_compatibility_success(self):
         package_to_results = {
@@ -59,7 +77,7 @@ class TestResultHolderGetResult(unittest.TestCase):
             )]
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
 
@@ -83,7 +101,7 @@ class TestResultHolderGetResult(unittest.TestCase):
             )]
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
         expected = {
@@ -107,7 +125,7 @@ class TestResultHolderGetResult(unittest.TestCase):
     def test_self_compatibility_no_entry(self):
         package_to_results = {PACKAGE_1: []}
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
 
@@ -144,7 +162,7 @@ class TestResultHolderGetResult(unittest.TestCase):
                 )]
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
@@ -183,7 +201,7 @@ class TestResultHolderGetResult(unittest.TestCase):
                 )]
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
@@ -218,7 +236,7 @@ class TestResultHolderGetResult(unittest.TestCase):
             frozenset([PACKAGE_1, PACKAGE_2]): []
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
@@ -233,12 +251,58 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_2),
             expected)
 
+    def test_get_package_details(self):
+        package_with_dependency_info = {
+            'package1': {
+                'dep1': {
+                    'latest_version': '0.0.1',
+                },
+                'package1': {
+                    'latest_version': '1.2.0',
+                }
+            }
+        }
+        package_to_results = {
+            PACKAGE_1: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )],
+            PACKAGE_2: [compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS,
+            )]
+        }
+        pairwise_to_results = {
+            frozenset([PACKAGE_1, PACKAGE_2]): []
+        }
+
+        patch_pkg_list = mock.patch(
+            'dashboard_builder.configs.PKG_LIST', ['package1', 'package2'])
+
+        with self.patch_finder, self.patch_highlighter, patch_pkg_list:
+            rh = dashboard_builder._ResultHolder(
+                package_to_results=package_to_results,
+                pairwise_to_results=pairwise_to_results,
+                package_with_dependency_info = package_with_dependency_info)
+            result = rh.get_package_details(PACKAGE_1)
+
+        expected = {
+            'self_conflict': False,
+            'pairwise_conflict': ['package2'],
+            'latest_version': '1.2.0'}
+        self.assertEqual(result, expected)
+
 
 class TestResultHolderHasIssues(unittest.TestCase):
     """Tests for dashboard_builder._ResultHolder.has_issues()."""
     patch_finder = mock.patch(
         'dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder',
         _DeprecatedDepFinder)
+    patch_highlighter = mock.patch(
+        'dashboard_builder.dependency_highlighter.DependencyHighlighter',
+        _DependencyHighlighter)
 
     def test_no_issues(self):
         package_to_results = {
@@ -262,7 +326,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
                 )]
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
@@ -293,7 +357,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
                 )],
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
@@ -323,7 +387,7 @@ class TestResultHolderHasIssues(unittest.TestCase):
                 )]
         }
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
@@ -336,6 +400,9 @@ class TestGridBuilder(unittest.TestCase):
     patch_finder = mock.patch(
         'dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder',
         _DeprecatedDepFinder)
+    patch_highlighter = mock.patch(
+        'dashboard_builder.dependency_highlighter.DependencyHighlighter',
+        _DependencyHighlighter)
 
     def test_success(self):
         """CompatibilityResult available for all packages and pairs."""
@@ -358,7 +425,7 @@ class TestGridBuilder(unittest.TestCase):
                 status=compatibility_store.Status.SUCCESS
             ),
         ])
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
             pairwise_to_results = store.get_compatibility_combinations(
                 packages)
@@ -385,7 +452,7 @@ class TestGridBuilder(unittest.TestCase):
             ),
         ])
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
             pairwise_to_results = store.get_compatibility_combinations(
                 packages)
@@ -412,7 +479,7 @@ class TestGridBuilder(unittest.TestCase):
             ),
         ])
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
             pairwise_to_results = store.get_compatibility_combinations(
                 packages)
@@ -433,7 +500,7 @@ class TestGridBuilder(unittest.TestCase):
             ),
         ])
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
             pairwise_to_results = store.get_compatibility_combinations(
                 packages)
@@ -465,7 +532,7 @@ class TestGridBuilder(unittest.TestCase):
             ),
         ])
 
-        with self.patch_finder:
+        with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
             pairwise_to_results = store.get_compatibility_combinations(
                 packages)
@@ -505,7 +572,7 @@ class TestGridBuilder(unittest.TestCase):
             3: ['package3'],
         })
 
-        with patch, self.patch_finder:
+        with patch, self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
             pairwise_to_results = store.get_compatibility_combinations(
                 packages)

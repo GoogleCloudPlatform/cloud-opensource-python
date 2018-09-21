@@ -59,7 +59,7 @@ class _ResultHolder(object):
         pairwise_to_results:
             Mapping[FrozenSet[package.Package],
                     List[compatibility_store.CompatibilityResult]],
-        package_with_dependency_info,
+        package_with_dependency_info=None,
         checker=None,
         store=None):
         self._package_to_results = package_to_results
