@@ -59,10 +59,12 @@ class _ResultHolder(object):
         pairwise_to_results:
             Mapping[FrozenSet[package.Package],
                     List[compatibility_store.CompatibilityResult]],
+        package_with_dependency_info=None,
         checker=None,
         store=None):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
+        self._package_with_dependency_info = package_with_dependency_info
         self.checker = checker
         self.store = store
         self.deprecated_deps = self.get_deprecated_deps()
@@ -157,6 +159,42 @@ class _ResultHolder(object):
 
         return total_packages, total_have_conflicts,\
                total_have_deprecated_deps, total_needs_update
+
+    def get_package_details(self, p: package.Package):
+        """Return the dict of package check summary.
+        
+        {
+            'self_conflict': True,
+            'pairwise_conflict': ['package1', 'package2'],
+            'latest_version': '0.1.0',
+        }
+        """
+        latest_version = self._package_with_dependency_info[
+            p.install_name][p.install_name]['latest_version']
+        pairwise_conflict = []
+
+        # Initialize the values
+        result = {
+            'self_conflict': False,
+            'pairwise_conflict': pairwise_conflict,
+            'latest_version': latest_version,
+        }
+
+        for pair_pkg in configs.PKG_LIST:
+            check_result = self.get_result(p, package.Package(pair_pkg))
+            # Get self compatibility status
+            if pair_pkg == p.install_name:
+                result['self_conflict'] = True \
+                    if check_result['status_type'] != 'self-success' else False
+            # Get pairwise compatibility status
+            else:
+                if check_result['status_type'] != 'pairwise-success' \
+                        and self.has_issues(p):
+                    pairwise_conflict.append(pair_pkg)
+
+        result['pairwise_conflict'] = pairwise_conflict
+
+        return result
 
     def get_result(self,
                    package_1: package.Package,
@@ -302,8 +340,18 @@ def main():
         package.Package(install_name) for install_name in args.packages]
     package_to_results = store.get_self_compatibilities(packages)
     pairwise_to_results = store.get_compatibility_combinations(packages)
+
+    package_with_dependency_info = {}
+    for pkg in configs.PKG_LIST:
+        dep_info = store.get_dependency_info(pkg)
+        package_with_dependency_info[pkg] = dep_info
+
     results = _ResultHolder(
-        package_to_results, pairwise_to_results, checker, store)
+        package_to_results,
+        pairwise_to_results,
+        package_with_dependency_info,
+        checker,
+        store)
 
     dashboard_builder = DashboardBuilder(packages, results)
 

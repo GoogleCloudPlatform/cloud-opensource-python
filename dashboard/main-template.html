@@ -152,34 +152,24 @@
                         <div class="col-md-6 col-lg-4">
                             <!-- TOP CAMPAIGN-->
                             <div class="top-campaign">
-                                <h3 class="title-3 m-b-30">Packages need to fix</h3>
+                                <h3 class="title-3 m-b-30">Packages having conflicts</h3>
                                 <div class="table-responsive">
                                     <table class="table table-top-campaign">
                                         <tbody>
-                                            <tr>
-                                                <td>google-cloud-dataflow</td>
-                                                <td>Self Conflict</td>
-                                            </tr>
-                                            <tr>
-                                                <td>tensorflow & tensorboard</td>
-                                                <td>Pairwise Conflict</td>
-                                            </tr>
-                                            <tr>
-                                                <td>gsutil & cloud-utils</td>
-                                                <td>Pairwise Conflict</td>
-                                            </tr>
-                                            <tr>
-                                                <td>cloud-utils & google-api-python-client</td>
-                                                <td>Pairwise Conflict</td>
-                                            </tr>
-                                            <tr>
-                                                <td>gcloud</td>
-                                                <td>Deprecated Deps</td>
-                                            </tr>
-                                            <tr>
-                                                <td>google-apitools</td>
-                                                <td>Deprecated Deps</td>
-                                            </tr>
+                                                {% for package in packages %}
+                                                    {% set package_details = results.get_package_details(package) %}
+                                                    {% if package_details.self_conflict %}
+                                                        <tr>
+                                                            <td>{{ package.friendly_name }}</td>
+                                                            <td>Self Conflict</td>
+                                                        </tr>
+                                                    {% elif package_details.pairwise_conflict | length > 0%}
+                                                        <tr>
+                                                            <td>{{ package.friendly_name }}</td>
+                                                            <td>Pairwise Conflict</td>
+                                                        </tr>
+                                                    {% endif %}
+                                                {% endfor %}
                                         </tbody>
                                     </table>
                                 </div>
@@ -242,8 +232,9 @@
                     <div class="row">
                         <div class="col-md-12">
                             <h3 class="title-5 m-b-35">Package Details</h3>
+
                             <div class="table-responsive table-responsive-data2">
-                                <table class="table table-data2">
+                                <table class="table table-data2" id="package-details">
                                     <thead>
                                         <tr>
                                             <th>name</th>
@@ -253,71 +244,42 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        {% for package in packages %}
+                                        {% set package_details = results.get_package_details(package) %}
                                         <tr class="tr-shadow">
-                                            <td>google-cloud-dataflow</td>
+                                            <td>{{ package.friendly_name }}</td>
                                             <td>
-                                                <span class="block-email">Self Conflict</span>
+                                                {% if package_details.self_conflict %}
+                                                    <span class="block-email">Self Conflict</span>
+                                                {% elif package_details.pairwise_conflict | length > 0%}
+                                                    <span class="block-email">Pairwise Conflict</span>
+                                                {% else %}
+                                                    <span class="block-email">Success</span>
+                                                {% endif %}
                                             </td>
-                                            <td class="desc">2.5.0</td>
-                                            <td>Conflict with all packages.<br>Deprecated dependencies: google-gax, oauth2client.</td>
-                                        </tr>
-                                        <tr class="spacer"></tr>
-                                        <tr class="tr-shadow">
-                                            <td>gsutil</td>
+                                            <td class="desc"><a href="https://pypi.org/project/{{ package.install_name }}">{{ package_details.latest_version }}</a></td>
                                             <td>
-                                                <span class="block-email">Pairwise Conflict</span>
+                                                {% if package_details.pairwise_conflict | length > 0 %}
+                                                    <b>Conflict with:</b>
+                                                    {% if package_details.self_conflict %}
+                                                        all packages.<br>
+                                                    {% else %}
+                                                        {{ package_details.pairwise_conflict }}<br>
+                                                    {% endif %}
+                                                {% endif %}
+                                                {% if results.deprecated_deps[package.install_name] | length > 0 %}
+                                                    <b>Deprecated dependencies: </b>{{ results.deprecated_deps[package.install_name] }}<br>
+                                                {% endif %}
+                                                {% if results.dependency_to_update[package.install_name] | length > 0 %}
+                                                    <b>Dependencies need to update: </b>
+                                                    {% set deps = results.dependency_to_update[package.install_name] %}
+                                                    {% for dep in deps %}
+                                                        {{ dep.name }},
+                                                    {% endfor %}
+                                                {% endif %}
                                             </td>
-                                            <td class="desc">4.34</td>
-                                            <td>Conflict with cloud-utils.<br>Deprecated dependencies: gcs-oauth2-boto-plugin, oauth2client.</td>
                                         </tr>
-                                        <tr class="tr-shadow">
-                                            <td>cloud-utils</td>
-                                            <td>
-                                                <span class="block-email">Pairwise Conflict</span>
-                                            </td>
-                                            <td class="desc">1.0.31</td>
-                                            <td>Conflict with google-api-python-client.<br>Deprecated dependencies: oauth2client.</td>
-                                        </tr>
-                                        <tr class="tr-shadow">
-                                            <td>tensorflow</td>
-                                            <td>
-                                                <span class="block-email">Pairwise Conflict</span>
-                                            </td>
-                                            <td class="desc">1.10.1</td>
-                                            <td>Conflict with tensorboard.</td>
-                                        </tr>
-                                        <tr class="tr-shadow">
-                                            <td>tensorboard</td>
-                                            <td>
-                                                <span class="block-email">Pairwise Conflict</span>
-                                            </td>
-                                            <td class="desc">1.10.0</td>
-                                            <td>Conflict with tensorboard.</td>
-                                        </tr>
-                                        <tr class="tr-shadow">
-                                            <td>google-api-python-client</td>
-                                            <td>
-                                                <span class="block-email">Pairwise Conflict</span>
-                                            </td>
-                                            <td class="desc">1.7.4</td>
-                                            <td>Conflict with cloud-utils.</td>
-                                        </tr>
-                                        <tr class="tr-shadow">
-                                            <td>gcloud</td>
-                                            <td>
-                                                <span class="block-email">SUCCESS</span>
-                                            </td>
-                                            <td class="desc">0.18.3</td>
-                                            <td>Deprecated dependencies: oauth2client.</td>
-                                        </tr>
-                                        <tr class="tr-shadow">
-                                            <td>google-apitools</td>
-                                            <td>
-                                                <span class="block-email">SUCCESS</span>
-                                            </td>
-                                            <td class="desc">0.5.24</td>
-                                            <td>Deprecated dependencies: oauth2client.</td>
-                                        </tr>
+                                        {% endfor %}
                                     </tbody>
                                 </table>
                             </div>
