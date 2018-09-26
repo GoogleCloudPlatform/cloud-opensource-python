@@ -13,7 +13,7 @@ Types of badges
 Usage
 -----
 
-Adding the link to the badge image and badge target to your README file on
+Adding the link of the badge image and badge target to your README file on
 Github like below:
 
 .. csv-table::
