@@ -53,7 +53,6 @@ PKG_LIST = [
     'google-resumable-media',
     'cloud-utils',
     'google-apitools',
-    'google-gax',
     'googleapis-common-protos',
     'grpc-google-iam-v1',
     'grpcio',
