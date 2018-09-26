@@ -123,8 +123,8 @@ class CompatibilityResult:
 class CompatibilityStore:
     """Storage for package compatibility information."""
 
-    def __init__(self):
-        self._client = bigquery.Client()
+    def __init__(self, project_id=None):
+        self._client = bigquery.Client(project=project_id)
         dataset_ref = self._client.dataset(_DATASET_NAME)
 
         self._self_table_id = (
