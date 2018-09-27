@@ -338,7 +338,9 @@ def main():
 
     packages = [
         package.Package(install_name) for install_name in args.packages]
+    logging.warning("Getting self compatibility results...")
     package_to_results = store.get_self_compatibilities(packages)
+    logging.warning("Getting pairwise compatibility results...")
     pairwise_to_results = store.get_compatibility_combinations(packages)
 
     package_with_dependency_info = {}
