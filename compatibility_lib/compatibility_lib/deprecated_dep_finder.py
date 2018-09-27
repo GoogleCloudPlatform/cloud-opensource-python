@@ -42,9 +42,6 @@ class DeprecatedDepFinder(object):
         if checker is None:
             checker = compatibility_checker.CompatibilityChecker()
 
-        if store is None:
-            store = compatibility_store.CompatibilityStore()
-
         self.max_workers = max_workers
         self.py_version = py_version
         self._checker = checker
