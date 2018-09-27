@@ -92,9 +92,6 @@ class DependencyHighlighter(object):
         if checker is None:
             checker = compatibility_checker.CompatibilityChecker()
 
-        if store is None:
-            store = compatibility_store.CompatibilityStore()
-
         self.py_version = py_version
         self._checker = checker
         self._store = store
