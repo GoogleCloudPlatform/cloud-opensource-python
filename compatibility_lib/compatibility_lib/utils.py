@@ -56,9 +56,6 @@ class DependencyInfo(object):
         if checker is None:
             checker = compatibility_checker.CompatibilityChecker()
 
-        if store is None:
-            store = compatibility_store.CompatibilityStore()
-
         self.py_version = py_version
         self.checker = checker
         self.store = store
@@ -72,7 +69,7 @@ class DependencyInfo(object):
             a dict mapping from dependency package name (string) to
             the info (dict)
         """
-        if package_name in configs.PKG_LIST:
+        if self.store is not None and package_name in configs.PKG_LIST:
             depinfo = self.store.get_dependency_info(package_name)
             return depinfo
         else:
@@ -112,6 +109,7 @@ class DependencyInfo(object):
             the info (dict)
         """
         depinfo = self._get_from_bigquery(package_name)
+
         if depinfo is None:
             depinfo = self._get_from_endpoint(package_name)
         return depinfo

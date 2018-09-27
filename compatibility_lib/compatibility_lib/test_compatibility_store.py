@@ -115,7 +115,7 @@ class TestCompatibilityStore(unittest.TestCase):
             [pkgs[0], 'SUCCESS'],
             [pkgs[1], 'CHECK WARNING'],
         ]
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         patch_client = mock.patch(
@@ -134,7 +134,7 @@ class TestCompatibilityStore(unittest.TestCase):
 
     def test_get_self_compatibility(self):
         mock_client = mock.Mock()
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         row = mock.Mock(
@@ -166,7 +166,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_get_self_compatibilities(self):
         mock_client = mock.Mock()
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         packages = [PACKAGE_1, PACKAGE_2, PACKAGE_3, PACKAGE_4]
@@ -203,7 +203,7 @@ class TestCompatibilityStore(unittest.TestCase):
         # raise ValueError.
         mock_client = mock.Mock()
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         patch_client = mock.patch(
@@ -220,7 +220,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_get_pair_compatibility(self):
         mock_client = mock.Mock()
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         row = mock.Mock(
@@ -252,7 +252,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_compatibility_combinations(self):
         mock_client = mock.Mock()
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         row1 = mock.Mock(
@@ -322,7 +322,7 @@ class TestCompatibilityStore(unittest.TestCase):
             'details': None,
         }
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         patch_client = mock.patch(
@@ -356,7 +356,7 @@ class TestCompatibilityStore(unittest.TestCase):
             'details': None,
         }
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         patch_client = mock.patch(
@@ -400,7 +400,7 @@ class TestCompatibilityStore(unittest.TestCase):
             'is_latest': True,
         }
 
-        def MockClient():
+        def MockClient(project=None):
             return mock_client
 
         patch_client = mock.patch(
@@ -416,6 +416,10 @@ class TestCompatibilityStore(unittest.TestCase):
 
 
 class MockClient(object):
+
+    def __init__(self, project=None):
+        self.project = project
+
     def dataset(self, dataset_name):
         dataset_ref = mock.Mock()
 
