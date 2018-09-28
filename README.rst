@@ -99,8 +99,9 @@ Usage:
 
     from compatibility_lib import dependency_highlighter
 
+    packages = ['package1', 'package2', 'package3']
     highlighter = dependency_highlighter.DependencyHighlighter()
-    highlighter.check_package('package_name')
+    highlighter.check_packages(packages)
 
 Deprecated Dependency Finder
 ----------------------------
