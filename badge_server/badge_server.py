@@ -396,26 +396,42 @@ def google_compatibility_badge_image():
         if package_name in configs.PKG_LIST:
             result = _get_pair_status_for_packages(pkg_sets)
         else:
-            for pkg_set in pkg_sets:
-                for py_ver in [2, 3]:
-                    py_version = PY_VER_MAPPING[py_ver]
-                    res = checker.check(pkg_set, str(py_ver))
-                    status = res.get('result')
+            version_and_res = {
+                'py2': {
+                    'status': 'SUCCESS',
+                    'details': {},
+                },
+                'py3': {
+                    'status': 'SUCCESS',
+                    'details': {},
+                }
+            }
+
+            for py_ver in [2, 3]:
+                results = list(checker.get_pairwise_compatibility(
+                    py_ver, pkg_sets))
+                logging.warning(results)
+                py_version = PY_VER_MAPPING[py_ver]
+
+                for res in results:
+                    res_item = res[0]
+                    status = res_item.get('result')
+                    package = res_item.get('packages')[1]
                     if status != 'SUCCESS':
                         # Ignore the package that not support for given py_ver
-                        if pkg_set[1] in \
+                        if package in \
                                 configs.PKG_PY_VERSION_NOT_SUPPORTED.get(
                                 py_ver):
                             continue
                         # Status showing one of the check failures
-                        default_version_and_res[
-                            py_version]['status'] = res.get('result')
-                        description = res.get('description')
+                        version_and_res[
+                            py_version]['status'] = res_item.get('result')
+                        description = res_item.get('description')
                         details = EMPTY_DETAILS if description is None \
                             else description
-                        default_version_and_res[
-                            py_version]['details'][pkg_set[1]] = details
-            result = default_version_and_res
+                        version_and_res[
+                            py_version]['details'][package] = details
+            result = version_and_res
 
         # Write the result to memory store
         redis_client.set(
