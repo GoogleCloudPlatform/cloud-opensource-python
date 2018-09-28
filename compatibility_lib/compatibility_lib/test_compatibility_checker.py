@@ -31,31 +31,22 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         data = {
             'python-version': python_version,
-            'packages': packages
+            'package': packages
         }
 
-        request = mock.Mock()
-
-        mock_request = mock.Mock()
-        mock_request.Request.return_value = request
-
-        urlopen_res = mock.Mock()
-        mock_request.urlopen.return_value = urlopen_res
-        json_mock = mock.Mock()
-        json_mock.read.return_value = b'{}'
-        urlopen_res.__enter__ = mock.Mock(return_value=json_mock)
-        urlopen_res.__exit__ = mock.Mock(return_value=None)
+        mock_requests = mock.Mock()
+        mock_response = mock.Mock(content=b'{}')
+        mock_requests.get.return_value = mock_response
 
         patch_request = mock.patch(
-            'compatibility_lib.compatibility_checker.urllib.request',
-            mock_request)
+            'compatibility_lib.compatibility_checker.requests',
+            mock_requests)
 
         with patch_request:
             checker.check(packages, python_version)
 
-        mock_request.Request.assert_called_with(
-            compatibility_checker.SERVER_URL, json.dumps(data).encode('utf-8'))
-        mock_request.urlopen.assert_called_with(request)
+        mock_requests.get.assert_called_with(
+            compatibility_checker.SERVER_URL, params=data)
 
     def _mock_retrying_check(self, *args):
         packages = args[0][0]
