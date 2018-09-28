@@ -106,7 +106,11 @@ class TestDependencyInfo(unittest.TestCase):
 class Test__parse_datetime(unittest.TestCase):
 
   def test__parse_datetime(self):
-    date_string = '2018-08-16T15:42:04.351677'
-    expected = '2018-08-16 00:00:00'
-    res = utils._parse_datetime(date_string)
-    self.assertEqual(str(res), expected)
+      date_string = '2018-08-16T15:42:04.351677'
+      expected = '2018-08-16 00:00:00'
+      res = utils._parse_datetime(date_string)
+      self.assertEqual(str(res), expected)
+
+  def test__parse_datetime_empty(self):
+      res = utils._parse_datetime(None)
+      self.assertIsNone(res)
