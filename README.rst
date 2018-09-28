@@ -139,23 +139,26 @@ See the usage `here`_.
 
 .. _here: https://github.com/GoogleCloudPlatform/cloud-opensource-python/blob/master/badge_server/README.rst
 
-----------------------------
-Development Workflow (Linux)
-----------------------------
+------------
+Contributing
+------------
 
-Set Up Python Environment
+Set up environment
+------------------
+
+- Set Up Python Environment
 
 https://cloud.google.com/python/setup
 
 
-Install py 3.6 (may not be included in previous step)
+- Install py 3.6 (may not be included in previous step)
 
 .. code-block:: bash
 
     sudo apt install python3.6
 
 
-Clone the cloud-opensource-python project and cd to project
+- Clone the cloud-opensource-python project and cd to project
 
 .. code-block:: bash
 
@@ -163,7 +166,7 @@ Clone the cloud-opensource-python project and cd to project
     cd cloud-opensource-python
 
 
-Fork project and configure git remote settings
+- Fork project and configure git remote settings
 
 .. code-block:: bash
 
@@ -171,62 +174,60 @@ Fork project and configure git remote settings
     git config --global user.email "email@example.com"
 
 
-Install tox, create a virtualenv, and source
+- Create a virtualenv, and source
 
 .. code-block:: bash
 
-    pip install tox
     tox -e py36
     source .tox/py36/bin/activate
 
-Build compatibility_lib library from source and install
-
-.. code-block:: bash
-
-    python compatibility_lib/setup.py bdist_wheel
-    pip install compatibility_lib/dist/*
-
-Install Nox for testing
-
-.. code-block:: bash
-
-    pip install nox-automation
-
-Install gcloud SDK and initialize
+- Install gcloud SDK and initialize
 
 .. code-block:: bash
 
     curl https://sdk.cloud.google.com | bash
     gcloud init
 
-Install google-cloud-bigquery
+Set up credentials
+------------------
 
-.. code-block:: bash
+- Create new service account key (**do this on the workstation**)
 
-    pip install google-cloud-bigquery
+1. in chrome browser, navigate to pantheon/
 
-Create new service account key (**do this on the workstation**)
+2. menu > IAM & admin > Service accounts
 
-- in chrome browser, navigate to pantheon/
+3. under bigquery-admin, actions > create new key
 
-- menu > IAM & admin > Service accounts
-
-- under bigquery-admin, actions > create new key 
-
-Set GOOGLE_APPLICATION_CREDENTIALS
+- Set GOOGLE_APPLICATION_CREDENTIALS
 
 .. code-block:: bash
     
     export GOOGLE_APPLICATION_CREDENTIALS=”path/to/service/key.json”
 
-Test credentials within python interpreter (no errors means it’s working)
+Contributing to compatibility_lib
+---------------------------------
 
-.. code-block:: python
-    
-    from google.cloud import bigquery
-    bigquery.client.Client()
+- Build compatibility_lib library from source and install
 
-Run tests:
+.. code-block:: bash
+
+    python compatibility_lib/setup.py bdist_wheel
+    pip install compatibility_lib/dist/*
+
+-------
+Testing
+-------
+
+We use nox test suite for running tests.
+
+- Install Nox for testing
+
+.. code-block:: bash
+
+    pip install nox-automation
+
+- Run the tests
 
 .. code-block:: bash
 
