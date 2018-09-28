@@ -53,7 +53,8 @@ with the same schema that this library is using).
 
 Installation:
 
-.. code-block::
+.. code-block:: bash
+
     pip install compatibility-lib
 
 
@@ -65,7 +66,7 @@ or by querying the BigQuery table (if the given package is listed in our configs
 
 Usage like below,
 
-.. code-block::python
+.. code-block:: python
 
     import itertools
     from compatibility_lib import compatibility_checker
