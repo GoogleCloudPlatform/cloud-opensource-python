@@ -17,6 +17,7 @@ Adding the link of the badge image and badge target to your README file on
 Github like below:
 
 .. code-block::
+
    .. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
       :target: http://35.226.8.89/self_compatibility_badge/target?package=compatibility_lib
    .. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge/image?package=compatibility_lib
