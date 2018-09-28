@@ -191,9 +191,9 @@ https://cloud.google.com/python/setup
 Set up credentials
 ------------------
 
-- Create new service account key (**do this on the workstation**)
+- Create new service account key
 
-1. in chrome browser, navigate to pantheon/
+1.  In your browser, navigate to Cloud Console
 
 2. menu > IAM & admin > Service accounts
 
