@@ -16,8 +16,8 @@
 
 import itertools
 import concurrent.futures
-import urllib.request
 import json
+import requests
 import retrying
 
 from compatibility_lib import configs
@@ -32,17 +32,13 @@ class CompatibilityChecker(object):
 
     def check(self, packages, python_version):
         """Call the checker server to get back status results."""
-        data = json.dumps({
+        data = {
             'python-version': python_version,
-            'packages': packages
-        }).encode('utf-8')
+            'package': packages
+        }
+        result = requests.get(SERVER_URL, params=data)
 
-        check_request = urllib.request.Request(SERVER_URL, data)
-
-        with urllib.request.urlopen(check_request) as f:
-            result = json.loads(f.read().decode('utf-8'))
-
-        return result
+        return json.loads(result.content.decode('utf-8'))
 
     @retrying.retry(wait_exponential_multiplier=5000,
                     wait_exponential_max=20000)
@@ -65,11 +61,12 @@ class CompatibilityChecker(object):
             for result in zip(pkg_set_results):
                 yield result
 
-    def get_pairwise_compatibility(self, python_version):
+    def get_pairwise_compatibility(self, python_version, pkg_sets=None):
         """Get pairwise compatibility data for each pair of packages."""
+        if pkg_sets is None:
+            pkg_sets = itertools.combinations(configs.PKG_LIST, 2)
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
-            pkg_sets = itertools.combinations(configs.PKG_LIST, 2)
             pkg_set_results = p.map(
                 self.retrying_check,
                 ((list(pkg_set), python_version) for pkg_set in pkg_sets))
