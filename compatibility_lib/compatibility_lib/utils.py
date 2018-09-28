@@ -90,6 +90,13 @@ class DependencyInfo(object):
         result = [item for item in _result]
         depinfo = result[0][0].get('dependency_info')
 
+        # depinfo can be None if there is an exception during pip install.
+        if depinfo is None:
+            logging.warning(
+                "Could not get the dependency info of package {} from server."
+                    .format(package_name))
+            return {}
+
         fields = ('installed_version_time',
                   'current_time', 'latest_version_time')
         for pkgname in depinfo.keys():
@@ -123,6 +130,9 @@ def _parse_datetime(date_string):
     Returns:
         the date as a datetime obj
     """
+    if date_string is None:
+        return None
+
     date_string = date_string.replace('T', ' ')
     short_date = date_string.split(' ')[0]
     return datetime.strptime(short_date, DATETIME_FORMAT)
