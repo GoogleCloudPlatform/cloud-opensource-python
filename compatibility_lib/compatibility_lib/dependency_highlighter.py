@@ -170,8 +170,7 @@ class DependencyHighlighter(object):
                     continue
 
                 latest =  _sanitize_release_tag(info['latest_version'])
-                elapsed_time = info[
-                   'current_time'] - info['latest_version_time']
+                elapsed_time = current_time - latest_version_time
 
                 if priority.level == PriorityLevel.UP_TO_DATE:
                     priority = self._get_update_priority(
