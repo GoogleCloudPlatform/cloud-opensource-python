@@ -30,26 +30,136 @@ Dependency Management Toolkit for Google Cloud Python Projects
    :widths: 20, 30
 
    "Self Compatibility", |self_compatibility|
+   "Google Compatibility", |google_compatibility|
+   "Dependency Version Status", |dependency_version_status|
 
 .. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
    :target: http://35.226.8.89/self_compatibility_badge/target?package=compatibility_lib
+.. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge/image?package=compatibility_lib
+   :target: http://35.226.8.89/google_compatibility_badge/target?package=compatibility_lib
+.. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge/image?package=compatibility_lib
+   :target: http://35.226.8.89/self_dependency_badge/target?package=compatibility_lib
 
-Development Workflow (Linux)
----------------------------------
+-----------------
+Compatibility Lib
+-----------------
 
-Set Up Python Environment
+`Compatibility Lib`_ is a library to get compatibility status and dependency information of Python packages.
+It contains three tools: compatibility checker, outdated dependency highlighter and deprecated dependency finder.
+And it also provides utilities to query data from the BigQuery tables (external user will need to set up tables
+with the same schema that this library is using).
+
+.. _Compatibility Lib: https://pypi.org/project/compatibility-lib/
+
+Installation:
+
+.. code-block:: bash
+
+    pip install compatibility-lib
+
+
+Compatibility Checker
+---------------------
+
+Compatibility checker gets the compatibility data by sending requests to the Compatibility Server endpoint,
+or by querying the BigQuery table (if the given package is listed in our configs, which are pre-computed).
+
+Usage like below,
+
+.. code-block:: python
+
+    import itertools
+    from compatibility_lib import compatibility_checker
+
+    packages = ['package1', 'package2', 'package3']
+    package_pairs = itertools.combinations(packages, 2)
+    checker = compatibility_checker.CompatibilityChecker()
+
+    # Get self compatibility data
+    checker.get_self_compatibility(python_version='3', packages=packages)
+
+    # Get pairwise compatibility data
+    checker.get_pairwise_compatibility(
+        python_version='3', pkg_sets=package_pairs)
+
+Outdated Dependency Highlighter
+-------------------------------
+
+Outdated Dependency Highlighter finds out the outdated dependencies of a Python package, and determines
+the priority of updating the dependency version based on a set of criteria below:
+
+- Mark “High Priority” if dependencies have widely adopted major release. (e.g 1.0.0 -> 2.0.0)
+- Mark “High Priority” if a new version has been available for more than 6 months.
+- Mark “High Priority” if dependencies are 3 or more sub-versions behind the newest one. (e.g 1.0.0 -> 1.3.0)
+- Mark “Low Priority” for other dependency updates.
+
+Usage:
+
+.. code-block:: python
+
+    from compatibility_lib import dependency_highlighter
+
+    packages = ['package1', 'package2', 'package3']
+    highlighter = dependency_highlighter.DependencyHighlighter()
+    highlighter.check_packages(packages)
+
+Deprecated Dependency Finder
+----------------------------
+
+Deprecated Dependency Finder can find out the deprecated dependencies that a Python package
+depends on.
+
+Usage:
+
+.. code-block:: python
+
+    from compatibility_lib import deprecated_dep_finder
+
+    packages = ['package1', 'package2', 'package3']
+    finder = deprecated_dep_finder.DeprecatedDepFinder()
+    for res in finder.get_deprecated_deps(packages):
+        print(res)
+
+------------
+Badge Server
+------------
+
+Displaying the compatibility status for your package as a Github Badge.
+
+Types of badges
+---------------
+
+1. Self Compatibility
+2. Compatibility with Google OSS Python packages
+3. Dependency version status
+
+Usage
+-----
+
+See the usage `here`_.
+
+.. _here: https://github.com/GoogleCloudPlatform/cloud-opensource-python/blob/master/badge_server/README.rst
+
+------------
+Contributing
+------------
+
+Set up environment
+------------------
+
+- Set Up Python Environment
 
 https://cloud.google.com/python/setup
 
 
-Install py 3.6 (may not be included in previous step)
+- Install py 3.6 (may not be included in previous step)
 
 .. code-block:: bash
 
     sudo apt install python3.6
 
 
-Clone the cloud-opensource-python project and cd to project
+- Clone the cloud-opensource-python project and cd to project
 
 .. code-block:: bash
 
@@ -57,7 +167,7 @@ Clone the cloud-opensource-python project and cd to project
     cd cloud-opensource-python
 
 
-Fork project and configure git remote settings
+- Fork project and configure git remote settings
 
 .. code-block:: bash
 
@@ -65,62 +175,60 @@ Fork project and configure git remote settings
     git config --global user.email "email@example.com"
 
 
-Install tox, create a virtualenv, and source
+- Create a virtualenv, and source
 
 .. code-block:: bash
 
-    pip install tox
     tox -e py36
     source .tox/py36/bin/activate
 
-Build compatibility_lib library from source and install
-
-.. code-block:: bash
-
-    python compatibility_lib/setup.py bdist_wheel
-    pip install compatibility_lib/dist/*
-
-Install Nox for testing
-
-.. code-block:: bash
-
-    pip install nox-automation
-
-Install gcloud SDK and initialize
+- Install gcloud SDK and initialize
 
 .. code-block:: bash
 
     curl https://sdk.cloud.google.com | bash
     gcloud init
 
-Install google-cloud-bigquery
+Set up credentials
+------------------
 
-.. code-block:: bash
+- Create new service account key
 
-    pip install google-cloud-bigquery
+1.  In your browser, navigate to Cloud Console
 
-Create new service account key (**do this on the workstation**)
+2. menu > IAM & admin > Service accounts
 
-- in chrome browser, navigate to pantheon/
+3. under bigquery-admin, actions > create new key
 
-- menu > IAM & admin > Service accounts
-
-- under bigquery-admin, actions > create new key 
-
-Set GOOGLE_APPLICATION_CREDENTIALS
+- Set GOOGLE_APPLICATION_CREDENTIALS
 
 .. code-block:: bash
     
     export GOOGLE_APPLICATION_CREDENTIALS=”path/to/service/key.json”
 
-Test credentials within python interpreter (no errors means it’s working)
+Contributing to compatibility_lib
+---------------------------------
 
-.. code-block:: python
-    
-    from google.cloud import bigquery
-    bigquery.client.Client()
+- Build compatibility_lib library from source and install
 
-Run tests:
+.. code-block:: bash
+
+    python compatibility_lib/setup.py bdist_wheel
+    pip install compatibility_lib/dist/*
+
+-------
+Testing
+-------
+
+We use nox test suite for running tests.
+
+- Install Nox for testing
+
+.. code-block:: bash
+
+    pip install nox-automation
+
+- Run the tests
 
 .. code-block:: bash
 
@@ -130,12 +238,13 @@ Run tests:
     nox -l          # see available options
     nox             # run everything
 
-
+-------
 License
 -------
 
 Apache 2.0 - See `LICENSE <LICENSE>`__ for more information.
 
+----------
 Disclaimer
 ----------
 
