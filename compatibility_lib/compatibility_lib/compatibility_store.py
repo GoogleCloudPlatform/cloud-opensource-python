@@ -17,6 +17,7 @@
 import datetime
 import enum
 import itertools
+import retrying
 from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
 
 from google.cloud import bigquery
@@ -234,6 +235,8 @@ class CompatibilityStore:
         """
         return self.get_self_compatibilities([p])[p]
 
+    @retrying.retry(stop_max_attempt_number=7,
+                    wait_fixed=2000)
     def get_self_compatibilities(self,
                                  packages: Iterable[package.Package]) -> \
             Mapping[package.Package, List[CompatibilityResult]]:
@@ -277,6 +280,8 @@ class CompatibilityStore:
         return {p: self._filter_older_versions(crs)
                 for (p, crs) in package_to_result.items()}
 
+    @retrying.retry(stop_max_attempt_number=7,
+                    wait_fixed=2000)
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[CompatibilityResult]:
         """Returns CompatibilityStatuses for a pair of packages.
@@ -317,6 +322,8 @@ class CompatibilityStore:
             self._row_to_compatibility_status(packages, row)
             for row in query_job)
 
+    @retrying.retry(stop_max_attempt_number=7,
+                    wait_fixed=2000)
     def get_compatibility_combinations(self,
                                        packages: List[package.Package]) -> \
             Mapping[FrozenSet[package.Package], List[CompatibilityResult]]:
@@ -409,7 +416,8 @@ class CompatibilityStore:
                 self._release_time_table,
                 row)
 
-
+    @retrying.retry(stop_max_attempt_number=7,
+                    wait_fixed=2000)
     def get_dependency_info(self, package_name):
         """Returns dependency info for an indicated Google OSS package.
 

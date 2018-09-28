@@ -42,6 +42,9 @@ from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package
 
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
+
 _JINJA2_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader('.'), autoescape=jinja2.select_autoescape())
 
@@ -338,7 +341,9 @@ def main():
 
     packages = [
         package.Package(install_name) for install_name in args.packages]
+    logging.info("Getting self compatibility results...")
     package_to_results = store.get_self_compatibilities(packages)
+    logging.info("Getting pairwise compatibility results...")
     pairwise_to_results = store.get_compatibility_combinations(packages)
 
     package_with_dependency_info = {}
@@ -356,7 +361,7 @@ def main():
     dashboard_builder = DashboardBuilder(packages, results)
 
     # Build the pairwise grid dashboard
-    logging.warning('Starting build the grid...')
+    logging.info('Starting build the grid...')
     grid_html = dashboard_builder.build_dashboard(
         'dashboard/grid-template.html')
     grid_path = os.path.dirname(os.path.abspath(__file__)) + '/grid.html'
@@ -364,7 +369,7 @@ def main():
         f.write(grid_html)
 
     # Build the dashboard main page
-    logging.warning('Starting build the main dashboard...')
+    logging.info('Starting build the main dashboard...')
     main_html = dashboard_builder.build_dashboard(
         'dashboard/main-template.html')
 

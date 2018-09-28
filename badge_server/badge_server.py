@@ -410,12 +410,13 @@ def google_compatibility_badge_image():
             for py_ver in [2, 3]:
                 results = list(checker.get_pairwise_compatibility(
                     py_ver, pkg_sets))
+                logging.warning(results)
                 py_version = PY_VER_MAPPING[py_ver]
 
                 for res in results:
-                    logging.warning(res)
-                    status = res[0].get('result')
-                    package = res[0].get('packages')[1]
+                    res_item = res[0]
+                    status = res_item.get('result')
+                    package = res_item.get('packages')[1]
                     if status != 'SUCCESS':
                         # Ignore the package that not support for given py_ver
                         if package in \
@@ -424,8 +425,8 @@ def google_compatibility_badge_image():
                             continue
                         # Status showing one of the check failures
                         version_and_res[
-                            py_version]['status'] = res.get('result')
-                        description = res.get('description')
+                            py_version]['status'] = res_item.get('result')
+                        description = res_item.get('description')
                         details = EMPTY_DETAILS if description is None \
                             else description
                         version_and_res[
