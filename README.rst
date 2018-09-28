@@ -95,7 +95,7 @@ the priority of updating the dependency version based on a set of criteria below
 
 Usage:
 
-.. code-block::python
+.. code-block:: python
 
     from compatibility_lib import dependency_highlighter
 
@@ -110,7 +110,7 @@ depends on.
 
 Usage:
 
-.. code-block::python
+.. code-block:: python
 
     from compatibility_lib import deprecated_dep_finder
 
