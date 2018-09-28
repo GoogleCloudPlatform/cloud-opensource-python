@@ -33,7 +33,7 @@ Github:
    .. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge/image?package=compatibility_lib
       :target: http://35.226.8.89/self_dependency_badge/target?package=compatibility_lib
 
-And the badges will show up like below (view source to :
+And the badges will show up like below:
 
 .. csv-table::
    :header: "CHECK_TYPE", "RESULT"
