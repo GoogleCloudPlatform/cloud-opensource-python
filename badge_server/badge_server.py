@@ -208,6 +208,12 @@ def index():
     return 'Visitor number: {}'.format(value)
 
 
+@app.route('/one_badge/image')
+@app.route('/one_badge/image/<name>')
+def one_badge_image(name=None):
+    return flask.render_template('test.html', name=name)
+
+
 @app.route('/self_compatibility_badge/image')
 def self_compatibility_badge_image():
     """Badge showing whether a package is compatible with itself."""
