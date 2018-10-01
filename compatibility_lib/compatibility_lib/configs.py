@@ -20,7 +20,7 @@
 IGNORED_DEPENDENCIES = [
     'pip',
     'setuptools',
-    'wheel',gi
+    'wheel',
 ]
 
 PKG_LIST = [
