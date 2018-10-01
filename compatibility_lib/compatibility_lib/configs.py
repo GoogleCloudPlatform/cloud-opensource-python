@@ -15,13 +15,12 @@
 """Common configs for compatibility_lib."""
 
 
-"""IGNORED_DEPENDENCIES are not direct dependencies
-for many packages and are not installed via pip,
-resulting in unresolvable high priority warnings."""
+# IGNORED_DEPENDENCIES are not direct dependencies for many packages and are
+# not installed via pip, resulting in unresolvable high priority warnings.
 IGNORED_DEPENDENCIES = [
     'pip',
     'setuptools',
-    'wheel',
+    'wheel',gi
 ]
 
 PKG_LIST = [
