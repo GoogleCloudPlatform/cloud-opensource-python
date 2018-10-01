@@ -21,6 +21,7 @@ resulting in unresolvable high priority warnings."""
 IGNORED_DEPENDENCIES = [
     'pip',
     'setuptools',
+    'wheel',
 ]
 
 PKG_LIST = [
