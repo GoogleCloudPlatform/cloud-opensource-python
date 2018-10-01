@@ -152,16 +152,24 @@ class _ResultHolder(object):
         total_have_conflicts = 0
         total_have_deprecated_deps = 0
         total_needs_update = 0
+
+        outdated_or_deprecated_pkgs = set()
+
         for pkg in packages:
             if self.has_issues(pkg):
                 total_have_conflicts += 1
             if self.has_deprecated_deps(pkg):
                 total_have_deprecated_deps += 1
+                outdated_or_deprecated_pkgs.add(pkg)
             if self.needs_update(pkg):
                 total_needs_update += 1
+                outdated_or_deprecated_pkgs.add(pkg)
+
+        total_success_deps = total_packages - len(outdated_or_deprecated_pkgs)
 
         return total_packages, total_have_conflicts,\
-               total_have_deprecated_deps, total_needs_update
+               total_have_deprecated_deps, total_needs_update,\
+               total_success_deps
 
     def get_package_details(self, p: package.Package):
         """Return the dict of package check summary.
