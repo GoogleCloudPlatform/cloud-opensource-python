@@ -1,0 +1,222 @@
+.m-b-30 {
+    margin-bottom: 30px;
+}
+
+.title--sbold {
+    font-weight: 600;
+}
+
+.title-1 {
+    text-transform: capitalize;
+    font-weight: 400;
+    font-size: 30px;
+}
+
+.title-2 {
+    text-transform: capitalize;
+    font-weight: 400;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.title-3 {
+    text-transform: capitalize;
+    font-weight: 400;
+    font-size: 24px;
+    color: #333;
+}
+
+.title-3 i {
+    margin-right: 13px;
+    vertical-align: baseline;
+}
+
+.title-4 {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    font-weight: 500;
+    font-size: 30px;
+    color: #393939;
+}
+
+.title-5 {
+    text-transform: capitalize;
+    font-size: 22px;
+    font-weight: 500;
+    color: #393939;
+}
+
+.title-6 {
+    font-size: 24px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.user-data {
+    border: 1px solid #e5e5e5;
+    background: #fff;
+    padding-top: 44px;
+}
+
+.user-data .title-3 {
+    padding-left: 40px;
+    padding-right: 55px;
+}
+
+.user-data .filters {
+    padding-left: 40px;
+    padding-right: 55px;
+}
+
+.user-data__footer {
+    padding: 29px 0;
+    text-align: center;
+}
+
+.table {
+    margin: 0;
+}
+
+.table-responsive {
+    padding-right: 1px;
+}
+
+.table-data thead tr td {
+    font-size: 12px;
+    font-weight: 600;
+    color: #808080;
+    text-transform: uppercase;
+}
+
+.table-data .table td {
+    border-top: none;
+    border-bottom: 1px solid #f2f2f2;
+    padding-top: 23px;
+    padding-bottom: 33px;
+    padding-left: 40px;
+    padding-right: 10px;
+}
+
+.table-data .table tr td:last-child {
+    padding-right: 24px;
+}
+
+.table-data tbody tr:hover td .more {
+    -webkit-transform: scale(1);
+    -moz-transform: scale(1);
+    -ms-transform: scale(1);
+    -o-transform: scale(1);
+    transform: scale(1);
+}
+
+.table-data__info h6 {
+    font-size: 14px;
+    color: #808080;
+    text-transform: capitalize;
+    font-weight: 400;
+}
+
+.table-data__info span a {
+    font-size: 12px;
+    color: #999;
+}
+
+.table-data__info span a:hover {
+    color: #666;
+}
+
+.more {
+    display: inline-block;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    background: #e5e5e5;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    position: relative;
+    -webkit-transition: all 0.4s ease;
+    -o-transition: all 0.4s ease;
+    -moz-transition: all 0.4s ease;
+    transition: all 0.4s ease;
+    -webkit-transform: scale(0);
+    -moz-transform: scale(0);
+    -ms-transform: scale(0);
+    -o-transform: scale(0);
+    transform: scale(0);
+}
+
+.more {
+    display: inline-block;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    background: #e5e5e5;
+    -webkit-border-radius: 100%;
+    -moz-border-radius: 100%;
+    border-radius: 100%;
+    position: relative;
+    -webkit-transition: all 0.4s ease;
+    -o-transition: all 0.4s ease;
+    -moz-transition: all 0.4s ease;
+    transition: all 0.4s ease;
+    -webkit-transform: scale(0);
+    -moz-transform: scale(0);
+    -ms-transform: scale(0);
+    -o-transform: scale(0);
+    transform: scale(0);
+}
+
+.more i {
+    font-size: 20px;
+    color: #808080;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -moz-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    -o-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.line-seprate {
+    height: 1px;
+    width: 100%;
+    background: #e5e5e5;
+    border: none;
+    margin-top: 20px;
+    margin-bottom: 0;
+}
+
+.status {
+    display: inline-block;
+    line-height: 30px;
+    font-size: 14px;
+    color: #fff;
+    padding: 0 15px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+    text-transform: capitalize;
+}
+
+.status.unknown {
+    background-color: #A569BD;
+}
+
+.status.calculating {
+    background-color: #3498DB;
+}
+
+.status.success {
+    background-color: #2ECC71;
+}
+
+.status.install_error {
+    background-color: #F4D03F;
+}
+
+.status.check_warning {
+    background-color: #E74C3C;
+}
