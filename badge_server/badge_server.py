@@ -113,6 +113,17 @@ STATUS_COLOR_MAPPING = {
     'CONVERSION_ERROR': 'orange',
 }
 
+DEFAULT_COMPATIBILITY_RESULT = {
+        'py2': {
+            'status': 'CALCULATING',
+            'details': {},
+        },
+        'py3': {
+            'status': 'CALCULATING',
+            'details': {},
+        }
+    }
+
 CONVERSION_ERROR_RES = {
     'py2': {
         'status': 'CONVERSION_ERROR',
@@ -206,12 +217,6 @@ def greetings():
 def index():
     value = redis_client.incr('counter', 1)
     return 'Visitor number: {}'.format(value)
-
-
-@app.route('/one_badge/image')
-@app.route('/one_badge/image/<name>')
-def one_badge_image(name=None):
-    return flask.render_template('test.html', name=name)
 
 
 @app.route('/self_compatibility_badge/image')
@@ -308,7 +313,17 @@ def self_compatibility_badge_target():
     self_comp_res = redis_client.get(
         '{}_self_comp_badge'.format(package_name))
 
-    return str(self_comp_res)
+    if self_comp_res is None:
+        self_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
+    else:
+        self_comp_res = self_comp_res.decode('utf-8')
+
+    result_dict = ast.literal_eval(self_comp_res)
+
+    return flask.render_template(
+        'self-compatibility.html',
+        package_name=package_name,
+        result=result_dict)
 
 
 @app.route('/self_dependency_badge/image')
@@ -386,17 +401,6 @@ def google_compatibility_badge_image():
     to one of the failure types, details can be found at the target link."""
     package_name = flask.request.args.get('package')
 
-    default_version_and_res = {
-        'py2': {
-            'status': 'CALCULATING',
-            'details': {},
-        },
-        'py3': {
-            'status': 'CALCULATING',
-            'details': {},
-        }
-    }
-
     def run_check():
         pkg_sets = [[package_name, pkg] for pkg in configs.PKG_LIST]
         if package_name in configs.PKG_LIST:
@@ -458,7 +462,7 @@ def google_compatibility_badge_image():
                     google_comp_res))
             details = CONVERSION_ERROR_RES
     else:
-        details = default_version_and_res
+        details = DEFAULT_COMPATIBILITY_RESULT
 
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
