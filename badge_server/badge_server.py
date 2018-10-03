@@ -495,7 +495,17 @@ def google_compatibility_badge_target():
     google_comp_res = redis_client.get(
         '{}_google_comp_badge'.format(package_name))
 
-    return str(google_comp_res)
+    if google_comp_res is None:
+        google_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
+    else:
+        google_comp_res = google_comp_res.decode('utf-8')
+
+    result_dict = ast.literal_eval(google_comp_res)
+
+    return flask.render_template(
+        'google-compatibility.html',
+        package_name=package_name,
+        result=result_dict)
 
 
 if __name__ == '__main__':
