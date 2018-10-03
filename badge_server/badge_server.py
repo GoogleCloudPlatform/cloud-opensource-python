@@ -106,8 +106,8 @@ PY_VER_MAPPING = {
 
 STATUS_COLOR_MAPPING = {
     'SUCCESS': 'green',
-    'UNKNOWN': 'black',
-    'INSTALL_ERROR': 'orange',
+    'UNKNOWN': 'purple',
+    'INSTALL_ERROR': 'yellow',
     'CHECK_WARNING': 'red',
     'CALCULATING': 'blue',
     'CONVERSION_ERROR': 'orange',
@@ -122,7 +122,12 @@ DEFAULT_COMPATIBILITY_RESULT = {
             'status': 'CALCULATING',
             'details': {},
         }
-    }
+}
+
+DEFAULT_DEPENDENCY_RESULT = {
+        'status': 'CALCULATING',
+        'details': {},
+}
 
 CONVERSION_ERROR_RES = {
     'py2': {
@@ -137,9 +142,9 @@ CONVERSION_ERROR_RES = {
 
 DEP_STATUS_COLOR_MAPPING = {
     'CALCULATING':                      'blue',
-    'CONVERSION_ERROR':                 'orange',
+    'CONVERSION_ERROR':                 'purple',
     priority_level.UP_TO_DATE.name:     'green',
-    priority_level.LOW_PRIORITY.name:   'black',
+    priority_level.LOW_PRIORITY.name:   'yellow',
     priority_level.HIGH_PRIORITY.name:  'red'
 }
 
@@ -332,26 +337,28 @@ def self_dependency_badge_image():
 
     package_name = flask.request.args.get('package')
 
-    res = {
-        'status': 'CALCULATING',
-        'details': None,
-    }
-
     def run_check():
+        res = {
+            'status': 'CALCULATING',
+            'details': {},
+        }
         outdated = highlighter.check_package(package_name)
+        details = {}
 
         max_level = priority_level.UP_TO_DATE
-        details = []
         for dep in outdated:
+            dep_detail = {}
             level = dep.priority.level
             if level.value > max_level.value:
                 max_level = level
-            details.append(dep.priority.details)
+            dep_detail['installed_version'] = dep.installed_version
+            dep_detail['latest_version'] = dep.latest_version
+            dep_detail['priority'] = dep.priority.level.name
+            dep_detail['detail'] = dep.priority.details
+            details[dep.name] = dep_detail
 
         res['status'] = max_level.name
-        res['details'] = EMPTY_DETAILS
-        if len(details) > 0:
-            res['details'] = '\n'.join(details)
+        res['details'] = details
 
         url = _get_badge_url(res, package_name)
 
@@ -373,7 +380,7 @@ def self_dependency_badge_image():
                     dependency_res))
             details = DEP_CONVERSION_ERROR_RES
     else:
-        details = res
+        details = DEFAULT_DEPENDENCY_RESULT
 
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
@@ -391,7 +398,17 @@ def self_dependency_badge_target():
     dependency_res = redis_client.get(
         '{}_dependency_badge'.format(package_name))
 
-    return str(dependency_res)
+    if dependency_res is None:
+        dependency_res = str(DEFAULT_DEPENDENCY_RESULT)
+    else:
+        dependency_res = dependency_res.decode('utf-8')
+
+    result_dict = ast.literal_eval(dependency_res)
+
+    return flask.render_template(
+        'dependency-result.html',
+        package_name=package_name,
+        result=result_dict)
 
 
 @app.route('/google_compatibility_badge/image')

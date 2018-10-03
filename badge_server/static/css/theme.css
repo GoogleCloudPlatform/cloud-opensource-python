@@ -220,3 +220,19 @@
 .status.check_warning {
     background-color: #E74C3C;
 }
+
+.status.conversion_error {
+    background-color: #A569BD;
+}
+
+.status.high_priority {
+    background-color: #E74C3C;
+}
+
+.status.low_priority {
+    background-color: #F4D03F;
+}
+
+.status.up_to_date {
+    background-color: #2ECC71;
+}
