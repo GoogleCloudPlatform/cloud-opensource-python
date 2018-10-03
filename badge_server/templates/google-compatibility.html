@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="au theme template">
+    <meta name="author" content="Hau Nguyen">
+    <meta name="keywords" content="au theme template">
+
+    <!-- Title Page-->
+    <title>Google Compatibility Result</title>
+
+    <!-- Bootstrap CSS-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" media="all">
+
+    <!-- Main CSS-->
+    <link href="{{ url_for('static',filename='css/theme.css') }}" rel="stylesheet" media="all">
+
+</head>
+
+<body class="animsition">
+    <div class="col-lg-6">
+        <!-- WELCOME-->
+        <section class="welcome p-t-10">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <h1 class="title-4">Package name: {{ package_name }}
+                        </h1>
+                        <hr class="line-seprate">
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- END WELCOME-->
+
+        <div class="p-t-20">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Google Compatibility Check Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted m-b-15">Click on the tabs to see results for different Python versions.</p>
+
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="py2-tab" data-toggle="tab" href="#py2" role="tab" aria-controls="py2" aria-selected="true">Python 2</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="py3-tab" data-toggle="tab" href="#py3" role="tab" aria-controls="py3" aria-selected="false">Python 3</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content pl-3 p-1" id="myTabContent">
+                            <div class="tab-pane fade show active" id="py2" role="tabpanel" aria-labelledby="py2-tab">
+                                <div class="user-data m-b-30">
+                                    <h4>Check Result: <span class="status {{ result.py2.status | lower }}">{{ result.py2.status }}</span></h4>
+                                    <div class="table-responsive table-data">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <td>Dependency Name</td>
+                                                    <td>Details</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for dep_name, detail in result.py2.details.items() %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="table-data__info">
+                                                            <h6>{{ dep_name }}</h6>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                       <span class="table-data__info">{{ detail }}</span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="py3" role="tabpanel" aria-labelledby="py3-tab">
+                                <div class="user-data m-b-30">
+                                    <h4>Check Result: <span class="status {{ result.py3.status | lower }}">{{ result.py3.status }}</span></h4>
+                                    <div class="table-responsive table-data">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <td>Dependency Name</td>
+                                                    <td>Details</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for dep_name, detail in result.py3.details.items() %}
+                                                    <tr>
+                                                        <td>
+                                                            <div class="table-data__info">
+                                                                <h6>{{ dep_name }}</h6>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                           <span class="table-data__info">{{ detail }}</span>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+<!-- Jquery JS-->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<!-- Bootstrap JS-->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<!-- Vendor JS-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animsition/4.0.2/js/animsition.min.js"></script>
+
+</html>
+<!-- end document-->

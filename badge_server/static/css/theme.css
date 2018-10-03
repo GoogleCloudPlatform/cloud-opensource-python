@@ -125,6 +125,12 @@
     color: #666;
 }
 
+.card {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
 .more {
     display: inline-block;
     cursor: pointer;
