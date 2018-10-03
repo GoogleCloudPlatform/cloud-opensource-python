@@ -2,6 +2,11 @@
     margin-bottom: 30px;
 }
 
+.center {
+  display: flex;
+  justify-content: center;
+}
+
 .title--sbold {
     font-weight: 600;
 }
