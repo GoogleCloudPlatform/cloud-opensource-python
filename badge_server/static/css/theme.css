@@ -2,6 +2,11 @@
     margin-bottom: 30px;
 }
 
+.center {
+  display: flex;
+  justify-content: center;
+}
+
 .title--sbold {
     font-weight: 600;
 }
@@ -123,6 +128,12 @@
 
 .table-data__info span a:hover {
     color: #666;
+}
+
+.card {
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 
 .more {
