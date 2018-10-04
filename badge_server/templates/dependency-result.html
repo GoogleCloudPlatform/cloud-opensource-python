@@ -44,7 +44,7 @@
                         <h3 class="title-3 m-b-30">
                             <i class="zmdi zmdi-account-calendar"></i>Dependency Check Result: <span class="status {{ result.status | lower }}">{{ result.status }}</span></h3>
                         <div class="table-responsive table-data">
-                            {% if result.status not in ['UP_TO_DATE', 'CALCULATING'] %}
+                            {% if result.status in ['LOW_PRIORITY', 'HIGH_PRIORITY'] %}
                                 <table class="table">
                                     <thead>
                                         <tr>
@@ -83,6 +83,8 @@
                                         {% endfor %}
                                     </tbody>
                                 </table>
+                            {% elif result.status == 'UP_TO_DATE' %}
+                                <h4 class="title-3 m-b-30">All dependencies are up to date!</h4>
                             {% endif %}
                         </div>
                     </div>
