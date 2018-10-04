@@ -30,6 +30,7 @@ from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import dependency_highlighter
+from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package as package_module
 
 
@@ -89,6 +90,8 @@ redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
 highlighter = dependency_highlighter.DependencyHighlighter(
+    checker=checker, store=store)
+finder = deprecated_dep_finder.DeprecatedDepFinder(
     checker=checker, store=store)
 priority_level = dependency_highlighter.PriorityLevel
 
@@ -338,6 +341,8 @@ def self_dependency_badge_image():
             'details': {},
         }
         outdated = highlighter.check_package(package_name)
+        deprecated_deps_list = finder.get_deprecated_dep(package_name)[1]
+        deprecated_deps = ', '.join(deprecated_deps_list)
         details = {}
 
         max_level = priority_level.UP_TO_DATE
@@ -354,6 +359,7 @@ def self_dependency_badge_image():
 
         res['status'] = max_level.name
         res['details'] = details
+        res['deprecated_deps'] = deprecated_deps
 
         url = _get_badge_url(res, package_name)
 
