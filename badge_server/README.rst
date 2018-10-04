@@ -53,7 +53,9 @@ And the badges will show up like below:
 For maintainers
 ---------------
 
-Commands for build the docker image and deploy to GKE:
+Steps for building the docker image and deploying to GKE:
+
+- Update the dependency version in `requirements.txt` if there are any.
 
 - Build the docker image with updated tag.
 
@@ -73,4 +75,4 @@ Commands for build the docker image and deploy to GKE:
 
     kubectl apply -f deployment/app-with-secret.yaml
 
-Note: Send a PR for updating the image tag after deployment.
+- Send a PR for updating the image tag after deployment.
