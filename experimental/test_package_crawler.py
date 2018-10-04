@@ -27,5 +27,3 @@ class TestSimplePackages(unittest.TestCase):
         info = get_package_info(location)
         self.assertEqual(expected, info)
 
-if __name__ == '__main__':
-    unittest.main()
