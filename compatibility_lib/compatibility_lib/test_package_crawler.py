@@ -22,6 +22,7 @@ from package_crawler_static import get_package_info, get_module_info
 class TestSimplePackages(unittest.TestCase):
     def setUp(self):
         self.cwd = os.path.dirname(os.path.realpath(__file__))
+        self.cwd = os.path.join(self.cwd, 'testpkgs')
 
     def test_simple_function(self):
         expected = {
@@ -37,7 +38,9 @@ class TestSimplePackages(unittest.TestCase):
             },
             'subpackages': {}
         }
-        location = os.path.join(self.cwd, 'test_packages/simple_function')
+        location = os.path.join(self.cwd, 'simple_function')
         info = get_package_info(location)
         self.assertEqual(expected, info)
 
+if __name__ == '__main__':
+    unittest.main()
