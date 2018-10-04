@@ -16,7 +16,7 @@ import ast
 import os
 import unittest
 
-from package_crawler_static import get_package_info, get_module_info
+from compatibility_lib.package_crawler_static import get_package_info, get_module_info
 
 
 class TestSimplePackages(unittest.TestCase):
