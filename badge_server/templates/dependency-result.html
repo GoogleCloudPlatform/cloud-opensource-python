@@ -42,7 +42,8 @@
                 <div class="container">
                     <div class="user-data m-b-30">
                         <h3 class="title-3 m-b-30">
-                            <i class="zmdi zmdi-account-calendar"></i>Dependency Check Result: <span class="status {{ result.status | lower }}">{{ result.status }}</span></h3>
+                            <i class="zmdi zmdi-account-calendar"></i>Dependency Check Result: <span class="status {{ result.status | lower }}">{{ result.status }}</span>
+                        </h3>
                         <div class="table-responsive table-data">
                             {% if result.status in ['LOW_PRIORITY', 'HIGH_PRIORITY'] %}
                                 <table class="table">
@@ -88,6 +89,18 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% if result.deprecated_deps | length > 0 %}
+                        <div>
+                            <div class="card m-b-30">
+                                <div class="card-header">
+                                    <strong class="card-title">Deprecated Dependencies</strong>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">{{ result.deprecated_deps }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </section>
             <!-- END USER DATA-->
