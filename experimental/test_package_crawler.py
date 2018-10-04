@@ -7,7 +7,7 @@ from package_crawler_static import get_package_info, get_module_info
 
 class TestSimplePackages(unittest.TestCase):
     def setUp(self):
-        self.cwd = os.getcwd()
+        self.cwd = os.path.dirname(os.path.realpath(__file__))
 
     def test_simple_function(self):
         expected = {
