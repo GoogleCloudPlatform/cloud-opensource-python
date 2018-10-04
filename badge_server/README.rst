@@ -49,3 +49,30 @@ And the badges will show up like below:
    :target: http://35.226.8.89/google_compatibility_badge/target?package=compatibility_lib
 .. |dep_version_status| image:: http://35.226.8.89/self_dependency_badge/image?package=compatibility_lib
    :target: http://35.226.8.89/self_dependency_badge/target?package=compatibility_lib
+
+For maintainers
+---------------
+
+Steps for building the docker image and deploying to GKE:
+
+- Update the dependency version in `requirements.txt` if there are any.
+
+- Build the docker image with updated tag.
+
+.. code-block::
+
+    docker build -t gcr.io/python-compatibility-tools/badge_server:ver8 .
+
+- Push the image to GCR (Google Container Registry)
+
+.. code-block::
+
+    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver8
+
+- Deploy!
+
+.. code-block::
+
+    kubectl apply -f deployment/app-with-secret.yaml
+
+- Send a PR for updating the image tag after deployment.
