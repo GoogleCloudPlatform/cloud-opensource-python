@@ -287,8 +287,10 @@ def index():
 @app.route('/one_badge_image')
 def one_badge_image():
     package_name = flask.request.args.get('package')
+    # Remove the last '/' from the url root
     url_prefix = flask.request.url_root[:-1]
-    # Call the url for each badge to run the checks.
+    # Call the url for each badge to run the checks. This will populate the
+    # individual caches, which are used to calculate the final image state.
     # Self compatibility badge
     requests.get(url_prefix + flask.url_for(
         'self_compatibility_badge_image', package=package_name))
