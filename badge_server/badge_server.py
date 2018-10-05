@@ -212,6 +212,69 @@ def _get_badge_url(res, package_name):
     return url
 
 
+def _get_self_compatibility_from_cache(package_name):
+    self_comp_res = redis_client.get(
+        '{}_self_comp_badge'.format(package_name))
+
+    if self_comp_res is None:
+        self_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
+    else:
+        self_comp_res = self_comp_res.decode('utf-8')
+
+    result_dict = ast.literal_eval(self_comp_res)
+
+    return result_dict
+
+
+def _get_google_compatibility_from_cache(package_name):
+    google_comp_res = redis_client.get(
+        '{}_google_comp_badge'.format(package_name))
+
+    if google_comp_res is None:
+        google_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
+    else:
+        google_comp_res = google_comp_res.decode('utf-8')
+
+    result_dict = ast.literal_eval(google_comp_res)
+
+    return result_dict
+
+
+def _get_dependency_result_from_cache(package_name):
+    dependency_res = redis_client.get(
+        '{}_dependency_badge'.format(package_name))
+
+    if dependency_res is None:
+        dependency_res = str(DEFAULT_DEPENDENCY_RESULT)
+    else:
+        dependency_res = dependency_res.decode('utf-8')
+
+    result_dict = ast.literal_eval(dependency_res)
+
+    return result_dict
+
+
+def _get_all_results_from_cache(package_name):
+    self_compat_res = _get_self_compatibility_from_cache(package_name)
+    google_compat_res = _get_google_compatibility_from_cache(package_name)
+    dependency_res = _get_dependency_result_from_cache(package_name)
+
+    if self_compat_res['py3']['status'] == 'SUCCESS' and \
+        google_compat_res['py3']['status'] == 'SUCCESS' and \
+            dependency_res['status'] == 'UP_TO_DATE':
+            status = 'SUCCESS'
+    elif 'CALCULATING' in (
+        self_compat_res['py3']['status'],
+        google_compat_res['py3']['status'],
+        dependency_res['status']
+    ):
+        status = 'CALCULATING'
+    else:
+        status = 'CHECK_WARNING'
+
+    return status, self_compat_res, google_compat_res, dependency_res
+
+
 @app.route('/')
 def greetings():
     return 'hello world'
@@ -224,7 +287,46 @@ def index():
     return 'Visitor number: {}'.format(value)
 
 
-@app.route('/self_compatibility_badge/image')
+@app.route('/one_badge_image')
+def one_badge_image():
+    package_name = flask.request.args.get('package')
+    # Remove the last '/' from the url root
+    url_prefix = flask.request.url_root[:-1]
+    # Call the url for each badge to run the checks. This will populate the
+    # individual caches, which are used to calculate the final image state.
+    # Self compatibility badge
+    requests.get(url_prefix + flask.url_for(
+        'self_compatibility_badge_image', package=package_name))
+    # Google compatibility badge
+    requests.get(url_prefix + flask.url_for(
+        'google_compatibility_badge_image', package=package_name))
+    # Self dependency badge
+    requests.get(url_prefix + flask.url_for(
+        'self_dependency_badge_image', package=package_name))
+
+    status, _, _, _ = _get_all_results_from_cache(package_name)
+    color = STATUS_COLOR_MAPPING[status]
+    package_name = package_name.replace('-', '.')
+    url = URL_PREFIX + '{}-{}-{}.svg'.format(package_name, status, color)
+
+    return requests.get(url).text
+
+
+@app.route('/one_badge_target')
+def one_badge_target():
+    package_name = flask.request.args.get('package')
+    status, self_compat_res, google_compat_res, dependency_res = \
+        _get_all_results_from_cache(package_name)
+
+    return flask.render_template(
+        'one-badge.html',
+        package_name=package_name,
+        self_compat_res=self_compat_res,
+        google_compat_res=google_compat_res,
+        dependency_res=dependency_res)
+
+
+@app.route('/self_compatibility_badge_image')
 def self_compatibility_badge_image():
     """Badge showing whether a package is compatible with itself."""
     package_name = flask.request.args.get('package')
@@ -298,7 +400,7 @@ def self_compatibility_badge_image():
     return response
 
 
-@app.route('/self_compatibility_badge/target')
+@app.route('/self_compatibility_badge_target')
 def self_compatibility_badge_target():
     """Return the dict which contains the self compatibility status and details
     for py2 and py3.
@@ -315,15 +417,7 @@ def self_compatibility_badge_target():
       }
     """
     package_name = flask.request.args.get('package')
-    self_comp_res = redis_client.get(
-        '{}_self_comp_badge'.format(package_name))
-
-    if self_comp_res is None:
-        self_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
-    else:
-        self_comp_res = self_comp_res.decode('utf-8')
-
-    result_dict = ast.literal_eval(self_comp_res)
+    result_dict = _get_self_compatibility_from_cache(package_name)
 
     return flask.render_template(
         'self-compatibility.html',
@@ -331,7 +425,7 @@ def self_compatibility_badge_target():
         result=result_dict)
 
 
-@app.route('/self_dependency_badge/image')
+@app.route('/self_dependency_badge_image')
 def self_dependency_badge_image():
     """Badge showing whether a package is has outdated dependencies."""
 
@@ -394,19 +488,11 @@ def self_dependency_badge_image():
     return response
 
 
-@app.route('/self_dependency_badge/target')
+@app.route('/self_dependency_badge_target')
 def self_dependency_badge_target():
     """Return a dict that contains dependency status and details."""
     package_name = flask.request.args.get('package')
-    dependency_res = redis_client.get(
-        '{}_dependency_badge'.format(package_name))
-
-    if dependency_res is None:
-        dependency_res = str(DEFAULT_DEPENDENCY_RESULT)
-    else:
-        dependency_res = dependency_res.decode('utf-8')
-
-    result_dict = ast.literal_eval(dependency_res)
+    result_dict = _get_dependency_result_from_cache(package_name)
 
     return flask.render_template(
         'dependency-result.html',
@@ -414,7 +500,7 @@ def self_dependency_badge_target():
         result=result_dict)
 
 
-@app.route('/google_compatibility_badge/image')
+@app.route('/google_compatibility_badge_image')
 def google_compatibility_badge_image():
     """Badge showing whether a package is compatible with Google OSS Python
     packages. If all packages success, status is SUCCESS; else set status
@@ -493,7 +579,7 @@ def google_compatibility_badge_image():
     return response
 
 
-@app.route('/google_compatibility_badge/target')
+@app.route('/google_compatibility_badge_target')
 def google_compatibility_badge_target():
     """Return the dict which contains the compatibility status with google
     packages and details for py2 and py3.
@@ -512,15 +598,7 @@ def google_compatibility_badge_target():
           }
     """
     package_name = flask.request.args.get('package')
-    google_comp_res = redis_client.get(
-        '{}_google_comp_badge'.format(package_name))
-
-    if google_comp_res is None:
-        google_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
-    else:
-        google_comp_res = google_comp_res.decode('utf-8')
-
-    result_dict = ast.literal_eval(google_comp_res)
+    result_dict = _get_google_compatibility_from_cache(package_name)
 
     return flask.render_template(
         'google-compatibility.html',

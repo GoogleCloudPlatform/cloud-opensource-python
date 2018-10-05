@@ -70,7 +70,7 @@ class TestBadgeServer(unittest.TestCase):
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
     def test_self_compatibility_badge(self):
         response = requests.get(
-            '{}self_compatibility_badge/image?package={}'.format(
+            '{}self_compatibility_badge_image?package={}'.format(
                 BASE_URL, PACKAGE_FOR_TEST))
         status_code = response.status_code
         content = response.content
@@ -82,7 +82,7 @@ class TestBadgeServer(unittest.TestCase):
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
     def test_google_compatibility_badge(self):
         response = requests.get(
-            '{}google_compatibility_badge/image?package={}'.format(
+            '{}google_compatibility_badge_image?package={}'.format(
                 BASE_URL, PACKAGE_FOR_TEST))
         status_code = response.status_code
         content = response.content

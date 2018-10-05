@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="au theme template">
+    <meta name="author" content="Hau Nguyen">
+    <meta name="keywords" content="au theme template">
+
+    <!-- Title Page-->
+    <title>Package Details</title>
+
+    <!-- Bootstrap CSS-->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" media="all">
+
+    <!-- Main CSS-->
+    <link href="{{ url_for('static',filename='css/theme.css') }}" rel="stylesheet" media="all">
+
+</head>
+
+<body class="animsition">
+    <div class="center">
+        <div class="container">
+            <!-- WELCOME-->
+            <section class="welcome p-t-10">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <h1 class="title-4">Package name: {{ package_name }}
+                            </h1>
+                            <hr class="line-seprate">
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- END WELCOME-->
+
+            <!-- SELF COMPAT-->
+            <div>
+                <section class="p-t-20">
+                    <div class="container">
+                        <div class="user-data m-b-30">
+                            <h3 class="title-3 m-b-30">
+                                <i class="zmdi zmdi-account-calendar"></i>Self Compatibility Check Results</h3>
+                            <div class="table-responsive table-data">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <td>Python Version</td>
+                                            <td>Result</td>
+                                            <td>Details</td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <div class="table-data__info">
+                                                    <h6>Py2</h6>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="status {{ self_compat_res.py2.status | lower }}">{{ self_compat_res.py2.status }}</span>
+                                            </td>
+                                            <td>
+                                               <span class="table-data__info">{{ self_compat_res.py2.details }}</span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <div class="table-data__info">
+                                                    <h6>Py3</h6>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="status {{ self_compat_res.py3.status | lower }}">{{ self_compat_res.py3.status }}</span>
+                                            </td>
+                                            <td>
+                                               <span class="table-data__info">{{ self_compat_res.py3.details }}</span>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <!-- END SELF COMPAT-->
+            <!-- DEPENDENCY-->
+            <div>
+                <section class="p-t-20">
+                    <div class="container">
+                        <div class="user-data m-b-30">
+                            <h3 class="title-3 m-b-30">
+                                <i class="zmdi zmdi-account-calendar"></i>Dependency Check Result: <span class="status {{ dependency_res.status | lower }}">{{ dependency_res.status }}</span>
+                            </h3>
+                            <div class="table-responsive table-data">
+                                {% if dependency_res.status in ['LOW_PRIORITY', 'HIGH_PRIORITY'] %}
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <td>Dependency Name</td>
+                                                <td>Priority to Update</td>
+                                                <td>Installed Version</td>
+                                                <td>Latest Version</td>
+                                                <td>Details</td>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                             {% for dep, detail in dependency_res.details.items() %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="table-data__info">
+                                                            <h6>{{ dep }}</h6>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <span class="status {{ detail.priority | lower }}">{{ detail.priority }}</span>
+                                                    </td>
+                                                    <td>
+                                                        <div class="table-data__info">
+                                                            <h6>{{ detail.installed_version }}</h6>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="table-data__info">
+                                                            <h6>{{ detail.latest_version }}</h6>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                       <span class="table-data__info">{{ detail.detail }}</span>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% elif dependency_res.status == 'UP_TO_DATE' %}
+                                    <h4 class="title-3 m-b-30">All dependencies are up to date!</h4>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if dependency_res.deprecated_deps | length > 0 %}
+                            <div>
+                                <div class="card m-b-30">
+                                    <div class="card-header">
+                                        <strong class="card-title">Deprecated Dependencies</strong>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">{{ dependency_res.deprecated_deps }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+            <!-- END DEPENDENCY-->
+            <!-- GOOGLE COMPAT-->
+            <div>
+                <div class="card m-b-30">
+                    <div class="card-header">
+                        <h4>Google Compatibility Check Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted m-b-15">Click on the tabs to see results for different Python versions.</p>
+
+                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="py2-tab" data-toggle="tab" href="#py2" role="tab" aria-controls="py2" aria-selected="true">Python 2</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="py3-tab" data-toggle="tab" href="#py3" role="tab" aria-controls="py3" aria-selected="false">Python 3</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content pl-3 p-1" id="myTabContent">
+                            <div class="tab-pane fade show active" id="py2" role="tabpanel" aria-labelledby="py2-tab">
+                                <div class="user-data m-b-30">
+                                    <h4>Check Result: <span class="status {{ google_compat_res.py2.status | lower }}">{{ google_compat_res.py2.status }}</span></h4>
+                                    <div class="table-responsive table-data">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <td>Dependency Name</td>
+                                                    <td>Details</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for dep_name, detail in google_compat_res.py2.details.items() %}
+                                                <tr>
+                                                    <td>
+                                                        <div class="table-data__info">
+                                                            <h6>{{ dep_name }}</h6>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                       <span class="table-data__info">{{ detail }}</span>
+                                                    </td>
+                                                </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-pane fade" id="py3" role="tabpanel" aria-labelledby="py3-tab">
+                                <div class="user-data m-b-30">
+                                    <h4>Check Result: <span class="status {{ google_compat_res.py3.status | lower }}">{{ google_compat_res.py3.status }}</span></h4>
+                                    <div class="table-responsive table-data">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <td>Dependency Name</td>
+                                                    <td>Details</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for dep_name, detail in google_compat_res.py3.details.items() %}
+                                                    <tr>
+                                                        <td>
+                                                            <div class="table-data__info">
+                                                                <h6>{{ dep_name }}</h6>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                           <span class="table-data__info">{{ detail }}</span>
+                                                        </td>
+                                                    </tr>
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- END GOOGLE COMPAT-->
+        </div>
+    </div>
+</body>
+
+<!-- Jquery JS-->
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<!-- Bootstrap JS-->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<!-- Vendor JS-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/animsition/4.0.2/js/animsition.min.js"></script>
+
+</html>
+<!-- end document-->
