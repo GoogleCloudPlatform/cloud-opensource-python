@@ -66,6 +66,7 @@ app = flask.Flask(__name__)
 
 REDIS_CACHE = {}
 
+
 def fake_redis_get(*args, **kwargs):
     key = args[2][0]
     return REDIS_CACHE.get(key)
@@ -198,8 +199,9 @@ def _get_badge_url(res, package_name):
         color = DEP_STATUS_COLOR_MAPPING[status]
     else:
         status = res['py3']['status']
-        if (status != 'SUCCESS' and
-            package_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2)):
+        if status != 'SUCCESS' and \
+            package_name not in \
+                configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
             status = res['py2']['status']
 
         color = STATUS_COLOR_MAPPING[status]
