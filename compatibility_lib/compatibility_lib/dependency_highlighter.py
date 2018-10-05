@@ -157,8 +157,8 @@ class DependencyHighlighter(object):
                 install = None
                 priority = Priority(PriorityLevel.HIGH_PRIORITY, str(err))
 
-
-            if not info['is_latest'] or priority.level != PriorityLevel.UP_TO_DATE:
+            if not info['is_latest'] or priority.level != \
+                    PriorityLevel.UP_TO_DATE:
                 current_time = info['current_time']
                 latest_version_time = info['latest_version_time']
 
@@ -166,10 +166,10 @@ class DependencyHighlighter(object):
                 if current_time is None or latest_version_time is None:
                     logging.warning(
                         'Release time for dependency {} is not available.'
-                            .format(name))
+                        .format(name))
                     continue
 
-                latest =  _sanitize_release_tag(info['latest_version'])
+                latest = _sanitize_release_tag(info['latest_version'])
                 elapsed_time = current_time - latest_version_time
 
                 if priority.level == PriorityLevel.UP_TO_DATE:
@@ -223,4 +223,3 @@ def _sanitize_release_tag(release):
         'patch': int(segments[2])
     }
     return release_info
-

@@ -20,7 +20,6 @@ import logging
 import urllib.request
 
 from compatibility_lib import compatibility_checker
-from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 
 DATETIME_FORMAT = "%Y-%m-%d"
@@ -30,7 +29,8 @@ PYPI_URL = 'https://pypi.org/pypi/'
 
 def call_pypi_json_api(package_name, pkg_version=None):
     if pkg_version is not None:
-        pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(package_name, pkg_version)
+        pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(
+            package_name, pkg_version)
     else:
         pypi_pkg_url = PYPI_URL + '{}/json'.format(package_name)
 
@@ -94,7 +94,7 @@ class DependencyInfo(object):
         if depinfo is None:
             logging.warning(
                 "Could not get the dependency info of package {} from server."
-                    .format(package_name))
+                .format(package_name))
             return {}
 
         fields = ('installed_version_time',

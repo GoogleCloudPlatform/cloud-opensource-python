@@ -269,7 +269,7 @@ class CompatibilityStore:
                  '          FROM {} s2 '
                  '          WHERE s1.install_name = s2.install_name '
                  '            AND s1.py_version = s2.py_version)'.format(
-            self._self_table_id, self._self_table_id))
+                    self._self_table_id, self._self_table_id))
 
         query_job = self._client.query(query, job_config=job_config)
 
@@ -316,7 +316,7 @@ class CompatibilityStore:
                  '     WHERE s1.install_name_lower = s2.install_name_lower '
                  '       AND s1.install_name_higher = s2.install_name_higher '
                  '       AND s1.py_version = s2.py_version)'.format(
-            self._pairwise_table_id, self._pairwise_table_id))
+                    self._pairwise_table_id, self._pairwise_table_id))
         query_job = self._client.query(query, job_config=job_config)
         return self._filter_older_versions(
             self._row_to_compatibility_status(packages, row)
@@ -365,7 +365,7 @@ class CompatibilityStore:
                  '     WHERE s1.install_name_lower = s2.install_name_lower '
                  '       AND s1.install_name_higher = s2.install_name_higher '
                  '       AND s1.py_version = s2.py_version)'.format(
-            self._pairwise_table_id, self._pairwise_table_id))
+                    self._pairwise_table_id, self._pairwise_table_id))
 
         query_job = self._client.query(query, job_config=job_config)
 
