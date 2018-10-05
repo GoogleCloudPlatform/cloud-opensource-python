@@ -35,15 +35,17 @@ def get_package_info(root_dir):
     info['modules'] = {}
     subpackages = []
     for name in os.listdir(root_dir):
+        path = os.path.join(root_dir, name)
         if name.startswith('_'):
             continue
         elif name.endswith('.py'):
-            path = os.path.join(root_dir, name)
+            if (name.startswith('test_') or name.endswith('_.py')):
+                continue
             with open(path) as f:
                 node = ast.parse(f.read(), path)
             modname = name[:-3]
             info['modules'][modname] = get_module_info(node)
-        elif not name.startswith('.'):
+        elif os.path.isdir(path) and not name.startswith('.'):
             subpackages.append(name)
 
     info['subpackages'] = {}
