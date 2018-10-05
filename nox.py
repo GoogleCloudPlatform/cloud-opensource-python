@@ -20,7 +20,8 @@ import os
 
 import nox
 
-LINT_UNIT_DIR = ['compatibility_server', 'dashboard', '.']
+UNIT_DIR = ['compatibility_lib', 'compatibility_server',
+            'badge_server', 'dashboard', '.']
 
 LOCAL_DEPS = ['compatibility_lib']
 
@@ -35,8 +36,8 @@ def lint(session):
     session.interpreter = 'python3.6'
     session.install('flake8')
     session.run('flake8',
-                ','.join(LINT_UNIT_DIR),
-                '--exclude=test_*')
+                '--exclude=--exclude=__pycache__,dist,.git,'
+                'build,.tox,.nox,.idea,mock_*,test_*,*_test')
 
 
 @nox.session
@@ -57,7 +58,7 @@ def unit(session, py):
     session.run(
         'py.test',
         '--quiet',
-        *LINT_UNIT_DIR,
+        *UNIT_DIR,
         '--ignore=system_test',
         *session.posargs
     )

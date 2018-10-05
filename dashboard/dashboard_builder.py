@@ -30,7 +30,7 @@ import argparse
 import datetime
 import logging
 import os
-from typing import Any, Iterable, List, FrozenSet, Mapping, Tuple
+from typing import Any, Iterable, List, FrozenSet, Mapping
 import webbrowser
 
 import jinja2
@@ -64,14 +64,16 @@ class _ResultHolder(object):
                     List[compatibility_store.CompatibilityResult]],
         package_with_dependency_info=None,
         checker=None,
-        store=None):
+        store=None
+    ):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
         self._package_with_dependency_info = package_with_dependency_info
         self.checker = checker
         self.store = store
         self.deprecated_deps = self.get_deprecated_deps()
-        self.dependency_to_update = self.get_dependencies_needed_to_update()
+        self.dependency_to_update = \
+            self.get_dependencies_needed_to_update()
 
     def _is_py_version_incompatible(self, result):
         if result.status == compatibility_store.Status.INSTALL_ERROR:
@@ -87,7 +89,7 @@ class _ResultHolder(object):
 
     def has_issues(self, p: package.Package) -> bool:
         """Returns true if the given package has any issues.
-        
+
         Currently check for:
             1. Self compatibility
             2. Pairwise compatibility
@@ -168,12 +170,12 @@ class _ResultHolder(object):
         total_success_deps = total_packages - len(outdated_or_deprecated_pkgs)
 
         return total_packages, total_have_conflicts,\
-               total_have_deprecated_deps, total_needs_update,\
-               total_success_deps
+            total_have_deprecated_deps, total_needs_update,\
+            total_success_deps
 
     def get_package_details(self, p: package.Package):
         """Return the dict of package check summary.
-        
+
         {
             'self_conflict': True,
             'pairwise_conflict': ['package1', 'package2'],
@@ -234,7 +236,7 @@ class _ResultHolder(object):
         status_type = 'self-success'
 
         if (not self._package_to_results[package_1] or
-            not self._package_to_results[package_2]):
+                not self._package_to_results[package_2]):
             self_result.append(
                 {
                     'status': compatibility_store.Status.UNKNOWN.name,

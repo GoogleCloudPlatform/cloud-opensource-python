@@ -16,7 +16,6 @@ import concurrent.futures
 import logging
 
 from compatibility_lib import compatibility_checker
-from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import utils
 
@@ -25,7 +24,7 @@ DEPRECATED_STATUS = "Development Status :: 7 - Inactive"
 
 class DeprecatedDepFinder(object):
     """A tool for finding if there are deprecated pacakges in the deps.
-    
+
     This tool looks at the development status field in the package info from
     PyPI JSON API, and if the status if 'Development Status :: 7 - Inactive',
     the package is deprecated.
@@ -61,10 +60,10 @@ class DeprecatedDepFinder(object):
         Development Status :: 5 - Production/Stable
         Development Status :: 6 - Mature
         Development Status :: 7 - Inactive
-        
+
         Args:
             package_name: the package needs to be checked.
-        
+
         Returns:
             The development status of the package.
         """
