@@ -42,7 +42,6 @@ def get_package_info(root_dir):
             with open(path) as f:
                 node = ast.parse(f.read(), path)
             modname = name[:-3]
-            print(modname)
             info['modules'][modname] = get_module_info(node)
         elif not name.startswith('.'):
             subpackages.append(name)
@@ -123,7 +122,6 @@ def _get_basenames(bases):
             name.append(n.id)
         # for testing, will delete later
         else:
-            print(n)
             from pdb import set_trace; set_trace()
         res.append('.'.join(name[::-1]))
     return res
