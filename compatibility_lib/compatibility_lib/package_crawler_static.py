@@ -89,7 +89,7 @@ def get_package_info(root_dir):
                 continue
             with open(path) as f:
                 node = ast.parse(f.read(), path)
-            modname = name[:-3]
+            modname = os.path.splitext(name)[0]
             info['modules'][modname] = get_module_info(node)
         elif os.path.isdir(path) and not name.startswith('.'):
             subpackages.append(name)
