@@ -152,6 +152,8 @@ DEP_CONVERSION_ERROR_RES = {
     'details': None,
 }
 
+GITHUB_HEAD_NAME = 'github head'
+
 SVG_CONTENT_TYPE = 'image/svg+xml'
 
 EMPTY_DETAILS = 'NO DETAILS'
@@ -191,8 +193,20 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-def _get_badge_url(res, package_name):
+def _sanitize_package_name(package_name):
+    # If the package is from github head, replace the github url to
+    # 'github head'
+    if 'github.com' in package_name:
+        package_name = GITHUB_HEAD_NAME
+
+    # Replace '-' with '.'
     package_name = package_name.replace('-', '.')
+
+    return package_name
+
+
+def _get_badge_url(res, package_name):
+    package_name = _sanitize_package_name(package_name)
 
     status = res.get('status')
     if status is not None:
@@ -306,7 +320,7 @@ def one_badge_image():
 
     status, _, _, _ = _get_all_results_from_cache(package_name)
     color = STATUS_COLOR_MAPPING[status]
-    package_name = package_name.replace('-', '.')
+    package_name = _sanitize_package_name(package_name)
     url = URL_PREFIX + '{}-{}-{}.svg'.format(package_name, status, color)
 
     response = flask.make_response(requests.get(url).text)
