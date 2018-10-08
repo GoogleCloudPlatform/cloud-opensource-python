@@ -13,6 +13,24 @@ Types of badges
 Usage
 -----
 
+- One badge
+
+Add this line to your README file on Github:
+
+.. code-block::
+
+    .. |package_details_example| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
+       :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
+
+And the badge for package details will show up like below:
+
+|package_details_example|
+
+.. |package_details_example| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
+
+- Multiple badges
+
 Adding the link of the badge image and badge target to your README file on
 Github:
 
@@ -26,12 +44,12 @@ Github:
       "Google Compatibility", |google_compatibility|
       "Dependency Version Status", |dependency_version_status|
 
-   .. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
-      :target: http://35.226.8.89/self_compatibility_badge/target?package=compatibility_lib
-   .. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge/image?package=compatibility_lib
-      :target: http://35.226.8.89/google_compatibility_badge/target?package=compatibility_lib
-   .. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge/image?package=compatibility_lib
-      :target: http://35.226.8.89/self_dependency_badge/target?package=compatibility_lib
+   .. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge_image?package=compatibility_lib
+      :target: http://35.226.8.89/self_compatibility_badge_target?package=compatibility_lib
+   .. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge_image?package=compatibility_lib
+      :target: http://35.226.8.89/google_compatibility_badge_target?package=compatibility_lib
+   .. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge_image?package=compatibility_lib
+      :target: http://35.226.8.89/self_dependency_badge_target?package=compatibility_lib
 
 And the badges will show up like below:
 
@@ -43,12 +61,12 @@ And the badges will show up like below:
    "Google Compatibility", |google_compat|
    "Dependency Version Status", |dep_version_status|
 
-.. |self_compat| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
-   :target: http://35.226.8.89/self_compatibility_badge/target?package=compatibility_lib
-.. |google_compat| image:: http://35.226.8.89/google_compatibility_badge/image?package=compatibility_lib
-   :target: http://35.226.8.89/google_compatibility_badge/target?package=compatibility_lib
-.. |dep_version_status| image:: http://35.226.8.89/self_dependency_badge/image?package=compatibility_lib
-   :target: http://35.226.8.89/self_dependency_badge/target?package=compatibility_lib
+.. |self_compat| image:: http://35.226.8.89/self_compatibility_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/self_compatibility_badge_target?package=compatibility_lib
+.. |google_compat| image:: http://35.226.8.89/google_compatibility_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/google_compatibility_badge_target?package=compatibility_lib
+.. |dep_version_status| image:: http://35.226.8.89/self_dependency_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/self_dependency_badge_target?package=compatibility_lib
 
 For maintainers
 ---------------
@@ -61,13 +79,13 @@ Steps for building the docker image and deploying to GKE:
 
 .. code-block::
 
-    docker build -t gcr.io/python-compatibility-tools/badge_server:ver8 .
+    docker build -t gcr.io/python-compatibility-tools/badge_server:ver10 .
 
 - Push the image to GCR (Google Container Registry)
 
 .. code-block::
 
-    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver8
+    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver10
 
 - Deploy!
 
