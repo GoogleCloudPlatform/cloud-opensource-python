@@ -12,15 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""A set of functions that aid in crawling a package
+and creating a corresponding data model"""
+
 import ast
 import importlib
 import os
 
+
 class PackageNotFound(Exception):
     pass
 
+
 def get_package_location(pkgname):
-    """returns a dict containing info about modules, classes, functions"""
+    """gets the package location
+
+    Args:
+        pkgname: the package name as a string
+    Returns:
+        A string containing the path of the give package
+    Raises:
+        PackageNotFound: An error that occurs when the package is not found
+    """
     spec = importlib.util.find_spec(pkgname)
     if spec is None:
         errmsg = ('Could not find "%s". Please make sure that '
@@ -30,7 +43,37 @@ def get_package_location(pkgname):
     root_dir = locations[0]
     return root_dir
 
+
 def get_package_info(root_dir):
+    """gets package info
+
+    Crawls the package directory with filesystem tooling and
+    creates a data model containing relevant info about
+    subpackages, modules, classes, functions, and args
+
+    Args:
+        root_dir: the location of the package
+    Returns:
+        A dict mapping keys to the corresponding data derived
+        For example:
+        {
+            module_name: {
+                'classes': {
+                    class_name: {
+                        'args': [arg1, arg2, ...],
+                        'functions': {
+                            function_name: {'args': [...]},
+                        }
+                    },
+                    class_name: {...},
+                },
+                'functions': {...},
+                'subclasses': {...},
+            },
+            'subpackages': {...}
+        }
+    """
+
     info = {}
     info['modules'] = {}
     subpackages = []
@@ -55,18 +98,20 @@ def get_package_info(root_dir):
 
     return info
 
+
 def get_module_info(node):
     """returns a dict containing info on classes and functions"""
     classes = [n for n in node.body if isinstance(n, ast.ClassDef)]
     functions = [n for n in node.body if isinstance(n, ast.FunctionDef)]
 
     res = {}
-    res['classes'] = get_class_info(classes)
-    res['functions'] = get_function_info(functions)
+    res['classes'] = _get_class_info(classes)
+    res['functions'] = _get_function_info(functions)
 
     return res
 
-def get_class_info(classes):
+
+def _get_class_info(classes):
     """returns a dict containing info on args, subclasses and functions"""
     res = {}
     for node in classes:
@@ -77,15 +122,16 @@ def get_class_info(classes):
         init_func, subclasses, functions = _get_class_attrs(node, classes)
         args = []
         if init_func is not None:
-            args = get_args(init_func.args)
+            args = _get_args(init_func.args)
 
         res[node.name] = {}
         res[node.name]['args'] = args
         # res[node.name]['bases'] = _get_basenames(node.bases)
-        res[node.name]['subclasses'] = get_class_info(subclasses)
-        res[node.name]['functions'] = get_function_info(functions)
+        res[node.name]['subclasses'] = _get_class_info(subclasses)
+        res[node.name]['functions'] = _get_function_info(functions)
 
     return res
+
 
 def _get_class_attrs(node, classes):
     init_func, subclasses, functions = None, [], []
@@ -99,7 +145,7 @@ def _get_class_attrs(node, classes):
 
     # inheritance priority is preorder
     basenames = _get_basenames(node.bases)
-    bases = {n.name:n for n in classes if n.name in basenames}
+    bases = {n.name: n for n in classes if n.name in basenames}
     for bname in basenames:
         if bases.get(bname) is None:
             continue
@@ -122,13 +168,11 @@ def _get_basenames(bases):
                 n = n.value
         if isinstance(n, ast.Name):
             name.append(n.id)
-        # for testing, will delete later
-        else:
-            from pdb import set_trace; set_trace()
         res.append('.'.join(name[::-1]))
     return res
 
-def get_function_info(functions):
+
+def _get_function_info(functions):
     """returns a dict mapping function name to function args"""
     res = {}
     for node in functions:
@@ -136,18 +180,16 @@ def get_function_info(functions):
         if fname.startswith('_') or res.get(fname) is not None:
             continue
         res[fname] = {}
-        res[fname]['args'] = get_args(node.args)
+        res[fname]['args'] = _get_args(node.args)
     return res
 
-def get_args(node):
+
+def _get_args(node):
+    """returns a list of args"""
     args = []
     for arg in node.args:
         if isinstance(arg, ast.arg):
             args.append(arg.arg)
         elif isinstance(arg, ast.Name):
             args.append(arg.id)
-        # Testing - will delete later
-        else:
-            from pdb import set_trace; set_trace()
     return args
-
