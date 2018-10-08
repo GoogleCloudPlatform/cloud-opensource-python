@@ -29,8 +29,10 @@ def get_package_location(pkgname):
 
     Args:
         pkgname: the package name as a string
+
     Returns:
         A string containing the path of the give package
+
     Raises:
         PackageNotFound: An error that occurs when the package is not found
     """
@@ -53,6 +55,7 @@ def get_package_info(root_dir):
 
     Args:
         root_dir: the location of the package
+
     Returns:
         A dict mapping keys to the corresponding data derived
         For example:
@@ -100,7 +103,32 @@ def get_package_info(root_dir):
 
 
 def get_module_info(node):
-    """returns a dict containing info on classes and functions"""
+    """gets module info
+
+    Recursively crawls the ast node and creates a data model
+    containing relevant info about the module's classes,
+    subclasses, functions, and args
+
+    Args:
+        node: the module
+
+    Returns:
+        A dict mapping keys to the corresponding data derived
+        For example:
+        {
+            'classes': {
+                class_name: {
+                    'args': [arg1, arg2, ...],
+                    'functions': {
+                        function_name: {'args': [...]},
+                    }
+                },
+                class_name: {...},
+            },
+            'functions': {...},
+            'subclasses': {...},
+        }
+    """
     classes = [n for n in node.body if isinstance(n, ast.ClassDef)]
     functions = [n for n in node.body if isinstance(n, ast.FunctionDef)]
 
