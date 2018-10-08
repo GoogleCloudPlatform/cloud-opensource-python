@@ -12,10 +12,10 @@ Dependency Management Toolkit for Google Cloud Python Projects
     dependency management, CI, and release process, thus ensuring compatibility
     across all of our GCP Python open source libraries for our end-users.
 
-|circleci| |pypi|
+|circleci| |pypi| |package_details|
 
 .. |circleci| image:: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master.svg?style=svg&circle-token=edd37af38ff6d303b11cd0620890537168144137
-    :target: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master
+   :target: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master
 .. |pypi| image:: https://img.shields.io/pypi/v/compatibility_lib.svg
    :target: https://pypi.org/project/compatibility_lib/
 .. |package_details| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
@@ -35,12 +35,12 @@ Dependency Management Toolkit for Google Cloud Python Projects
    "Google Compatibility", |google_compatibility|
    "Dependency Version Status", |dependency_version_status|
 
-.. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge/image?package=compatibility_lib
-   :target: http://35.226.8.89/self_compatibility_badge/target?package=compatibility_lib
-.. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge/image?package=compatibility_lib
-   :target: http://35.226.8.89/google_compatibility_badge/target?package=compatibility_lib
-.. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge/image?package=compatibility_lib
-   :target: http://35.226.8.89/self_dependency_badge/target?package=compatibility_lib
+.. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/self_compatibility_badge_target?package=compatibility_lib
+.. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/google_compatibility_badge_target?package=compatibility_lib
+.. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/self_dependency_badge_target?package=compatibility_lib
 
 -----------------
 Compatibility Lib
