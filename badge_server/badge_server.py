@@ -309,7 +309,12 @@ def one_badge_image():
     package_name = package_name.replace('-', '.')
     url = URL_PREFIX + '{}-{}-{}.svg'.format(package_name, status, color)
 
-    return requests.get(url).text
+    response = flask.make_response(requests.get(url).text)
+    response.content_type = SVG_CONTENT_TYPE
+    response.headers['Cache-Control'] = 'no-cache'
+    response.add_etag()
+
+    return response
 
 
 @app.route('/one_badge_target')
