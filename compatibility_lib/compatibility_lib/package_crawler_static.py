@@ -85,7 +85,7 @@ def get_package_info(root_dir):
         if name.startswith('_'):
             continue
         elif name.endswith('.py'):
-            if (name.startswith('test_') or name.endswith('_.py')):
+            if (name.startswith('test_') or name.endswith('_test.py')):
                 continue
             with open(path) as f:
                 node = ast.parse(f.read(), path)
@@ -154,7 +154,6 @@ def _get_class_info(classes):
 
         res[node.name] = {}
         res[node.name]['args'] = args
-        # res[node.name]['bases'] = _get_basenames(node.bases)
         res[node.name]['subclasses'] = _get_class_info(subclasses)
         res[node.name]['functions'] = _get_function_info(functions)
 
@@ -162,6 +161,10 @@ def _get_class_info(classes):
 
 
 def _get_class_attrs(node, classes):
+    """returns operational init func, subclasses, and functions of a class
+    including those of any base classes defined within the same module by
+    crawling through class nodes
+    """
     init_func, subclasses, functions = None, [], []
     for n in node.body:
         if hasattr(n, 'name') and n.name == '__init__':
