@@ -193,6 +193,7 @@ def _get_pair_status_for_packages(pkg_sets):
 
 def _get_badge_url(res, package_name):
     package_name = package_name.replace('-', '.')
+
     status = res.get('status')
     if status is not None:
         color = DEP_STATUS_COLOR_MAPPING[status]

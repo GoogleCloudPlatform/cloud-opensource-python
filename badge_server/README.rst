@@ -13,6 +13,22 @@ Types of badges
 Usage
 -----
 
+- One badge
+
+Add this line to your README file on Github:
+
+.. code-block::
+
+    .. |package_details_example| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
+       :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
+
+And the badge for package details will show up like below:
+
+.. |package_details| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
+
+- Multiple badges
+
 Adding the link of the badge image and badge target to your README file on
 Github:
 

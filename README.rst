@@ -18,6 +18,8 @@ Dependency Management Toolkit for Google Cloud Python Projects
     :target: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master
 .. |pypi| image:: https://img.shields.io/pypi/v/compatibility_lib.svg
    :target: https://pypi.org/project/compatibility_lib/
+.. |package_details| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
+   :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
 
 -  `Compatibility Status Dashboard`_
 
