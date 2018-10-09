@@ -111,7 +111,7 @@
                         <div class="col-md-6 col-lg-3">
                             <div class="statistic__item statistic__item--blue">
                                 <h2 class="number">{{ statistics[1] }}</h2>
-                                <span class="desc">Has Version Conflicts</span>
+                                <span class="desc">Have Version Conflicts</span>
                                 <div class="icon">
                                     <i class="zmdi zmdi-calendar-note"></i>
                                 </div>
@@ -129,7 +129,7 @@
                         <div class="col-md-6 col-lg-3">
                             <div class="statistic__item statistic__item--orange">
                                 <h2 class="number">{{ statistics[3] }}</h2>
-                                <span class="desc">Needs Dependency Update</span>
+                                <span class="desc">Need Dependency Updates</span>
                                 <div class="icon">
                                     <i class="zmdi zmdi-calendar-note"></i>
                                 </div>
@@ -152,7 +152,7 @@
                         <div class="col-md-6 col-lg-4">
                             <!-- TOP CAMPAIGN-->
                             <div class="top-campaign">
-                                <h3 class="title-3 m-b-30">Packages having conflicts</h3>
+                                <h3 class="title-3 m-b-30">Packages with conflicts</h3>
                                 <div class="table-responsive">
                                     <table class="table table-top-campaign">
                                         <tbody>
@@ -190,7 +190,7 @@
                                     </div>
                                     <div class="chart-note">
                                         <span class="dot dot--red"></span>
-                                        <span>Having Conflicts</span>
+                                        <span>With Conflicts</span>
                                     </div>
                                 </div>
                             </div>
@@ -260,7 +260,7 @@
                                             <td class="desc"><a href="https://pypi.org/project/{{ package.install_name }}">{{ package_details.latest_version }}</a></td>
                                             <td>
                                                 {% if package_details.pairwise_conflict | length > 0 %}
-                                                    <b>Conflict with:</b>
+                                                    <b>Conflicts with:</b>
                                                     {% if package_details.self_conflict %}
                                                         all packages.<br>
                                                     {% else %}
@@ -271,7 +271,7 @@
                                                     <b>Deprecated dependencies: </b>{{ results.deprecated_deps[package.install_name] }}<br>
                                                 {% endif %}
                                                 {% if results.dependency_to_update[package.install_name] | length > 0 %}
-                                                    <b>Dependencies need to update: </b>
+                                                    <b>Dependencies to update: </b>
                                                     {% set deps = results.dependency_to_update[package.install_name] %}
                                                     {% for dep in deps %}
                                                         {{ dep.name }},
