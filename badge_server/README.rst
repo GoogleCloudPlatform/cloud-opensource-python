@@ -43,7 +43,7 @@ Add this line to your README file on Github:
 
 And the badge for package details will show up like below:
 
-![screenshot from 2018-10-09 10-33-18](https://user-images.githubusercontent.com/12888824/46687056-c1255f00-cbae-11e8-9066-91d62cb120e0.png)
+.. image:: https://user-images.githubusercontent.com/12888824/46687056-c1255f00-cbae-11e8-9066-91d62cb120e0.png
 
 - Multiple badges
 
@@ -69,7 +69,7 @@ Github:
 
 And the badges will show up like below:
 
-![screenshot from 2018-10-09 10-28-23](https://user-images.githubusercontent.com/12888824/46686958-8a4f4900-cbae-11e8-80dc-017bfd9ea437.png)
+.. image:: https://user-images.githubusercontent.com/12888824/46686958-8a4f4900-cbae-11e8-80dc-017bfd9ea437.png
 
 For maintainers
 ---------------
