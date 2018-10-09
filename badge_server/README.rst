@@ -79,13 +79,13 @@ Steps for building the docker image and deploying to GKE:
 
 .. code-block::
 
-    docker build -t gcr.io/python-compatibility-tools/badge_server:ver10 .
+    docker build -t gcr.io/python-compatibility-tools/badge_server:ver11 .
 
 - Push the image to GCR (Google Container Registry)
 
 .. code-block::
 
-    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver10
+    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver11
 
 - Deploy!
 
