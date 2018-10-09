@@ -20,8 +20,8 @@ Dependency Management Toolkit for Google Cloud Python Projects
    :target: https://pypi.org/project/compatibility_lib/
 .. |package_details| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
    :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
-.. |github_head| image:: http://35.226.8.89/one_badge_image?package=git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib
-   :target: http://35.226.8.89/one_badge_target?package=git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib
+.. |github_head| image:: http://35.226.8.89/one_badge_image?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
+   :target: http://35.226.8.89/one_badge_target?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
 
 -  `Compatibility Status Dashboard`_
 
