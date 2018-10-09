@@ -13,6 +13,25 @@ Types of badges
 Usage
 -----
 
+What to Check
+~~~~~~~~~~~~~
+
+- Latest released version on PyPI
+
+
+.. code-block::
+
+    package=[name_on_pypi]
+
+- Github head version
+
+.. code-block::
+
+    package=git%2Bgit://github.com/[your_repo_name].git%23subdirectory=[subdirectory_containing_setup_py_file]
+
+How to Check
+~~~~~~~~~~~~
+
 - One badge
 
 Add this line to your README file on Github:
@@ -24,10 +43,7 @@ Add this line to your README file on Github:
 
 And the badge for package details will show up like below:
 
-|package_details_example|
-
-.. |package_details_example| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
+.. image:: https://user-images.githubusercontent.com/12888824/46687056-c1255f00-cbae-11e8-9066-91d62cb120e0.png
 
 - Multiple badges
 
@@ -53,20 +69,7 @@ Github:
 
 And the badges will show up like below:
 
-.. csv-table::
-   :header: "CHECK_TYPE", "RESULT"
-   :widths: 20, 30
-
-   "Self Compatibility", |self_compat|
-   "Google Compatibility", |google_compat|
-   "Dependency Version Status", |dep_version_status|
-
-.. |self_compat| image:: http://35.226.8.89/self_compatibility_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/self_compatibility_badge_target?package=compatibility_lib
-.. |google_compat| image:: http://35.226.8.89/google_compatibility_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/google_compatibility_badge_target?package=compatibility_lib
-.. |dep_version_status| image:: http://35.226.8.89/self_dependency_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/self_dependency_badge_target?package=compatibility_lib
+.. image:: https://user-images.githubusercontent.com/12888824/46686958-8a4f4900-cbae-11e8-80dc-017bfd9ea437.png
 
 For maintainers
 ---------------
@@ -79,13 +82,13 @@ Steps for building the docker image and deploying to GKE:
 
 .. code-block::
 
-    docker build -t gcr.io/python-compatibility-tools/badge_server:ver10 .
+    docker build -t gcr.io/python-compatibility-tools/badge_server:ver11 .
 
 - Push the image to GCR (Google Container Registry)
 
 .. code-block::
 
-    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver10
+    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver11
 
 - Deploy!
 
