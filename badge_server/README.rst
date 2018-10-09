@@ -19,15 +19,15 @@ What to Check
 - Latest released version on PyPI
 
 
-```
-package=[name_on_pypi]
-```
+.. code-block::
+
+    package=[name_on_pypi]
 
 - Github head version
 
-```
-package=git%2Bgit://github.com/[your_repo_name].git%23subdirectory=[subdirectory_containing_setup_py_file]
-```
+.. code-block::
+
+    package=git%2Bgit://github.com/[your_repo_name].git%23subdirectory=[subdirectory_containing_setup_py_file]
 
 How to Check
 ~~~~~~~~~~~~
@@ -44,6 +44,7 @@ Add this line to your README file on Github:
 And the badge for package details will show up like below:
 
 ![screenshot from 2018-10-09 10-33-18](https://user-images.githubusercontent.com/12888824/46687056-c1255f00-cbae-11e8-9066-91d62cb120e0.png)
+
 - Multiple badges
 
 Adding the link of the badge image and badge target to your README file on
