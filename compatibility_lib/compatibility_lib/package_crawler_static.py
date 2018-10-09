@@ -143,10 +143,13 @@ def _get_class_info(classes):
     """returns a dict containing info on args, subclasses and functions"""
     res = {}
     for node in classes:
+        # in classes with multiple base classes, there may be subclasses or
+        # functions that overlap (share the same name), to mirror the actual
+        # pythonic behavior, clashes are ignored
         if node.name.startswith('_') or res.get(node.name) is not None:
             continue
 
-        # assumes that bases are user-defined within the same module
+        # assumption is that bases are user-defined within the same module
         init_func, subclasses, functions = _get_class_attrs(node, classes)
         args = []
         if init_func is not None:
