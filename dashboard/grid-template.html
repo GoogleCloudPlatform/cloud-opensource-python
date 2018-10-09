@@ -31,6 +31,8 @@
             padding-left: 2px;
             padding-right: 2px;
             border: none;
+            font-family: verdana;
+            font-weight: bold;
         }
 
         .legend-box {
@@ -39,6 +41,9 @@
           margin: 5px;
           border: 1px solid rgba(0, 0, 0, .2);
           position: relative;
+          font-family: verdana;
+          font-weight: bold;
+          color: white;
         }
 
         .row {
@@ -90,33 +95,33 @@
 </head>
 
 <body>
-<font face="verdana"><b>Dashboard updated on: </b><b>{{ current_timestamp }}</b></font>
+<span style="font-family: verdana; font-weight: bold">Dashboard updated on: {{ current_timestamp }}</span>
 <fieldset>
-    <legend><b><font face="verdana">Color legend:</font></b></legend>
+    <legend>Color legend:</legend>
 <div class="row">
-    <div class="legend-box self-unknown"><b><font face="verdana" color="white">Self-Unknown</font></b></div>
-    <div class="legend-box self-success"><b><font face="verdana" color="white">Self-Success</font></b></div>
-    <div class="legend-box self-install_error"><b><font face="verdana" color="white">Self-InstallError</font></b></div>
-    <div class="legend-box self-check_warning"><b><font face="verdana" color="white">Self-CheckWarning</font></b></div>
+    <div class="legend-box self-unknown">Self-Unknown</div>
+    <div class="legend-box self-success">Self-Success</div>
+    <div class="legend-box self-install_error">Self-InstallError</div>
+    <div class="legend-box self-check_warning">Self-CheckWarning</div>
 </div>
 <div class="row">
-    <div class="legend-box pairwise-unknown"><b><font face="verdana" color="white">Pairwise-Unknown</font></b></div>
-    <div class="legend-box pairwise-success"><b><font face="verdana" color="white">Pairwise-Success</font></b></div>
-    <div class="legend-box pairwise-install_error"><b><font face="verdana" color="white">Pairwise-InstallError</font></b></div>
-    <div class="legend-box pairwise-check_warning"><b><font face="verdana" color="white">Pairwise-CheckWarning</font></b></div>
+    <div class="legend-box pairwise-unknown">Pairwise-Unknown</div>
+    <div class="legend-box pairwise-success">Pairwise-Success</div>
+    <div class="legend-box pairwise-install_error">Pairwise-InstallError</div>
+    <div class="legend-box pairwise-check_warning">Pairwise-CheckWarning</div>
 </div>
 </fieldset>
 <table>
     <tr>
         <td></td>
         {% for col_package in packages %}
-        <td><font face="verdana">{{ col_package.friendly_name }}</font></td>
+        <td style="font-family: verdana">{{ col_package.friendly_name }}</td>
         {% endfor %}
     </tr>
     {% for row_package in packages %}
     {% set row = loop.index0 %}
     <tr>
-        <td><font face="verdana">{{ row_package.friendly_name }}</font>
+        <td><span style="font-family: verdana">{{ row_package.friendly_name }}</span>
             {% if results.has_issues(row_package) %}
                 {% set issues = results.deprecated_deps[row_package.friendly_name][0] %}
                 <img class="warning-img" class="dialog" onclick="showIssues('{{ row_package.friendly_name|safe }}', '{{ issues|replace('\'', '\\\'')|safe }}')" src="https://www.gstatic.com/images/icons/material/system/1x/warning_amber_18dp.png">
