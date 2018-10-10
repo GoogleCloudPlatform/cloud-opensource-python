@@ -139,6 +139,7 @@ class _ResultHolder(object):
         """
         highlighter = dependency_highlighter.DependencyHighlighter(
             py_version='3', checker=self.checker, store=self.store)
+
         result = highlighter.check_packages(
             packages=configs.PKG_LIST, max_workers=10)
         return result
@@ -182,8 +183,12 @@ class _ResultHolder(object):
             'latest_version': '0.1.0',
         }
         """
+        # TODO: Will remove after a new build to update the bigquery data.
+        pkg_name = p.install_name
+        if p.install_name == 'apache-beam[gcp]':
+            pkg_name = 'google-cloud-dataflow'
         latest_version = self._package_with_dependency_info[
-            p.install_name][p.install_name]['latest_version']
+            pkg_name][pkg_name]['latest_version']
         pairwise_conflict = []
 
         # Initialize the values
@@ -196,7 +201,10 @@ class _ResultHolder(object):
         for pair_pkg in configs.PKG_LIST:
             check_result = self.get_result(p, package.Package(pair_pkg))
             # Get self compatibility status
-            if pair_pkg == p.install_name:
+            # TODO: Will remove after a new build to update the bigquery data.
+            if pair_pkg == 'apache-beam[gcp]':
+                pair_pkg = 'google-cloud-dataflow'
+            if pair_pkg == pkg_name:
                 result['self_conflict'] = True \
                     if check_result['status_type'] != 'self-success' else False
             # Get pairwise compatibility status
@@ -358,6 +366,9 @@ def main():
 
     package_with_dependency_info = {}
     for pkg in configs.PKG_LIST:
+        # TODO: Will remove after a new build to update the bigquery data.
+        if pkg == 'apache-beam[gcp]':
+            pkg = 'google-cloud-dataflow'
         dep_info = store.get_dependency_info(pkg)
         package_with_dependency_info[pkg] = dep_info
 
