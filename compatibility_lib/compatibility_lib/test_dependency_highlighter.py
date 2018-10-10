@@ -63,7 +63,7 @@ class TestPriority(unittest.TestCase):
 
 class TestOutdatedDependency(unittest.TestCase):
     expected_pkgname = 'google-cloud-bigquery'
-    expected_parent = 'google-cloud-dataflow'
+    expected_parent = 'apache-beam[gcp]'
     expected_priority = dependency_highlighter.Priority(
         dependency_highlighter.PriorityLevel.HIGH_PRIORITY,
         'this dependency is 1 or more major versions behind the latest')
@@ -199,7 +199,7 @@ class TestDependencyHighlighter(unittest.TestCase):
     def test_check_package(self):
         highlighter = dependency_highlighter.DependencyHighlighter(
             checker=self._checker, store=self._store)
-        res = highlighter.check_package('google-cloud-dataflow')
+        res = highlighter.check_package('apache-beam[gcp]')
 
         reprs = [repr(dep) for dep in res]
         reprs.sort()
@@ -220,7 +220,7 @@ class TestDependencyHighlighter(unittest.TestCase):
             self.assertEqual(expected, got)
 
     def test_check_packages(self):
-        packages = ['google-cloud-dataflow', 'not-in-bigquery']
+        packages = ['apache-beam[gcp]', 'not-in-bigquery']
         highlighter = dependency_highlighter.DependencyHighlighter(
             checker=self._checker, store=self._store)
         res = highlighter.check_packages(packages)
