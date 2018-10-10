@@ -37,7 +37,7 @@ DEP_INFO = (
 	    },
 	    "apache-beam": 
 	    {
-	        "installed_version": "2.5.0",
+	        "installed_version": "2.7.0",
 	        "installed_version_time": "2018-06-26 05:28:08+00:00",
 	        "latest_version": "2.6.0",
 	        "latest_version_time": "2018-08-08 18:15:31+00:00",
