@@ -65,6 +65,13 @@ PKG_LIST = [
     'gcloud',
 ]
 
+# TODO: Find top 30 packages by download count in BigQuery table.
+THIRD_PARTY_PACKAGE_LIST = [
+    'requests',
+    'flask',
+    'django',
+]
+
 PKG_PY_VERSION_NOT_SUPPORTED = {
     2: ['tensorflow', ],
     3: ['google-cloud-dataflow', ],
