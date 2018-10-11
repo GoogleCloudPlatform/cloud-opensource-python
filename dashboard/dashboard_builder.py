@@ -183,8 +183,14 @@ class _ResultHolder(object):
             'latest_version': '0.1.0',
         }
         """
+        # The package being checked will appear in the dep list, but for
+        # apache-beam[gcp], the package in dep list will just be apache-beam.
+        self_dep_name = p.install_name
+        if '[' in p.install_name:
+            self_dep_name = p.install_name.split('[')[0]
+
         latest_version = self._package_with_dependency_info[
-            p.install_name][p.install_name]['latest_version']
+            p.install_name][self_dep_name]['latest_version']
         pairwise_conflict = []
 
         # Initialize the values
