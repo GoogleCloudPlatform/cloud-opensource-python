@@ -422,8 +422,8 @@ def self_compatibility_badge_image():
     # Run the check if there is not cached result or forced to populate the
     # cache or package not in cached package list.
     if self_comp_res is None or \
-            force_run_check is not None or \
-                package_name not in CACHED_PACKAGES:
+        force_run_check is not None or \
+            package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
     url = _get_badge_url(details, package_name)
@@ -517,8 +517,8 @@ def self_dependency_badge_image():
     # Run the check if there is not cached result or forced to populate the
     # cache or package not in cached package list.
     if dependency_res is None or \
-            force_run_check is not None or \
-                package_name not in CACHED_PACKAGES:
+        force_run_check is not None or \
+            package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
     url = _get_badge_url(details, package_name)
@@ -616,8 +616,8 @@ def google_compatibility_badge_image():
     # Run the check if there is not cached result or forced to populate the
     # cache or package not in cached package list.
     if google_comp_res is None or \
-            force_run_check is not None or \
-                package_name not in CACHED_PACKAGES:
+        force_run_check is not None or \
+            package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
     url = _get_badge_url(details, package_name)
