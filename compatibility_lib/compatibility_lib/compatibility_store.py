@@ -428,8 +428,7 @@ class CompatibilityStore:
             return True
 
         install_name = cs.packages[0].install_name
-        install_name_sanitized = install_name.split('[')[0] \
-            if '[' in install_name else install_name
+        install_name_sanitized = install_name.split('[')[0]
         installed_version = cs.dependency_info[
             install_name_sanitized]['installed_version']
 
