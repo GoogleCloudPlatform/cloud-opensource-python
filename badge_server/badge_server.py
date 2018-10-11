@@ -163,6 +163,8 @@ SELF_COMP_BADGE = 'self_comp_badge'
 GOOGLE_COMP_BADGE = 'google_comp_badge'
 API_BADGE = 'api_badge'
 
+CACHED_PACKAGES = configs.PKG_LIST + configs.THIRD_PARTY_PACKAGE_LIST
+
 
 def _get_pair_status_for_packages(pkg_sets):
     version_and_res = {
@@ -304,19 +306,26 @@ def index():
 @app.route('/one_badge_image')
 def one_badge_image():
     package_name = flask.request.args.get('package')
+    force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
     url_prefix = flask.request.url_root[:-1]
     # Call the url for each badge to run the checks. This will populate the
     # individual caches, which are used to calculate the final image state.
     # Self compatibility badge
     requests.get(url_prefix + flask.url_for(
-        'self_compatibility_badge_image', package=package_name))
+        'self_compatibility_badge_image',
+        package=package_name,
+        force_run_check=force_run_check))
     # Google compatibility badge
     requests.get(url_prefix + flask.url_for(
-        'google_compatibility_badge_image', package=package_name))
+        'google_compatibility_badge_image',
+        package=package_name,
+        force_run_check=force_run_check))
     # Self dependency badge
     requests.get(url_prefix + flask.url_for(
-        'self_dependency_badge_image', package=package_name))
+        'self_dependency_badge_image',
+        package=package_name,
+        force_run_check=force_run_check))
 
     status, _, _, _ = _get_all_results_from_cache(package_name)
     color = STATUS_COLOR_MAPPING[status]
@@ -349,6 +358,7 @@ def one_badge_target():
 def self_compatibility_badge_image():
     """Badge showing whether a package is compatible with itself."""
     package_name = flask.request.args.get('package')
+    force_run_check = flask.request.args.get('force_run_check')
 
     version_and_res = {
         'py2': {
@@ -397,7 +407,6 @@ def self_compatibility_badge_image():
 
     self_comp_res = redis_client.get(
         '{}_self_comp_badge'.format(package_name))
-    threading.Thread(target=run_check).start()
 
     if self_comp_res is not None:
         try:
@@ -409,6 +418,13 @@ def self_compatibility_badge_image():
             details = CONVERSION_ERROR_RES
     else:
         details = version_and_res
+
+    # Run the check if there is not cached result or forced to populate the
+    # cache or package not in cached package list.
+    if self_comp_res is None or \
+        force_run_check is not None or \
+            package_name not in CACHED_PACKAGES:
+        threading.Thread(target=run_check).start()
 
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
@@ -449,6 +465,7 @@ def self_dependency_badge_image():
     """Badge showing whether a package is has outdated dependencies."""
 
     package_name = flask.request.args.get('package')
+    force_run_check = flask.request.args.get('force_run_check')
 
     def run_check():
         res = {
@@ -485,7 +502,6 @@ def self_dependency_badge_image():
 
     dependency_res = redis_client.get(
         '{}_dependency_badge'.format(package_name))
-    threading.Thread(target=run_check).start()
 
     if dependency_res is not None:
         try:
@@ -497,6 +513,13 @@ def self_dependency_badge_image():
             details = DEP_CONVERSION_ERROR_RES
     else:
         details = DEFAULT_DEPENDENCY_RESULT
+
+    # Run the check if there is not cached result or forced to populate the
+    # cache or package not in cached package list.
+    if dependency_res is None or \
+        force_run_check is not None or \
+            package_name not in CACHED_PACKAGES:
+        threading.Thread(target=run_check).start()
 
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
@@ -525,6 +548,7 @@ def google_compatibility_badge_image():
     packages. If all packages success, status is SUCCESS; else set status
     to one of the failure types, details can be found at the target link."""
     package_name = flask.request.args.get('package')
+    force_run_check = flask.request.args.get('force_run_check')
 
     def run_check():
         pkg_sets = [[package_name, pkg] for pkg in configs.PKG_LIST]
@@ -576,7 +600,6 @@ def google_compatibility_badge_image():
 
     google_comp_res = redis_client.get(
         '{}_google_comp_badge'.format(package_name))
-    threading.Thread(target=run_check).start()
 
     if google_comp_res is not None:
         try:
@@ -586,8 +609,16 @@ def google_compatibility_badge_image():
                 'Error occurs while converting to dict, value is {}.'.format(
                     google_comp_res))
             details = CONVERSION_ERROR_RES
+
     else:
         details = DEFAULT_COMPATIBILITY_RESULT
+
+    # Run the check if there is not cached result or forced to populate the
+    # cache or package not in cached package list.
+    if google_comp_res is None or \
+        force_run_check is not None or \
+            package_name not in CACHED_PACKAGES:
+        threading.Thread(target=run_check).start()
 
     url = _get_badge_url(details, package_name)
     response = flask.make_response(requests.get(url).text)
