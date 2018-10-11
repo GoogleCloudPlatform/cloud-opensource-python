@@ -25,7 +25,7 @@ from compatibility_lib import package
 PACKAGE_1 = package.Package("package1")
 PACKAGE_2 = package.Package("package2")
 PACKAGE_3 = package.Package("package3")
-PACKAGE_4 = package.Package("package4")
+PACKAGE_4 = package.Package("package4[gcp]")
 
 
 class TestCompatibilityResult(unittest.TestCase):
@@ -410,6 +410,65 @@ class TestCompatibilityStore(unittest.TestCase):
         with patch_client:
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
+
+        mock_client.insert_rows.assert_called_with(
+            store._release_time_table, [row_release_time])
+
+    def test_save_compatibility_statuses_release_time_for_latest(self):
+        mock_client = mock.Mock()
+        packages = [PACKAGE_4]
+        timestamp = '2018-07-17 03:01:06.11693 UTC'
+        status = compatibility_store.Status.SUCCESS
+        comp_status_py2 = mock.Mock(
+            packages=packages,
+            python_major_version='2',
+            status=status,
+            details=None,
+            dependency_info={'package4': {
+                'installed_version': '2.7.0',
+                'installed_version_time': '2018-05-12T16:26:31',
+                'latest_version': '2.7.0',
+                'current_time': '2018-07-13T17:11:29.140608',
+                'latest_version_time': '2018-05-12T16:26:31',
+                'is_latest': True,
+            }},
+            timestamp=timestamp)
+        comp_status_py3 = mock.Mock(
+            packages=packages,
+            python_major_version='3',
+            status=status,
+            details=None,
+            dependency_info={'package4': {
+                'installed_version': '2.2.0',
+                'installed_version_time': '2018-05-12T16:26:31',
+                'latest_version': '2.7.0',
+                'current_time': '2018-07-13T17:11:29.140608',
+                'latest_version_time': '2018-05-12T16:26:31',
+                'is_latest': False,
+            }},
+            timestamp=timestamp)
+        row_release_time = {
+            'install_name': 'package4[gcp]',
+            'dep_name': 'package4',
+            'installed_version': '2.7.0',
+            'installed_version_time': '2018-05-12T16:26:31',
+            'latest_version': '2.7.0',
+            'timestamp': '2018-07-13T17:11:29.140608',
+            'latest_version_time': '2018-05-12T16:26:31',
+            'is_latest': True,
+        }
+
+        def MockClient(project=None):
+            return mock_client
+
+        patch_client = mock.patch(
+            'compatibility_lib.compatibility_store.bigquery.Client',
+            MockClient)
+
+        with patch_client:
+            store = compatibility_store.CompatibilityStore()
+            store.save_compatibility_statuses(
+                [comp_status_py2, comp_status_py3])
 
         mock_client.insert_rows.assert_called_with(
             store._release_time_table, [row_release_time])
