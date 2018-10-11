@@ -397,7 +397,6 @@ def self_compatibility_badge_image():
 
     self_comp_res = redis_client.get(
         '{}_self_comp_badge'.format(package_name))
-    threading.Thread(target=run_check).start()
 
     if self_comp_res is not None:
         try:
@@ -408,6 +407,7 @@ def self_compatibility_badge_image():
                     self_comp_res))
             details = CONVERSION_ERROR_RES
     else:
+        threading.Thread(target=run_check).start()
         details = version_and_res
 
     url = _get_badge_url(details, package_name)
@@ -485,7 +485,6 @@ def self_dependency_badge_image():
 
     dependency_res = redis_client.get(
         '{}_dependency_badge'.format(package_name))
-    threading.Thread(target=run_check).start()
 
     if dependency_res is not None:
         try:
@@ -496,6 +495,7 @@ def self_dependency_badge_image():
                     dependency_res))
             details = DEP_CONVERSION_ERROR_RES
     else:
+        threading.Thread(target=run_check).start()
         details = DEFAULT_DEPENDENCY_RESULT
 
     url = _get_badge_url(details, package_name)
@@ -576,7 +576,6 @@ def google_compatibility_badge_image():
 
     google_comp_res = redis_client.get(
         '{}_google_comp_badge'.format(package_name))
-    threading.Thread(target=run_check).start()
 
     if google_comp_res is not None:
         try:
@@ -587,6 +586,7 @@ def google_compatibility_badge_image():
                     google_comp_res))
             details = CONVERSION_ERROR_RES
     else:
+        threading.Thread(target=run_check).start()
         details = DEFAULT_COMPATIBILITY_RESULT
 
     url = _get_badge_url(details, package_name)
