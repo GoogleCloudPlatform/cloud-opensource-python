@@ -407,6 +407,12 @@ class CompatibilityStore:
         for cs in compatibility_statuses:
             if len(cs.packages) == 1:
                 install_name = cs.packages[0].install_name
+                # Only store the dep info for latest version of the package
+                # being checked. e.g. pip install apache-beam will have
+                # different version installed in py2/3.
+                if not self._should_update_dep_info(
+                        cs, release_time_rows.get(install_name)):
+                    continue
                 row = self._compatibility_status_to_release_time_row(cs)
                 if row:
                     release_time_rows[install_name] = row
@@ -415,6 +421,25 @@ class CompatibilityStore:
             self._client.insert_rows(
                 self._release_time_table,
                 row)
+
+    def _should_update_dep_info(self, cs, dep_info_stored):
+        """Return True if the stored version is behind latest version."""
+        if dep_info_stored is None:
+            return True
+
+        install_name = cs.packages[0].install_name
+        install_name_sanitized = install_name.split('[')[0]
+        installed_version = cs.dependency_info[
+            install_name_sanitized]['installed_version']
+
+        installed_version_stored = '0'
+        for row in dep_info_stored:
+            if row['install_name'] == install_name \
+                    and row['dep_name'] == install_name_sanitized:
+                installed_version_stored = row['installed_version']
+                break
+
+        return True if installed_version > installed_version_stored else False
 
     @retrying.retry(stop_max_attempt_number=7,
                     wait_fixed=2000)
