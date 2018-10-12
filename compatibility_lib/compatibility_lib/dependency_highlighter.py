@@ -174,7 +174,7 @@ class DependencyHighlighter(object):
                 except UnstableReleaseError as err:
                     logging.warning(
                         'The latest version of {} is not a stable release.'
-                            .format(name))
+                        .format(name))
                     continue
 
                 elapsed_time = current_time - latest_version_time
