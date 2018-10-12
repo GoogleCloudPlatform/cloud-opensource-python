@@ -169,7 +169,14 @@ class DependencyHighlighter(object):
                         .format(name))
                     continue
 
-                latest = _sanitize_release_tag(info['latest_version'])
+                try:
+                    latest = _sanitize_release_tag(info['latest_version'])
+                except UnstableReleaseError as err:
+                    logging.warning(
+                        'The latest version of {} is not a stable release.'
+                        .format(name))
+                    continue
+
                 elapsed_time = current_time - latest_version_time
 
                 if priority.level == PriorityLevel.UP_TO_DATE:
