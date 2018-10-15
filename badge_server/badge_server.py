@@ -191,7 +191,8 @@ def _get_pair_status_for_packages(pkg_sets):
                     continue
                 # Ignore the package that are not self compatible
                 self_status = _get_self_compatibility_from_cache(pkg_set[1])
-                if self_status[py_version]['status'] != 'SUCCESS':
+                if self_status[py_version]['status'] not in [
+                        'SUCCESS', 'CALCULATING']:
                     continue
                 version_and_res[py_version]['status'] = res.status.value
                 version_and_res[py_version]['details'][pkg_set[1]] = \
@@ -590,7 +591,8 @@ def google_compatibility_badge_image():
                         # Ignore the package that are not self compatible
                         self_status = _get_self_compatibility_from_cache(
                             package)
-                        if self_status[py_version]['status'] != 'SUCCESS':
+                        if self_status[py_version]['status'] not in [
+                                'SUCCESS', 'CALCULATING']:
                             continue
                         # Status showing one of the check failures
                         version_and_res[
