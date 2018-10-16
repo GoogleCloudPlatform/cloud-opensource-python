@@ -200,19 +200,20 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-def _sanitize_package_name(package_name):
+def _sanitize_badge_name(badge_name):
     # If the package is from github head, replace the github url to
     # 'github head'
-    if 'github.com' in package_name:
-        package_name = GITHUB_HEAD_NAME
+    if 'github.com' in badge_name:
+        badge_name = GITHUB_HEAD_NAME
 
     # Replace '-' with '.'
-    package_name = package_name.replace('-', '.')
+    badge_name = badge_name.replace('-', '.')
 
-    return package_name
+    return badge_name
 
 
 def _get_badge_url(res, badge_name):
+    badge_name = _sanitize_badge_name(badge_name)
     status = res.get('status')
     if status is not None:
         color = DEP_STATUS_COLOR_MAPPING[status]
@@ -312,7 +313,7 @@ def one_badge_image():
     badge_name = flask.request.args.get('badge_name')
 
     if badge_name is None:
-        badge_name = _sanitize_package_name(package_name)
+        badge_name = package_name
 
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
