@@ -29,7 +29,10 @@ PACKAGE_FOR_TEST = 'opencensus'
 RETRY_WAIT_PERIOD = 8000 # Wait 8 seconds between each retry
 RETRY_MAX_ATTEMPT = 10 # Retry 10 times
 
-EXPECTED_SVG = open('system_test/test_data/compatibility_badge', 'rb').read()
+EXPECTED_SELF_SVG = open(
+    'system_test/test_data/self_compatibility_badge', 'rb').read()
+EXPECTED_GOOGLE_SVG = open(
+    'system_test/test_data/google_compatibility_badge', 'rb').read()
 
 
 def wait_app_to_start():
@@ -76,7 +79,7 @@ class TestBadgeServer(unittest.TestCase):
         content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertEqual(content, EXPECTED_SVG)
+        self.assertEqual(content, EXPECTED_SELF_SVG)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
@@ -88,4 +91,4 @@ class TestBadgeServer(unittest.TestCase):
         content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertEqual(content, EXPECTED_SVG)
+        self.assertEqual(content, EXPECTED_GOOGLE_SVG)
