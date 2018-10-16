@@ -33,6 +33,10 @@ EXPECTED_SELF_SVG = open(
     'system_test/test_data/self_compatibility_badge', 'rb').read()
 EXPECTED_GOOGLE_SVG = open(
     'system_test/test_data/google_compatibility_badge', 'rb').read()
+EXPECTED_DEP_SVG = open(
+    'system_test/test_data/self_dependency_badge', 'rb').read()
+EXPECTED_ONE_SVG = open(
+    'system_test/test_data/one_badge', 'rb').read()
 
 
 def wait_app_to_start():
@@ -92,3 +96,29 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(status_code, 200)
         self.assertEqual(content, EXPECTED_GOOGLE_SVG)
+
+    @retry(wait_fixed=RETRY_WAIT_PERIOD,
+           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
+    def test_self_dependency_badge(self):
+        response = requests.get(
+            '{}self_dependency_badge_image?package={}'.format(
+                BASE_URL, PACKAGE_FOR_TEST))
+        status_code = response.status_code
+        content = response.content
+        print(content)
+
+        self.assertEqual(status_code, 200)
+        self.assertEqual(content, EXPECTED_DEP_SVG)
+
+    @retry(wait_fixed=RETRY_WAIT_PERIOD,
+           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
+    def test_one_badge(self):
+        response = requests.get(
+            '{}one_badge_image?package={}'.format(
+                BASE_URL, PACKAGE_FOR_TEST))
+        status_code = response.status_code
+        content = response.content
+        print(content)
+
+        self.assertEqual(status_code, 200)
+        self.assertEqual(content, EXPECTED_ONE_SVG)
