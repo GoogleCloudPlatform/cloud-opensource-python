@@ -213,7 +213,7 @@ def _sanitize_package_name(package_name):
 
 
 def _get_badge_url(res, package_name):
-    package_name = _sanitize_package_name(package_name)
+    sanitized_package_name = _sanitize_package_name(package_name)
 
     status = res.get('status')
     if status is not None:
@@ -222,14 +222,14 @@ def _get_badge_url(res, package_name):
         status = res['py3']['status']
         # Badge should show the worst checking result
         if status == 'SUCCESS' and \
-            package_name not in \
+            sanitized_package_name not in \
                 configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
             status = res['py2']['status']
 
         color = STATUS_COLOR_MAPPING[status]
 
     url = URL_PREFIX + '{}-{}-{}.svg'.format(
-        package_name, status, color)
+        sanitized_package_name, status, color)
 
     return url
 
