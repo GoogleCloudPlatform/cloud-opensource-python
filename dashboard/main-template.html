@@ -254,7 +254,7 @@
                                                     <span class="block-email">Success</span>
                                                 {% endif %}
                                             </td>
-                                            <td class="desc"><a href="https://pypi.org/project/{{ package.install_name }}">{{ package_details.latest_version }}</a></td>
+                                            <td class="desc"><a href="https://pypi.org/project/{{ package.install_name.split('[')[0] }}">{{ package_details.latest_version }}</a></td>
                                             <td>
                                                 {% if package_details.pairwise_conflict | length > 0 %}
                                                     <b>Conflicts with:</b>
