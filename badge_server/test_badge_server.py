@@ -77,7 +77,21 @@ class TestBadgeServer(unittest.TestCase):
         self.fake_store._packages_to_compatibility_result[
             frozenset([PACKAGE_1, PACKAGE_2])] = pair_result
 
-        with self.patch_checker, self.patch_store:
+        mock_self_res = mock.Mock()
+        self_res = {
+            'py2': {
+                'status': 'SUCCESS', 'details': {}
+            },
+            'py3': {
+                'status': 'SUCCESS', 'details': {}
+            }
+        }
+        mock_self_res.return_value = self_res
+        patch_self_status = mock.patch(
+            'badge_server._get_self_compatibility_from_cache',
+            mock_self_res)
+
+        with self.patch_checker, self.patch_store, patch_self_status:
             version_and_res = badge_server._get_pair_status_for_packages(
                 pkg_sets)
 
