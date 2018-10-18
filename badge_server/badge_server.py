@@ -181,7 +181,6 @@ def _get_pair_status_for_packages(pkg_sets):
         pkgs = [package_module.Package(pkg) for pkg in pkg_set]
         pair_res = store.get_pair_compatibility(pkgs)
         for res in pair_res:
-            print(res)
             py_version = PY_VER_MAPPING[res.python_major_version]
             # Status showing one of the check failures
             if res.status.value != 'SUCCESS':
@@ -221,6 +220,7 @@ def _get_badge_url(res, package_name):
         color = DEP_STATUS_COLOR_MAPPING[status]
     else:
         status = res['py3']['status']
+        # Badge should show the worst checking result
         if status == 'SUCCESS' and \
             package_name not in \
                 configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
