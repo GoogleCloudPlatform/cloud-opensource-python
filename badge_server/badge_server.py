@@ -200,21 +200,20 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-def _sanitize_package_name(package_name):
+def _sanitize_badge_name(badge_name):
     # If the package is from github head, replace the github url to
     # 'github head'
-    if 'github.com' in package_name:
-        package_name = GITHUB_HEAD_NAME
+    if 'github.com' in badge_name:
+        badge_name = GITHUB_HEAD_NAME
 
     # Replace '-' with '.'
-    package_name = package_name.replace('-', '.')
+    badge_name = badge_name.replace('-', '.')
 
-    return package_name
+    return badge_name
 
 
-def _get_badge_url(res, package_name):
-    package_name = _sanitize_package_name(package_name)
-
+def _get_badge_url(res, badge_name):
+    badge_name = _sanitize_badge_name(badge_name)
     status = res.get('status')
     if status is not None:
         color = DEP_STATUS_COLOR_MAPPING[status]
@@ -229,7 +228,7 @@ def _get_badge_url(res, package_name):
         color = STATUS_COLOR_MAPPING[status]
 
     url = URL_PREFIX + '{}-{}-{}.svg'.format(
-        package_name, status, color)
+        badge_name, status, color)
 
     return url
 
@@ -312,6 +311,11 @@ def index():
 @app.route('/one_badge_image')
 def one_badge_image():
     package_name = flask.request.args.get('package')
+    badge_name = flask.request.args.get('badge_name')
+
+    if badge_name is None:
+        badge_name = package_name
+
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
     url_prefix = flask.request.url_root[:-1]
@@ -335,8 +339,7 @@ def one_badge_image():
 
     status, _, _, _ = _get_all_results_from_cache(package_name)
     color = STATUS_COLOR_MAPPING[status]
-    package_name = _sanitize_package_name(package_name)
-    url = URL_PREFIX + '{}-{}-{}.svg'.format(package_name, status, color)
+    url = URL_PREFIX + '{}-{}-{}.svg'.format(badge_name, status, color)
 
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
@@ -365,6 +368,11 @@ def self_compatibility_badge_image():
     """Badge showing whether a package is compatible with itself."""
     package_name = flask.request.args.get('package')
     force_run_check = flask.request.args.get('force_run_check')
+
+    badge_name = flask.request.args.get('badge_name')
+
+    if badge_name is None:
+        badge_name = 'self compatibility'
 
     version_and_res = {
         'py2': {
@@ -404,7 +412,7 @@ def self_compatibility_badge_image():
                 else py3_description
             version_and_res['py3']['details'] = py3_details
 
-        url = _get_badge_url(version_and_res, package_name)
+        url = _get_badge_url(version_and_res, badge_name)
 
         # Write the result to memory store
         redis_client.set(
@@ -432,7 +440,7 @@ def self_compatibility_badge_image():
             package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
-    url = _get_badge_url(details, package_name)
+    url = _get_badge_url(details, badge_name)
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
@@ -472,6 +480,10 @@ def self_dependency_badge_image():
 
     package_name = flask.request.args.get('package')
     force_run_check = flask.request.args.get('force_run_check')
+    badge_name = flask.request.args.get('badge_name')
+
+    if badge_name is None:
+        badge_name = 'dependency status'
 
     def run_check():
         res = {
@@ -499,7 +511,7 @@ def self_dependency_badge_image():
         res['details'] = details
         res['deprecated_deps'] = deprecated_deps
 
-        url = _get_badge_url(res, package_name)
+        url = _get_badge_url(res, badge_name)
 
         # Write the result to memory store
         redis_client.set(
@@ -527,7 +539,7 @@ def self_dependency_badge_image():
             package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
-    url = _get_badge_url(details, package_name)
+    url = _get_badge_url(details, badge_name)
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
@@ -555,6 +567,10 @@ def google_compatibility_badge_image():
     to one of the failure types, details can be found at the target link."""
     package_name = flask.request.args.get('package')
     force_run_check = flask.request.args.get('force_run_check')
+    badge_name = flask.request.args.get('badge_name')
+
+    if badge_name is None:
+        badge_name = 'google compatibility'
 
     def run_check():
         pkg_sets = [[package_name, pkg] for pkg in configs.PKG_LIST]
@@ -608,7 +624,7 @@ def google_compatibility_badge_image():
         # Write the result to memory store
         redis_client.set(
             '{}_google_comp_badge'.format(package_name), result)
-        url = _get_badge_url(result, package_name)
+        url = _get_badge_url(result, badge_name)
         return requests.get(url).text
 
     google_comp_res = redis_client.get(
@@ -633,7 +649,7 @@ def google_compatibility_badge_image():
             package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
-    url = _get_badge_url(details, package_name)
+    url = _get_badge_url(details, badge_name)
     response = flask.make_response(requests.get(url).text)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
