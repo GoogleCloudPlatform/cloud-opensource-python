@@ -20,9 +20,6 @@ import os
 
 import nox
 
-UNIT_DIR = ['compatibility_lib', 'compatibility_server',
-            'badge_server', 'dashboard', '.']
-
 LOCAL_DEPS = ['compatibility_lib']
 
 
@@ -58,7 +55,7 @@ def unit(session, py):
     session.run(
         'py.test',
         '--quiet',
-        *UNIT_DIR,
+        '.',
         '--ignore=system_test',
         *session.posargs
     )

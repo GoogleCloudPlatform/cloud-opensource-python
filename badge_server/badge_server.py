@@ -213,21 +213,22 @@ def _sanitize_badge_name(badge_name):
 
 
 def _get_badge_url(res, badge_name):
-    badge_name = _sanitize_badge_name(badge_name)
+    sanitized_badge_name = _sanitize_badge_name(badge_name)
     status = res.get('status')
     if status is not None:
         color = DEP_STATUS_COLOR_MAPPING[status]
     else:
         status = res['py3']['status']
-        if status != 'SUCCESS' and \
-            badge_name not in \
+        # Badge should show the worst checking result
+        if status == 'SUCCESS' and \
+            sanitized_badge_name not in \
                 configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
             status = res['py2']['status']
 
         color = STATUS_COLOR_MAPPING[status]
 
     url = URL_PREFIX + '{}-{}-{}.svg'.format(
-        badge_name, status, color)
+        sanitized_badge_name, status, color)
 
     return url
 
