@@ -5,17 +5,21 @@ Python Package Compatibility Guidelines
 Background
 ----------
 
-Incompatibilities between packages published on the Python Package Index (PyPI)
+Incompatibilities between packages published on the `Python Package Index (PyPI)`_
 has been a long standing issue. Diamond dependency (aka dependency hell) is a
 common problem that a package’s dependencies depend on different and
 incompatible versions of the shared packages.
 
+.. _Python Package Index (PyPI): https://pypi.org/
+
 Incompatibilities between packages can occur when:
 
-- A package makes breaking API changes and doesn't follow Semantic Versioning
+- A package makes breaking API changes and doesn't follow `Semantic Versioning`_
 - A package is pinning its dependency version which is conflict with other dependencies.
 - A package is depending on outdated dependencies.
 - A package is depending on deprecated dependencies.
+
+.. _Semantic Versioning: https://semver.org/
 
 This guide is a list of best practices that Python package authors can follow
 to help reduce future incompatibilities. Google-sponsored projects are expected
@@ -25,17 +29,19 @@ to follow these guidelines but other projects may benefit from them as well.
 Tools
 -----
 
-To detect and prevent version incompatibilities between Google OSS Python
-packages, we provide a set of tooling to ensure we are compatible with
-ourselves. And the tooling can also run checks for any package that wants to
-know whether it is self-compatible or compatible with a list of other packages.
-Below lists our tooling:
+    To detect and prevent version incompatibilities between Google OSS Python
+    packages, we provide a set of tooling to ensure we are compatible with
+    ourselves. And the tooling can also run checks for any package that wants to
+    know whether it is self-compatible or compatible with a list of other packages.
+    Below lists our tooling:
 
 Dependency Compatibility Dashboard
 ----------------------------------
 
-The dashboard shows the compatibility status of a list of Google owned OSS
-Python packages. It is hosted on github.io at here.
+The `dashboard`_ shows the compatibility status of a list of Google owned OSS
+Python packages.
+
+.. _dashboard: https://googlecloudplatform.github.io/cloud-opensource-python/
 
 Badge Server
 ------------
@@ -48,7 +54,9 @@ status of a given package. Supported usage includes:
 - Dependency version status
 - One badge for all kinds of checks above
 
-For more details please point to here.
+For more details please point to `here`_.
+
+.. _here: https://github.com/GoogleCloudPlatform/cloud-opensource-python/tree/master/badge_server
 
 ----------------------
 Python Packaging Rules
@@ -61,11 +69,12 @@ We should use semantic versioning for all Google OSS Python distribution
 packages. Semantic versioning requires that given a version number
 `MAJOR.MINOR.PATCH`, increment the:
 
-* MAJOR version when you make incompatible API changes.
-* MINOR version when you add functionality in a backwards-compatible manner.
-* PATCH version when you make backwards-compatible bug fixes.
+    * MAJOR version when you make incompatible API changes.
+    * MINOR version when you add functionality in a backwards-compatible manner.
+    * PATCH version when you make backwards-compatible bug fixes.
 
 Requirements:
+
 - Non-GA libraries should use major version 0, and be promoted to 1.0 when reach GA.
 - Non-GA libraries could be excluded from semver stability guarantees.
 - GA libraries must conform to semantic versioning.
@@ -75,35 +84,29 @@ Dependencies
 
 1. Specify dependency version using closed ranges
 
-- Minor or patch version shouldn’t be used as an upper bound for 1st party
-dependencies unless the dependency is not GA.
-- Specific versions could be excluded if they are known to be incompatible.
-e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
-- Specific versions may be specified if a package exists as a wrapper around
-another.
-- Version range upper bound should be updated when there is a newer version
-available as soon as possible.
-- We allow 30 days grace period for package owners to migrate to support new
-major version bump of the dependencies.
-e.g. google-cloud-dataflow may specify an exact version of apache-beam.
+- Minor or patch version shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
+- Specific versions could be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
+- Specific versions may be specified if a package exists as a wrapper around another.
+- Version range upper bound should be updated when there is a newer version available as soon as possible.
+- We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies. e.g. google-cloud-dataflow may specify an exact version of apache-beam.
 
 2. Avoid depending on unstable release version dependencies
 
 - It’s not recommended to depend on non-GA packages.
 - Avoid depending on pre-release, post-release and development release version.
-- Dependency version should be final release. (PEP 440)
+- Dependency version should be final release. (`PEP 440`_)
 - GA packages must not depend on non-GA packages.
+
+.. _PEP 440: https://www.python.org/dev/peps/pep-0440/#final-releases
 
 3. Version range upper bound should be updated when there is a newer version
 available as soon as possible.
 
-- We allow 30 days grace period for package owners to migrate to support new
-major version bump of the dependencies.
+- We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies.
 
 4. Minimize dependencies
 
-- Packages should use Python built-in modules if possible.
-e.g. logging, unittest
+- Packages should use Python built-in modules if possible. e.g. logging, unittest
 
 5. Never vendor dependencies
 
@@ -112,20 +115,24 @@ Release and Support
 
 - Major version bump should be rare
 - Minimize the cost for users to go from one major version to another.
-- Support every semver-major HEAD of every package that is 1.0+ for at least
-one year.
+- Support every semver-major HEAD of every package that is 1.0+ for at least one year.
 - Dropping support for any older version should be semver-major.
 
 ---------------
 GA Requirements
 ---------------
 
-The GA requirements are validated using the github badge service, the badge
+The GA requirements are validated using the `github badge`_ service, the badge
 should be green before any GA launch.
+
 - Package must be self compatible
-If package A depends on dependency B and C, and they require different version of dependency D, package A is not self compatible. Packages that are not self compatible will have conflicts with all the rest packages in the world.
+If package A depends on dependency B and C, and they require different version
+of dependency D, package A is not self compatible. Packages that are not self
+compatible will have conflicts with all the rest packages in the world.
 
 - Package must be google-wise compatible
 It’s required for any new package owned by Google to be compatible with all the other Google Python packages. So that using any combination of Google Python packages will not cause any conflicts during installation or failures during runtime.
 
 - Package must support latest version of its dependencies
+
+.. _github badge: https://github.com/GoogleCloudPlatform/cloud-opensource-python/blob/master/badge_server/README.rst
