@@ -17,7 +17,6 @@ URL for creating the badge:
 [TODO] Switch to use pybadges once figure out the module not found issue.
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
 """
-import ast
 import logging
 import os
 import requests
