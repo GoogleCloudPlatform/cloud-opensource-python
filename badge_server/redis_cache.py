@@ -20,12 +20,14 @@ from typing import Any
 
 import redis
 
+
 class RedisCache:
     def __init__(self):
         redis_host = os.environ.get('REDISHOST', '10.0.0.3')
         redis_port = int(os.environ.get('REDISPORT', 6379))
-        self._redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
-        
+        self._redis_client = redis.StrictRedis(
+            host=redis_host, port=redis_port)
+
     def get(self, name: str) -> Any:
         """Returns a Python value given a key. None if not found."""
         return json.loads(self._redis_client.get(name))

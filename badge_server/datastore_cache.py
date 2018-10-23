@@ -23,7 +23,7 @@ from google.cloud import datastore
 class DatastoreCache:
     def __init__(self):
         self._datastore_client = datastore.Client()
-        
+
     def get(self, name: str) -> Any:
         """Returns a Python value given a key. None if not found."""
 
