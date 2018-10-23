@@ -82,7 +82,7 @@ Requirements:
 Dependencies
 ------------
 
-1. Specify dependency version using closed ranges
+**1. Specify dependency version using closed ranges**
 
 - Minor or patch version shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
 - Specific versions could be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
@@ -90,25 +90,24 @@ Dependencies
 - Version range upper bound should be updated when there is a newer version available as soon as possible.
 - We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies. e.g. google-cloud-dataflow may specify an exact version of apache-beam.
 
-2. Avoid depending on unstable release version dependencies
+**2. Avoid depending on unstable release version dependencies**
 
 - It’s not recommended to depend on non-GA packages.
 - Avoid depending on pre-release, post-release and development release version.
 - Dependency version should be final release. (`PEP 440`_)
 - GA packages must not depend on non-GA packages.
 
-.. _PEP 440: https://www.python.org/dev/peps/pep-0440/#final-releases
-
-3. Version range upper bound should be updated when there is a newer version
-available as soon as possible.
+**3. Version range upper bound should be updated when there is a newer version available as soon as possible.**
 
 - We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies.
 
-4. Minimize dependencies
+**4. Minimize dependencies**
 
 - Packages should use Python built-in modules if possible. e.g. logging, unittest
 
-5. Never vendor dependencies
+**5. Never vendor dependencies**
+
+.. _PEP 440: https://www.python.org/dev/peps/pep-0440/#final-releases
 
 Release and Support
 -------------------
