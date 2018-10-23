@@ -305,13 +305,14 @@ def one_badge_image():
     status, _, _, _ = _get_all_results_from_cache(package_name)
     color = STATUS_COLOR_MAPPING[status]
 
+    details_link = url_prefix + flask.url_for('one_badge_target',
+                                              package=package_name)
     response = flask.make_response(
         pybadges.badge(
             left_text=badge_name,
             right_text=status,
             right_color=color,
-            whole_link=url_prefix + flask.url_for('one_badge_target',
-                                                  package=package_name)))
+            whole_link=details_link))
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
