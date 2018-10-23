@@ -199,7 +199,7 @@ class TestBadgeServer(unittest.TestCase):
         sanitized = main._sanitize_badge_name(package_name)
         self.assertEqual(sanitized, expected)
 
-    def test__get_badge_url_use_py2(self):
+    def test__get_badge_use_py2(self):
         package_name = 'package-1'
         res = {
             'py2': {
@@ -210,12 +210,12 @@ class TestBadgeServer(unittest.TestCase):
             }
         }
 
-        url = main._get_badge_url(res, package_name)
-        expected = 'https://img.shields.io/badge/package.1-CHECK_WARNING-red.svg'
+        image = main._get_badge(res, package_name)
+        self.assertIn(package_name, image)
+        self.assertIn("CHECK_WARNING", image)
+        self.assertIn("red", image)
 
-        self.assertEqual(url, expected)
-
-    def test__get_badge_url_use_py3(self):
+    def test__get_badge_use_py3(self):
         package_name = 'package-1'
         res = {
             'py2': {
@@ -226,10 +226,10 @@ class TestBadgeServer(unittest.TestCase):
             }
         }
 
-        url = main._get_badge_url(res, package_name)
-        expected = 'https://img.shields.io/badge/package.1-CHECK_WARNING-red.svg'
-
-        self.assertEqual(url, expected)
+        image = main._get_badge(res, package_name)
+        self.assertIn(package_name, image)
+        self.assertIn("CHECK_WARNING", image)
+        self.assertIn("red", image)
 
     def test__get_all_results_from_cache_success(self):
         self_res = {
