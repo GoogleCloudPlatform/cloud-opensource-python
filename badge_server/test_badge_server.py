@@ -17,7 +17,7 @@ import unittest
 
 from compatibility_lib import fake_compatibility_store
 
-import badge_server
+import main
 
 
 class TestBadgeServer(unittest.TestCase):
@@ -26,8 +26,8 @@ class TestBadgeServer(unittest.TestCase):
         self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
         self.patch_checker = mock.patch(
-            'badge_server.checker', self.mock_checker)
-        self.patch_store = mock.patch('badge_server.store', self.fake_store)
+            'main.checker', self.mock_checker)
+        self.patch_store = mock.patch('main.store', self.fake_store)
 
     def test__get_pair_status_for_packages_success(self):
         pkg_sets = [
@@ -40,7 +40,7 @@ class TestBadgeServer(unittest.TestCase):
         }
 
         with self.patch_checker, self.patch_store:
-            version_and_res = badge_server._get_pair_status_for_packages(
+            version_and_res = main._get_pair_status_for_packages(
                 pkg_sets)
 
         self.assertEqual(version_and_res, expected)
@@ -88,11 +88,11 @@ class TestBadgeServer(unittest.TestCase):
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'badge_server._get_self_compatibility_from_cache',
+            'main._get_self_compatibility_from_cache',
             mock_self_res)
 
         with self.patch_checker, self.patch_store, patch_self_status:
-            version_and_res = badge_server._get_pair_status_for_packages(
+            version_and_res = main._get_pair_status_for_packages(
                 pkg_sets)
 
         self.assertEqual(version_and_res, expected)
@@ -128,7 +128,7 @@ class TestBadgeServer(unittest.TestCase):
             frozenset([PACKAGE_1, PACKAGE_2])] = pair_result
 
         with self.patch_checker, self.patch_store:
-            version_and_res = badge_server._get_pair_status_for_packages(
+            version_and_res = main._get_pair_status_for_packages(
                 pkg_sets)
 
         self.assertEqual(version_and_res, expected)
@@ -176,11 +176,11 @@ class TestBadgeServer(unittest.TestCase):
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'badge_server._get_self_compatibility_from_cache',
+            'main._get_self_compatibility_from_cache',
             mock_self_res)
 
         with self.patch_checker, self.patch_store, patch_self_status:
-            version_and_res = badge_server._get_pair_status_for_packages(
+            version_and_res = main._get_pair_status_for_packages(
                 pkg_sets)
 
         self.assertEqual(version_and_res, expected)
@@ -189,14 +189,14 @@ class TestBadgeServer(unittest.TestCase):
         package_name = 'google-cloud-trace'
         expected = 'google.cloud.trace'
 
-        sanitized = badge_server._sanitize_badge_name(package_name)
+        sanitized = main._sanitize_badge_name(package_name)
         self.assertEqual(sanitized, expected)
 
     def test__sanitize_badge_name_github(self):
         package_name = 'git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib'
         expected = 'github head'
 
-        sanitized = badge_server._sanitize_badge_name(package_name)
+        sanitized = main._sanitize_badge_name(package_name)
         self.assertEqual(sanitized, expected)
 
     def test__get_badge_url_use_py2(self):
@@ -210,7 +210,7 @@ class TestBadgeServer(unittest.TestCase):
             }
         }
 
-        url = badge_server._get_badge_url(res, package_name)
+        url = main._get_badge_url(res, package_name)
         expected = 'https://img.shields.io/badge/package.1-CHECK_WARNING-red.svg'
 
         self.assertEqual(url, expected)
@@ -226,7 +226,7 @@ class TestBadgeServer(unittest.TestCase):
             }
         }
 
-        url = badge_server._get_badge_url(res, package_name)
+        url = main._get_badge_url(res, package_name)
         expected = 'https://img.shields.io/badge/package.1-CHECK_WARNING-red.svg'
 
         self.assertEqual(url, expected)
@@ -243,7 +243,7 @@ class TestBadgeServer(unittest.TestCase):
         mock_self_res = mock.Mock()
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'badge_server._get_self_compatibility_from_cache',
+            'main._get_self_compatibility_from_cache',
             mock_self_res)
 
         google_res = {
@@ -257,7 +257,7 @@ class TestBadgeServer(unittest.TestCase):
         mock_google_res = mock.Mock()
         mock_google_res.return_value = google_res
         patch_google_status = mock.patch(
-            'badge_server._get_google_compatibility_from_cache',
+            'main._get_google_compatibility_from_cache',
             mock_google_res)
 
         dep_res = {
@@ -267,11 +267,11 @@ class TestBadgeServer(unittest.TestCase):
         mock_dep_res = mock.Mock()
         mock_dep_res.return_value = dep_res
         patch_dep_status = mock.patch(
-            'badge_server._get_dependency_result_from_cache',
+            'main._get_dependency_result_from_cache',
             mock_dep_res)
 
         with patch_self_status, patch_google_status, patch_dep_status:
-            status, _, _, _ = badge_server._get_all_results_from_cache(
+            status, _, _, _ = main._get_all_results_from_cache(
                 'package1')
 
         self.assertEqual(status, 'SUCCESS')
@@ -288,7 +288,7 @@ class TestBadgeServer(unittest.TestCase):
         mock_self_res = mock.Mock()
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'badge_server._get_self_compatibility_from_cache',
+            'main._get_self_compatibility_from_cache',
             mock_self_res)
 
         google_res = {
@@ -302,7 +302,7 @@ class TestBadgeServer(unittest.TestCase):
         mock_google_res = mock.Mock()
         mock_google_res.return_value = google_res
         patch_google_status = mock.patch(
-            'badge_server._get_google_compatibility_from_cache',
+            'main._get_google_compatibility_from_cache',
             mock_google_res)
 
         dep_res = {
@@ -312,11 +312,11 @@ class TestBadgeServer(unittest.TestCase):
         mock_dep_res = mock.Mock()
         mock_dep_res.return_value = dep_res
         patch_dep_status = mock.patch(
-            'badge_server._get_dependency_result_from_cache',
+            'main._get_dependency_result_from_cache',
             mock_dep_res)
 
         with patch_self_status, patch_google_status, patch_dep_status:
-            status, _, _, _ = badge_server._get_all_results_from_cache(
+            status, _, _, _ = main._get_all_results_from_cache(
                 'package1')
 
         self.assertEqual(status, 'CALCULATING')
@@ -333,7 +333,7 @@ class TestBadgeServer(unittest.TestCase):
         mock_self_res = mock.Mock()
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'badge_server._get_self_compatibility_from_cache',
+            'main._get_self_compatibility_from_cache',
             mock_self_res)
 
         google_res = {
@@ -347,7 +347,7 @@ class TestBadgeServer(unittest.TestCase):
         mock_google_res = mock.Mock()
         mock_google_res.return_value = google_res
         patch_google_status = mock.patch(
-            'badge_server._get_google_compatibility_from_cache',
+            'main._get_google_compatibility_from_cache',
             mock_google_res)
 
         dep_res = {
@@ -357,11 +357,11 @@ class TestBadgeServer(unittest.TestCase):
         mock_dep_res = mock.Mock()
         mock_dep_res.return_value = dep_res
         patch_dep_status = mock.patch(
-            'badge_server._get_dependency_result_from_cache',
+            'main._get_dependency_result_from_cache',
             mock_dep_res)
 
         with patch_self_status, patch_google_status, patch_dep_status:
-            status, _, _, _ = badge_server._get_all_results_from_cache(
+            status, _, _, _ = main._get_all_results_from_cache(
                 'package1')
 
         self.assertEqual(status, 'CHECK_WARNING')
