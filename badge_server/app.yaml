@@ -1,0 +1,12 @@
+runtime: python37
+instance_class: F4
+
+handlers:
+- url: /static
+  static_dir: static/
+- url: /.*
+  script: auto
+  secure: always
+
+automatic_scaling:
+  min_instances: 3
