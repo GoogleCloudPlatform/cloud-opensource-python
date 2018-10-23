@@ -26,7 +26,6 @@ class DatastoreCache:
 
     def get(self, name: str) -> Any:
         """Returns a Python value given a key. None if not found."""
-
         key = self._datastore_client.key('_Cache', name)
         e = self._datastore_client.get(key)
         if e is None:
