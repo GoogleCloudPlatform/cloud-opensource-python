@@ -1,6 +1,10 @@
 Python Package Compatibility Guidelines
 =======================================
 
+This repository uses terminology (MUST, SHOULD, etc) from `RFC 2119`_.
+
+.. _RFC 2119: https://www.ietf.org/rfc/rfc2119.txt
+
 ----------
 Background
 ----------
@@ -34,7 +38,7 @@ Tools
 
     To detect and prevent version incompatibilities between Google OSS Python
     packages, we provide a set of tooling to ensure we are compatible with
-    ourselves. And the tooling can also run checks for any package that wants to
+    ourselves. And the tooling can also run checks for any Google owned package that wants to
     know whether it is self-compatible or compatible with a list of other packages.
     Below lists our tooling:
 
@@ -81,6 +85,7 @@ Requirements:
 - GA(Generally Available) libraries must conform to semantic versioning.
 - Non-GA libraries should use major version 0, and be promoted to 1.0 when reaching GA.
 - Non-GA libraries could be excluded from semver stability guarantees.
+- Dropping support for a Python major version(e.g. Python 2) should result in a major version increment
 
 Dependencies
 ------------
@@ -90,14 +95,11 @@ Dependencies
 - Minor or patch versions shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
 - Specific versions could be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
 - Specific versions may be specified if a package exists as a wrapper around another.
-- Version range upper bound should be updated when there is a newer version available as soon as possible.
-- We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies. e.g. google-cloud-dataflow may specify an exact version of apache-beam.
 
 **2. Avoid depending on unstable release version dependencies**
 
 - It’s not recommended to depend on non-GA packages.
 - Avoid depending on pre-release, post-release and development release versions.
-- Dependency versions should be final release. (`PEP 440`_)
 - GA packages must not depend on non-GA packages.
 
 **3. Version range upper bound should be updated when there is a newer version available as soon as possible.**
@@ -110,7 +112,7 @@ Dependencies
 
 **5. Never vendor dependencies**
 
-.. _PEP 440: https://www.python.org/dev/peps/pep-0440/#final-releases
+Vendoring means having a copy of a specific version of the dependencies and ship it together with the library code.
 
 Release and Support
 -------------------
@@ -129,7 +131,7 @@ should be green before any GA launch.
 
 - Packages must be self compatible
 If package A has dependencies B and C, and they require different versions
-of dependency D, package A is not self compatible. Packages that are not self
+of dependency D, package A is not self compatible. Packages that are not internally
 compatible will have conflicts with all the rest of the packages in the world.
 
 - Packages must be google-wise compatible
