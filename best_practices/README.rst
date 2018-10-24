@@ -46,7 +46,7 @@ Python packages.
 Badge Server
 ------------
 
-The badge server runs checks and generate svg format badge image to show the
+The badge server runs checks and generates an svg format badge image to show the
 status of a given package. Supported usage includes:
 
 - Self compatibility
