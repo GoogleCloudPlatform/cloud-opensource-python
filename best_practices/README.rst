@@ -15,7 +15,7 @@ incompatible versions of the shared packages.
 Incompatibilities between packages can occur when:
 
 - A package makes breaking API changes and doesn't follow `Semantic Versioning`_
-- A package is pinning its dependency version which is conflict with other dependencies.
+- A package has a pinned dependency version which conflicts with other dependencies.
 - A package is depending on outdated dependencies.
 - A package is depending on deprecated dependencies.
 
