@@ -23,8 +23,8 @@ Incompatibilities between packages can occur when:
 
 - A package makes breaking API changes and doesn't follow `Semantic Versioning`_
 - A package has a pinned dependency version which conflicts with other dependencies.
-- A package is depending on outdated dependencies.
-- A package is depending on deprecated dependencies.
+- A package depends on outdated dependencies.
+- A package is depends on deprecated dependencies.
 
 .. _Semantic Versioning: https://semver.org/
 
@@ -93,7 +93,7 @@ Dependencies
 **1. Specify dependency version using closed ranges**
 
 - Minor or patch versions shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
-- Specific versions could be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
+- Specific versions can be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
 - Specific versions may be specified if a package exists as a wrapper around another.
 
 **2. Avoid depending on unstable release version dependencies**
