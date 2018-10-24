@@ -33,7 +33,7 @@ Tools
 -----
 
     To detect and prevent version incompatibilities between Google OSS Python
-    packages, we provide a set of tooling to ensure we are compatible with
+    packages, we provide a set of tooling to ensure that we are compatible with
     ourselves. And the tooling can also run checks for any package that wants to
     know whether it is self-compatible or compatible with a list of other packages.
     Below lists our tooling:
