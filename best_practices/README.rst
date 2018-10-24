@@ -75,16 +75,16 @@ packages. Semantic versioning requires that given a version number
 
 Requirements:
 
-- Non-GA libraries should use major version 0, and be promoted to 1.0 when reach GA.
+- GA(Generally Available) libraries must conform to semantic versioning.
+- Non-GA libraries should use major version 0, and be promoted to 1.0 when reaching GA.
 - Non-GA libraries could be excluded from semver stability guarantees.
-- GA libraries must conform to semantic versioning.
 
 Dependencies
 ------------
 
 **1. Specify dependency version using closed ranges**
 
-- Minor or patch version shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
+- Minor or patch versions shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
 - Specific versions could be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
 - Specific versions may be specified if a package exists as a wrapper around another.
 - Version range upper bound should be updated when there is a newer version available as soon as possible.
@@ -93,13 +93,13 @@ Dependencies
 **2. Avoid depending on unstable release version dependencies**
 
 - It’s not recommended to depend on non-GA packages.
-- Avoid depending on pre-release, post-release and development release version.
-- Dependency version should be final release. (`PEP 440`_)
+- Avoid depending on pre-release, post-release and development release versions.
+- Dependency versions should be final release. (`PEP 440`_)
 - GA packages must not depend on non-GA packages.
 
 **3. Version range upper bound should be updated when there is a newer version available as soon as possible.**
 
-- We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies.
+- We allow a 30 day grace period for package owners to migrate to support new major version bump of the dependencies.
 
 **4. Minimize dependencies**
 
@@ -112,7 +112,7 @@ Dependencies
 Release and Support
 -------------------
 
-- Major version bump should be rare
+- Major version bumps should be rare
 - Minimize the cost for users to go from one major version to another.
 - Support every semver-major HEAD of every package that is 1.0+ for at least one year.
 - Dropping support for any older version should be semver-major.
@@ -121,17 +121,17 @@ Release and Support
 GA Requirements
 ---------------
 
-The GA requirements are validated using the `github badge`_ service, the badge
+The GA requirements are validated using the `github badge`_ service, so the badge
 should be green before any GA launch.
 
-- Package must be self compatible
-If package A depends on dependency B and C, and they require different version
+- Packages must be self compatible
+If package A has dependencies B and C, and they require different versions
 of dependency D, package A is not self compatible. Packages that are not self
-compatible will have conflicts with all the rest packages in the world.
+compatible will have conflicts with all the rest of the packages in the world.
 
-- Package must be google-wise compatible
+- Packages must be google-wise compatible
 It’s required for any new package owned by Google to be compatible with all the other Google Python packages. So that using any combination of Google Python packages will not cause any conflicts during installation or failures during runtime.
 
-- Package must support latest version of its dependencies
+- Packages must support latest version of its dependencies
 
 .. _github badge: https://github.com/GoogleCloudPlatform/cloud-opensource-python/blob/master/badge_server/README.rst
