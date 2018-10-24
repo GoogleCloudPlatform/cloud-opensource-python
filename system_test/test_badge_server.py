@@ -47,7 +47,7 @@ def wait_app_to_start():
 
 def run_application():
     """Start running the compatibility checker server."""
-    cmd = 'python badge_server/badge_server.py ' \
+    cmd = 'python badge_server/main.py ' \
           '--host=\'0.0.0.0\' --port=8080'
     process = subprocess.Popen(
         cmd,
