@@ -6,6 +6,9 @@ Background
 ----------
 
 Incompatibilities between packages published on the `Python Package Index (PyPI)`_
+has been a long standing issue. Diamond dependencies are a common problem where
+a package or application has dependencies that are, themselves, dependant on
+incompatible versions of shared packages.
 has been a long standing issue. Diamond dependency (aka dependency hell) is a
 common problem that a package’s dependencies depend on different and
 incompatible versions of the shared packages.
@@ -15,7 +18,7 @@ incompatible versions of the shared packages.
 Incompatibilities between packages can occur when:
 
 - A package makes breaking API changes and doesn't follow `Semantic Versioning`_
-- A package is pinning its dependency version which is conflict with other dependencies.
+- A package has a pinned dependency version which conflicts with other dependencies.
 - A package is depending on outdated dependencies.
 - A package is depending on deprecated dependencies.
 
@@ -46,7 +49,7 @@ Python packages.
 Badge Server
 ------------
 
-The badge server runs checks and generate svg format badge image to show the
+The badge server runs checks and generates an svg format badge image to show the
 status of a given package. Supported usage includes:
 
 - Self compatibility
@@ -54,7 +57,7 @@ status of a given package. Supported usage includes:
 - Dependency version status
 - One badge for all kinds of checks above
 
-For more details please point to `here`_.
+For more details please refer to `here`_.
 
 .. _here: https://github.com/GoogleCloudPlatform/cloud-opensource-python/tree/master/badge_server
 
