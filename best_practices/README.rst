@@ -1,7 +1,7 @@
 Python Package Compatibility Guidelines
 =======================================
 
-This repository uses terminology (MUST, SHOULD, etc) from `RFC 2119`_.
+This document uses terminology (MUST, SHOULD, etc) from `RFC 2119`_.
 
 .. _RFC 2119: https://www.ietf.org/rfc/rfc2119.txt
 
