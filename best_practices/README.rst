@@ -54,7 +54,7 @@ status of a given package. Supported usage includes:
 - Dependency version status
 - One badge for all kinds of checks above
 
-For more details please point to `here`_.
+For more details please refer to `here`_.
 
 .. _here: https://github.com/GoogleCloudPlatform/cloud-opensource-python/tree/master/badge_server
 
