@@ -88,7 +88,7 @@ Dependencies
 **1. Specify dependency version using closed ranges**
 
 - Minor or patch version shouldn’t be used as an upper bound for 1st party dependencies unless the dependency is not GA.
-- Specific versions could be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
+- Specific versions can be excluded if they are known to be incompatible. e.g. google-cloud-pubsub >= 0.1.1 !=2.0.0 !=2.0.1
 - Specific versions may be specified if a package exists as a wrapper around another.
 - Version range upper bound should be updated when there is a newer version available as soon as possible.
 - We allow 30 days grace period for package owners to migrate to support new major version bump of the dependencies. e.g. google-cloud-dataflow may specify an exact version of apache-beam.
