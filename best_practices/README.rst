@@ -82,10 +82,12 @@ packages. Semantic versioning requires that given a version number
 
 Requirements:
 
-- GA(Generally Available) libraries must conform to semantic versioning.
+- `GA(Generally Available)`_ libraries must conform to semantic versioning.
 - Non-GA libraries should use major version 0, and be promoted to 1.0 when reaching GA.
 - Non-GA libraries could be excluded from semver stability guarantees.
 - Dropping support for a Python major version(e.g. Python 2) should result in a major version increment
+
+.. _GA(Generally Available): https://cloud.google.com/terms/launch-stages
 
 Dependencies
 ------------
