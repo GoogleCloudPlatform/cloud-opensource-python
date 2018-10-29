@@ -4,7 +4,7 @@ google-cloud-datastore==1.7.0
 grpcio==1.15.0
 Jinja2==2.10
 mock==2.0.0
-pybadges==1.0.1
+pybadges==1.0.2
 pytest==3.6.1
 redis==2.10.6
 requests==2.19.1
