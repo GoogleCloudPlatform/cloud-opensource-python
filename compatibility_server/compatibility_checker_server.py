@@ -50,9 +50,10 @@ import wsgiref.simple_server
 import pip_checker
 
 # White list Google owned Python packages
-WHITELIST_GITHUB_REPO = ['github.com/GoogleCloudPlatform/',
-                         'github.com/google/',
-                         'github.com/googleapis/']
+GITHUB_PREFIX = 'github.com/'
+WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform/',
+                         'google/',
+                         'googleapis/']
 
 
 def _parse_python_version_to_interpreter_mapping(s):
@@ -149,9 +150,10 @@ class CompatibilityServer:
         # repos.
         sanitized_packages = []
         for pkg in packages:
-            if 'github.com' in pkg:
+            if GITHUB_PREFIX in pkg:
                 for whitelist_repo in WHITELIST_GITHUB_REPO:
-                    if whitelist_repo in pkg:
+                    github_whitelist = GITHUB_PREFIX + whitelist_repo
+                    if github_whitelist in pkg:
                         sanitized_packages.append(pkg)
             else:
                 sanitized_packages.append(pkg)
