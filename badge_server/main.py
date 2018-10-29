@@ -201,7 +201,7 @@ def _get_badge(res, badge_name):
         color = DEP_STATUS_COLOR_MAPPING[status]
     else:
         status = res['py3']['status']
-        if status != 'SUCCESS' and \
+        if status == 'SUCCESS' and \
             badge_name not in \
                 configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
             status = res['py2']['status']

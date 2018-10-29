@@ -185,13 +185,6 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(version_and_res, expected)
 
-    def test__sanitize_badge_name(self):
-        package_name = 'google-cloud-trace'
-        expected = 'google.cloud.trace'
-
-        sanitized = main._sanitize_badge_name(package_name)
-        self.assertEqual(sanitized, expected)
-
     def test__sanitize_badge_name_github(self):
         package_name = 'git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib'
         expected = 'github head'
