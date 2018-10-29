@@ -206,7 +206,6 @@ class TestBadgeServer(unittest.TestCase):
         image = main._get_badge(res, package_name)
         self.assertIn(package_name, image)
         self.assertIn("CHECK_WARNING", image)
-        self.assertIn("red", image)
 
     def test__get_badge_use_py3(self):
         package_name = 'package-1'
@@ -222,7 +221,6 @@ class TestBadgeServer(unittest.TestCase):
         image = main._get_badge(res, package_name)
         self.assertIn(package_name, image)
         self.assertIn("CHECK_WARNING", image)
-        self.assertIn("red", image)
 
     def test__get_all_results_from_cache_success(self):
         self_res = {
