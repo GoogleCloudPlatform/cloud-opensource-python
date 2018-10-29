@@ -49,6 +49,9 @@ import wsgiref.simple_server
 
 import pip_checker
 
+# White list Google owned Python packages
+WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform', 'google', 'googleapis']
+
 
 def _parse_python_version_to_interpreter_mapping(s):
     version_to_interpreter = {}
@@ -139,6 +142,20 @@ class CompatibilityServer:
         start_response('200 OK', [('Content-Type', 'application/json')])
         return [json.dumps(results).encode('utf-8')]
 
+    def _sanitize_packages(self, packages):
+        # If checking github head version, only run checks for whitelisted
+        # repos.
+        sanitized_packages = []
+        for pkg in packages:
+            if 'github.com' in pkg:
+                for whitelist_repo in WHITELIST_GITHUB_REPO:
+                    if whitelist_repo in pkg:
+                        sanitized_packages.append(pkg)
+            else:
+                sanitized_packages.append(pkg)
+
+        return sanitized_packages
+
     def _wsgi_app(self, environ, start_response):
         if environ.get('REQUEST_METHOD') == 'GET':
             parameters = urllib.parse.parse_qs(environ.get('QUERY_STRING', ''))
@@ -170,8 +187,9 @@ class CompatibilityServer:
                 environ.get('REQUEST_METHOD').encode('utf-8')
             ]
 
+        sanitized_packages = self._sanitize_packages(packages)
         return self._check(start_response, python_version,
-                           packages)
+                           sanitized_packages)
 
     def serve(self):
         with wsgiref.simple_server.make_server(self._host, self._port,
