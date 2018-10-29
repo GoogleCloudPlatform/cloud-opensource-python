@@ -36,7 +36,7 @@ to follow these guidelines but other projects may benefit from them as well.
 Tools
 -----
 
-    To detect and prevent version incompatibilities between Google OSS Python
+    To detect and prevent version incompatibilities between Google Open Source Python
     packages, we provide a set of tooling to ensure we are compatible with
     ourselves. And the tooling can also run checks for any Google owned package that wants to
     know whether it is self-compatible or compatible with a list of other packages.
