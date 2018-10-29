@@ -10,7 +10,7 @@ Background
 ----------
 
 Incompatibilities between packages published on the `Python Package Index (PyPI)`_
-has been a long standing issue. Diamond dependencies are a common problem where
+have been a long standing issue. Diamond dependencies are a common problem where
 a package or application has dependencies that are, themselves, dependant on
 incompatible versions of shared packages.
 
@@ -21,7 +21,7 @@ Incompatibilities between packages can occur when:
 - A package makes breaking API changes and doesn't follow `Semantic Versioning`_
 - A package has a pinned dependency version which conflicts with other dependencies.
 - A package depends on outdated dependencies.
-- A package is depends on deprecated dependencies.
+- A package is dependent on deprecated dependencies.
 
 .. _Semantic Versioning: https://semver.org/
 
@@ -33,14 +33,14 @@ to follow these guidelines but other projects may benefit from them as well.
 Tools
 -----
 
-    To detect and prevent version incompatibilities between Google OSS Python
+    To detect and prevent version incompatibilities between Google Open Source Python
     packages, we provide a set of tooling to ensure we are compatible with
     ourselves. Below lists our tooling:
 
 Dependency Compatibility Dashboard
 ----------------------------------
 
-The `dashboard`_ shows the compatibility status of a list of Google owned OSS
+The `dashboard`_ shows the compatibility status of a list of Google sponsored Open Source
 Python packages.
 
 .. _dashboard: https://googlecloudplatform.github.io/cloud-opensource-python/
@@ -51,10 +51,10 @@ Badge Server
 The badge server runs checks and generates an svg format badge image to show the
 status of a given package. Supported usage includes:
 
-- Self compatibility
-- Google-wise compatibility
-- Dependency version status
-- One badge for all kinds of checks above
+- Self compatibility (the package has internally consistent dependencies)
+- Google-wise compatibility (the package is compatible with other Google packages)
+- Dependency version status (the package does not rely on obsolete dependencies)
+- One badge for all of the checks above
 
 For more details please refer to `here`_.
 
