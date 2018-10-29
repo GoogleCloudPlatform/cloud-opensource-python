@@ -13,9 +13,6 @@ Incompatibilities between packages published on the `Python Package Index (PyPI)
 has been a long standing issue. Diamond dependencies are a common problem where
 a package or application has dependencies that are, themselves, dependant on
 incompatible versions of shared packages.
-has been a long standing issue. Diamond dependency (aka dependency hell) is a
-common problem that a package’s dependencies depend on different and
-incompatible versions of the shared packages.
 
 .. _Python Package Index (PyPI): https://pypi.org/
 
@@ -38,9 +35,7 @@ Tools
 
     To detect and prevent version incompatibilities between Google OSS Python
     packages, we provide a set of tooling to ensure we are compatible with
-    ourselves. And the tooling can also run checks for any Google owned package that wants to
-    know whether it is self-compatible or compatible with a list of other packages.
-    Below lists our tooling:
+    ourselves. Below lists our tooling:
 
 Dependency Compatibility Dashboard
 ----------------------------------
