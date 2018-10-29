@@ -208,6 +208,7 @@ def _get_badge(res, badge_name):
 
         color = STATUS_COLOR_MAPPING[status]
 
+    status = status.replace('_', ' ')
     return pybadges.badge(
         left_text=badge_name,
         right_text=status,
