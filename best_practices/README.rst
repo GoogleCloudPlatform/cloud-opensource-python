@@ -10,7 +10,7 @@ Background
 ----------
 
 Incompatibilities between packages published on the `Python Package Index (PyPI)`_
-has been a long standing issue. Diamond dependencies are a common problem where
+have been a long standing issue. Diamond dependencies are a common problem where
 a package or application has dependencies that are, themselves, dependant on
 incompatible versions of shared packages.
 has been a long standing issue. Diamond dependency (aka dependency hell) is a
