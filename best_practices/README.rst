@@ -57,7 +57,7 @@ The badge server runs checks and generates an svg format badge image to show the
 status of a given package. Supported usage includes:
 
 - Self compatibility (the package has internally consistent dependencies)
-- Google-wise compatibility
+- Google-wise compatibility (the package is compatible with other Google packages)
 - Dependency version status
 - One badge for all kinds of checks above
 
