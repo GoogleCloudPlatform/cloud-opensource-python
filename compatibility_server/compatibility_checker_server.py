@@ -50,7 +50,7 @@ import wsgiref.simple_server
 import pip_checker
 
 # White list Google owned Python packages
-WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform', 'google', 'googleapis']
+WHITELIST_GITHUB_REPO = ['/GoogleCloudPlatform/', '/google/', '/googleapis/']
 
 
 def _parse_python_version_to_interpreter_mapping(s):
