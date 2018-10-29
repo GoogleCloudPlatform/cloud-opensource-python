@@ -24,7 +24,7 @@ Incompatibilities between packages can occur when:
 - A package makes breaking API changes and doesn't follow `Semantic Versioning`_
 - A package has a pinned dependency version which conflicts with other dependencies.
 - A package depends on outdated dependencies.
-- A package is depends on deprecated dependencies.
+- A package is dependent on deprecated dependencies.
 
 .. _Semantic Versioning: https://semver.org/
 
