@@ -59,7 +59,7 @@ status of a given package. Supported usage includes:
 - Self compatibility (the package has internally consistent dependencies)
 - Google-wise compatibility (the package is compatible with other Google packages)
 - Dependency version status (the package does not rely on obsolete dependencies)
-- One badge for all kinds of checks above
+- One badge for all of the checks above
 
 For more details please refer to `here`_.
 
