@@ -191,9 +191,6 @@ def _sanitize_badge_name(badge_name):
     if 'github.com' in badge_name:
         badge_name = GITHUB_HEAD_NAME
 
-    # Replace '-' with '.'
-    badge_name = badge_name.replace('-', '.')
-
     return badge_name
 
 
