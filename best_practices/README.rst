@@ -45,7 +45,7 @@ Tools
 Dependency Compatibility Dashboard
 ----------------------------------
 
-The `dashboard`_ shows the compatibility status of a list of Google owned OSS
+The `dashboard`_ shows the compatibility status of a list of Google sponsored Open Source
 Python packages.
 
 .. _dashboard: https://googlecloudplatform.github.io/cloud-opensource-python/
