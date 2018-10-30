@@ -17,14 +17,13 @@ URL for creating the badge:
 [TODO] Switch to use pybadges once figure out the module not found issue.
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
 """
-import ast
 import logging
 import os
 import requests
 import threading
 
 import flask
-import redis
+import pybadges
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
@@ -64,29 +63,15 @@ app = flask.Flask(__name__)
 #     'pkg1_api_badge':{},
 # }
 
-REDIS_CACHE = {}
-
-
-def fake_redis_get(*args, **kwargs):
-    key = args[2][0]
-    return REDIS_CACHE.get(key)
-
-
-def fake_redis_set(*args, **kwargs):
-    key = args[2][0]
-    value = str(args[2][1]).encode('utf-8')
-    REDIS_CACHE[key] = value
-
-
-# Patch away the redis connections if run locally
 if os.environ.get('RUN_LOCALLY') is not None:
-    import wrapt
-    wrapt.wrap_function_wrapper('redis', 'StrictRedis.get', fake_redis_get)
-    wrapt.wrap_function_wrapper('redis', 'StrictRedis.set', fake_redis_set)
-
-redis_host = os.environ.get('REDISHOST', '10.0.0.3')
-redis_port = int(os.environ.get('REDISPORT', 6379))
-redis_client = redis.StrictRedis(host=redis_host, port=redis_port)
+    import fake_cache
+    CACHE = fake_cache.FakeCache()
+elif os.environ.get('REDISHOST') is not None:
+    import redis_cache
+    CACHE = redis_cache.RedisCache()
+else:
+    import datastore_cache
+    CACHE = datastore_cache.DatastoreCache()
 
 checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore()
@@ -206,71 +191,55 @@ def _sanitize_badge_name(badge_name):
     if 'github.com' in badge_name:
         badge_name = GITHUB_HEAD_NAME
 
-    # Replace '-' with '.'
-    badge_name = badge_name.replace('-', '.')
-
     return badge_name
 
 
-def _get_badge_url(res, badge_name):
-    sanitized_badge_name = _sanitize_badge_name(badge_name)
+def _get_badge(res, badge_name):
+    badge_name = _sanitize_badge_name(badge_name)
     status = res.get('status')
     if status is not None:
         color = DEP_STATUS_COLOR_MAPPING[status]
     else:
         status = res['py3']['status']
-        # Badge should show the worst checking result
         if status == 'SUCCESS' and \
-            sanitized_badge_name not in \
+            badge_name not in \
                 configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
             status = res['py2']['status']
 
         color = STATUS_COLOR_MAPPING[status]
 
-    url = URL_PREFIX + '{}-{}-{}.svg'.format(
-        sanitized_badge_name, status, color)
-
-    return url
+    status = status.replace('_', ' ')
+    return pybadges.badge(
+        left_text=badge_name,
+        right_text=status,
+        right_color=color)
 
 
 def _get_self_compatibility_from_cache(package_name):
-    self_comp_res = redis_client.get(
+    result_dict = CACHE.get(
         '{}_self_comp_badge'.format(package_name))
 
-    if self_comp_res is None:
-        self_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
-    else:
-        self_comp_res = self_comp_res.decode('utf-8')
-
-    result_dict = ast.literal_eval(self_comp_res)
-
+    if result_dict is None:
+        result_dict = DEFAULT_COMPATIBILITY_RESULT
     return result_dict
 
 
 def _get_google_compatibility_from_cache(package_name):
-    google_comp_res = redis_client.get(
+    result_dict = CACHE.get(
         '{}_google_comp_badge'.format(package_name))
 
-    if google_comp_res is None:
-        google_comp_res = str(DEFAULT_COMPATIBILITY_RESULT)
-    else:
-        google_comp_res = google_comp_res.decode('utf-8')
-
-    result_dict = ast.literal_eval(google_comp_res)
+    if result_dict is None:
+        result_dict = DEFAULT_COMPATIBILITY_RESULT
 
     return result_dict
 
 
 def _get_dependency_result_from_cache(package_name):
-    dependency_res = redis_client.get(
+    result_dict = CACHE.get(
         '{}_dependency_badge'.format(package_name))
 
-    if dependency_res is None:
-        dependency_res = str(DEFAULT_DEPENDENCY_RESULT)
-    else:
-        dependency_res = dependency_res.decode('utf-8')
-
-    result_dict = ast.literal_eval(dependency_res)
+    if result_dict is None:
+        result_dict = DEFAULT_DEPENDENCY_RESULT
 
     return result_dict
 
@@ -299,13 +268,6 @@ def _get_all_results_from_cache(package_name):
 @app.route('/')
 def greetings():
     return 'hello world'
-
-
-# Endpoint for testing redis connection.
-@app.route('/redis')
-def index():
-    value = redis_client.incr('counter', 1)
-    return 'Visitor number: {}'.format(value)
 
 
 @app.route('/one_badge_image')
@@ -339,9 +301,15 @@ def one_badge_image():
 
     status, _, _, _ = _get_all_results_from_cache(package_name)
     color = STATUS_COLOR_MAPPING[status]
-    url = URL_PREFIX + '{}-{}-{}.svg'.format(badge_name, status, color)
 
-    response = flask.make_response(requests.get(url).text)
+    details_link = url_prefix + flask.url_for('one_badge_target',
+                                              package=package_name)
+    response = flask.make_response(
+        pybadges.badge(
+            left_text=badge_name,
+            right_text=status,
+            right_color=color,
+            whole_link=details_link))
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
@@ -412,26 +380,17 @@ def self_compatibility_badge_image():
                 else py3_description
             version_and_res['py3']['details'] = py3_details
 
-        url = _get_badge_url(version_and_res, badge_name)
-
         # Write the result to memory store
-        redis_client.set(
+        CACHE.set(
             '{}_self_comp_badge'.format(package_name), version_and_res)
-        return requests.get(url).text
 
-    self_comp_res = redis_client.get(
+    self_comp_res = CACHE.get(
         '{}_self_comp_badge'.format(package_name))
 
-    if self_comp_res is not None:
-        try:
-            details = ast.literal_eval(self_comp_res.decode('utf-8'))
-        except SyntaxError:
-            logging.error(
-                'Error occurs while converting to dict, value is {}.'.format(
-                    self_comp_res))
-            details = CONVERSION_ERROR_RES
-    else:
+    if self_comp_res is None:
         details = version_and_res
+    else:
+        details = self_comp_res
 
     # Run the check if there is not cached result or forced to populate the
     # cache or package not in cached package list.
@@ -440,8 +399,8 @@ def self_compatibility_badge_image():
             package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
-    url = _get_badge_url(details, badge_name)
-    response = flask.make_response(requests.get(url).text)
+    badge = _get_badge(details, badge_name)
+    response = flask.make_response(badge)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
@@ -511,26 +470,17 @@ def self_dependency_badge_image():
         res['details'] = details
         res['deprecated_deps'] = deprecated_deps
 
-        url = _get_badge_url(res, badge_name)
-
         # Write the result to memory store
-        redis_client.set(
+        CACHE.set(
             '{}_dependency_badge'.format(package_name), res)
-        return requests.get(url).text
 
-    dependency_res = redis_client.get(
+    dependency_res = CACHE.get(
         '{}_dependency_badge'.format(package_name))
 
-    if dependency_res is not None:
-        try:
-            details = ast.literal_eval(dependency_res.decode('utf-8'))
-        except SyntaxError:
-            logging.error(
-                'Error occurs while converting to dict, value is {}.'.format(
-                    dependency_res))
-            details = DEP_CONVERSION_ERROR_RES
-    else:
+    if dependency_res is None:
         details = DEFAULT_DEPENDENCY_RESULT
+    else:
+        details = dependency_res
 
     # Run the check if there is not cached result or forced to populate the
     # cache or package not in cached package list.
@@ -539,8 +489,8 @@ def self_dependency_badge_image():
             package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
-    url = _get_badge_url(details, badge_name)
-    response = flask.make_response(requests.get(url).text)
+    badge = _get_badge(details, badge_name)
+    response = flask.make_response(badge)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
@@ -622,25 +572,16 @@ def google_compatibility_badge_image():
             result = version_and_res
 
         # Write the result to memory store
-        redis_client.set(
+        CACHE.set(
             '{}_google_comp_badge'.format(package_name), result)
-        url = _get_badge_url(result, badge_name)
-        return requests.get(url).text
 
-    google_comp_res = redis_client.get(
+    google_comp_res = CACHE.get(
         '{}_google_comp_badge'.format(package_name))
 
-    if google_comp_res is not None:
-        try:
-            details = ast.literal_eval(google_comp_res.decode('utf-8'))
-        except SyntaxError:
-            logging.error(
-                'Error occurs while converting to dict, value is {}.'.format(
-                    google_comp_res))
-            details = CONVERSION_ERROR_RES
-
-    else:
+    if google_comp_res is None:
         details = DEFAULT_COMPATIBILITY_RESULT
+    else:
+        details = google_comp_res
 
     # Run the check if there is not cached result or forced to populate the
     # cache or package not in cached package list.
@@ -649,8 +590,8 @@ def google_compatibility_badge_image():
             package_name not in CACHED_PACKAGES:
         threading.Thread(target=run_check).start()
 
-    url = _get_badge_url(details, badge_name)
-    response = flask.make_response(requests.get(url).text)
+    badge = _get_badge(details, badge_name)
+    response = flask.make_response(badge)
     response.content_type = SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()

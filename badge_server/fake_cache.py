@@ -12,14 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# An image used to run a Python webserver that does compatibility checking
-# between pip-installable packages.
+"""An in-memory key/value cache."""
 
-# [START docker]
-FROM gcr.io/google_appengine/python
-ADD requirements.txt /app/requirements.txt
-RUN pip3 install -r /app/requirements.txt
-ADD . /app
-ENTRYPOINT ["python3"]
-CMD ["main.py"]
-# [END docker]
+from typing import Any
+
+
+class FakeCache:
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, name: str) -> Any:
+        """Returns a Python value given a key. None if not found."""
+        return self._cache.get(name)
+
+    def set(self, name: str, value: Any):
+        """Sets a key name to any Python object."""
+        self._cache[name] = value

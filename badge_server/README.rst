@@ -1,7 +1,9 @@
 Badge Server
 ============
 
-    Displaying the compatibility status for your package as a Github Badge.
+.. image:: http://35.226.8.89/one_badge_image?package=tensorflow
+
+Displaying the compatibility status for your package as a Github Badge.
 
 Types of badges
 ---------------
@@ -78,22 +80,8 @@ Steps for building the docker image and deploying to GKE:
 
 - Update the dependency version in `requirements.txt` if there are any.
 
-- Build the docker image with updated tag.
-
-.. code-block::
-
-    docker build -t gcr.io/python-compatibility-tools/badge_server:ver11 .
-
-- Push the image to GCR (Google Container Registry)
-
-.. code-block::
-
-    gcloud docker -- push gcr.io/python-compatibility-tools/badge_server:ver11
-
 - Deploy!
 
 .. code-block::
 
-    kubectl apply -f deployment/app-with-secret.yaml
-
-- Send a PR for updating the image tag after deployment.
+    gcloud app deploy

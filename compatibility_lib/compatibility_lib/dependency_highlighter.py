@@ -171,7 +171,7 @@ class DependencyHighlighter(object):
 
                 try:
                     latest = _sanitize_release_tag(info['latest_version'])
-                except UnstableReleaseError as err:
+                except UnstableReleaseError:
                     logging.warning(
                         'The latest version of {} is not a stable release.'
                         .format(name))
