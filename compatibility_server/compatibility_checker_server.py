@@ -102,6 +102,13 @@ class CompatibilityServer:
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify at least one package']
 
+        sanitized_packages = self._sanitize_packages(packages)
+
+        if sanitized_packages != packages:
+            start_response('400 Bad Request',
+                           [('Content-Type', 'text/plain; charset=utf-8')])
+            return [b'Request contains third party github head packages.']
+
         if not python_version:
             start_response('400 Bad Request',
                            [('Content-Type', 'text/plain; charset=utf-8')])
@@ -191,9 +198,7 @@ class CompatibilityServer:
                 environ.get('REQUEST_METHOD').encode('utf-8')
             ]
 
-        sanitized_packages = self._sanitize_packages(packages)
-        return self._check(start_response, python_version,
-                           sanitized_packages)
+        return self._check(start_response, python_version, packages)
 
     def serve(self):
         with wsgiref.simple_server.make_server(self._host, self._port,
