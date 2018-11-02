@@ -48,10 +48,18 @@
 
                             <ul class="nav nav-tabs" id="myTab" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="py2-tab" data-toggle="tab" href="#py2" role="tab" aria-controls="py2" aria-selected="true">Python 2</a>
+                                    <a class="nav-link active" id="py2-tab" data-toggle="tab" href="#py2" role="tab" aria-controls="py2" aria-selected="true">Python 2
+                                    {% if result.py2.status == "CHECK_WARNING" %}
+                                        <span class="badge badge-warning">Warning</span>
+                                    {% endif %}
+                                    </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="py3-tab" data-toggle="tab" href="#py3" role="tab" aria-controls="py3" aria-selected="false">Python 3</a>
+                                    <a class="nav-link" id="py3-tab" data-toggle="tab" href="#py3" role="tab" aria-controls="py3" aria-selected="false">Python 3
+                                    {% if result.py3.status == "CHECK_WARNING" %}
+                                        <span class="badge badge-warning">Warning</span>
+                                    {% endif %}
+                                    </a>
                                 </li>
                             </ul>
                             <div class="tab-content pl-3 p-1" id="myTabContent">

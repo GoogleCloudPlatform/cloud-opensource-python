@@ -278,6 +278,8 @@ def one_badge_image():
     if badge_name is None:
         badge_name = package_name
 
+    badge_name = _sanitize_badge_name(badge_name)
+
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
     url_prefix = flask.request.url_root[:-1]
@@ -304,6 +306,7 @@ def one_badge_image():
 
     details_link = url_prefix + flask.url_for('one_badge_target',
                                               package=package_name)
+
     response = flask.make_response(
         pybadges.badge(
             left_text=badge_name,
@@ -380,7 +383,7 @@ def self_compatibility_badge_image():
                 else py3_description
             version_and_res['py3']['details'] = py3_details
 
-        # Write the result to memory store
+        # Write the result to Cloud Datastore
         CACHE.set(
             '{}_self_comp_badge'.format(package_name), version_and_res)
 
@@ -470,7 +473,7 @@ def self_dependency_badge_image():
         res['details'] = details
         res['deprecated_deps'] = deprecated_deps
 
-        # Write the result to memory store
+        # Write the result to Cloud Datastore
         CACHE.set(
             '{}_dependency_badge'.format(package_name), res)
 
@@ -571,7 +574,7 @@ def google_compatibility_badge_image():
                             py_version]['details'][package] = details
             result = version_and_res
 
-        # Write the result to memory store
+        # Write the result to Cloud Datastore
         CACHE.set(
             '{}_google_comp_badge'.format(package_name), result)
 
