@@ -51,7 +51,6 @@ PKG_LIST = [
     'google-cloud-vision',
     'google-resumable-media',
     'apache-beam[gcp]',
-    'cloud-utils',
     'google-apitools',
     'googleapis-common-protos',
     'grpc-google-iam-v1',
