@@ -278,6 +278,8 @@ def one_badge_image():
     if badge_name is None:
         badge_name = package_name
 
+    badge_name = _sanitize_badge_name(badge_name)
+
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
     url_prefix = flask.request.url_root[:-1]
@@ -304,6 +306,7 @@ def one_badge_image():
 
     details_link = url_prefix + flask.url_for('one_badge_target',
                                               package=package_name)
+
     response = flask.make_response(
         pybadges.badge(
             left_text=badge_name,
