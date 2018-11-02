@@ -380,7 +380,7 @@ def self_compatibility_badge_image():
                 else py3_description
             version_and_res['py3']['details'] = py3_details
 
-        # Write the result to memory store
+        # Write the result to Cloud Datastore
         CACHE.set(
             '{}_self_comp_badge'.format(package_name), version_and_res)
 
@@ -470,7 +470,7 @@ def self_dependency_badge_image():
         res['details'] = details
         res['deprecated_deps'] = deprecated_deps
 
-        # Write the result to memory store
+        # Write the result to Cloud Datastore
         CACHE.set(
             '{}_dependency_badge'.format(package_name), res)
 
@@ -571,7 +571,7 @@ def google_compatibility_badge_image():
                             py_version]['details'][package] = details
             result = version_and_res
 
-        # Write the result to memory store
+        # Write the result to Cloud Datastore
         CACHE.set(
             '{}_google_comp_badge'.format(package_name), result)
 
