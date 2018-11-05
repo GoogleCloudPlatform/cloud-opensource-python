@@ -28,6 +28,7 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         packages = 'test_pkg'
         python_version = 3
+        expected_server_url = 'http://104.197.8.72'
 
         data = {
             'python-version': python_version,
@@ -47,6 +48,8 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         mock_requests.get.assert_called_with(
             compatibility_checker.SERVER_URL, params=data)
+        self.assertEqual(compatibility_checker.SERVER_URL,
+                         expected_server_url)
 
     def _mock_retrying_check(self, *args):
         packages = args[0][0]

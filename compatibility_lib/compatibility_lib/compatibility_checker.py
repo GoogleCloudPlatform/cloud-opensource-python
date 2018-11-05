@@ -22,7 +22,7 @@ import retrying
 
 from compatibility_lib import configs
 
-SERVER_URL = 'http://0.0.0.0:8888'
+SERVER_URL = 'http://104.197.8.72'
 
 PACKAGE_NOT_IN_WHITELIST = 'Request contains third party github head packages.'
 
