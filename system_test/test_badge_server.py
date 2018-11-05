@@ -86,7 +86,7 @@ class TestBadgeServer(unittest.TestCase):
         content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertIn(b"CHECK WARNING", content)
+        self.assertIn(b"CALCULATING", content)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
