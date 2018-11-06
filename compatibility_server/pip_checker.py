@@ -35,7 +35,10 @@ import urllib.request
 
 from typing import Any, List, Mapping, Optional
 
+import docker
+
 PYPI_URL = 'https://pypi.org/pypi/'
+CONTAINER_NAME = "checker:latest"
 
 
 class PipError(Exception):
@@ -197,20 +200,40 @@ class _OneshotPipCheck():
         self._tmp_path = tmp_path
         self._output_directory = None
         self._clean = clean
+        self._docker_client = docker.from_env()
 
-    @staticmethod
-    def _run_command(command, stdout_path, stderr_path, raise_on_failure=True):
-        with open(stdout_path, 'w') as stdout_file, open(stderr_path,
-                                                         'w') as stderr_file:
-            completed_command = subprocess.run(
-                command, stdout=stdout_file, stderr=stderr_file)
+        # Build and run the container for compatibility checker
+        self._run_docker()
 
-        logging.debug('Running %s [returncode=%s]', command,
-                      completed_command.returncode)
-        if completed_command.returncode and raise_on_failure:
-            raise PipError(command, completed_command.returncode, stderr_path)
+    def _run_docker(self):
+        python_version = self._pip_command[0]
 
-        return completed_command.returncode
+        if python_version == 'python2':
+            base_image = "python:2.7"
+        else:
+            base_image = "python:3.6"
+
+        container = self._docker_client.containers.run(
+            base_image,
+            stderr=True,
+            detach=True)
+        container.wait()
+        container.commit(CONTAINER_NAME)
+
+    def _run_command(self, command, stdout_path, stderr_path):
+        container = self._docker_client.containers.run(
+            CONTAINER_NAME, command=command, stderr=True, detach=True)
+        result = container.wait()
+        returncode = result.get('StatusCode')
+        stdout = container.logs(stdout=True, stderr=False)
+        stderr = container.logs(stdout=False, stderr=True)
+
+        with open(stdout_path, 'wb') as stdout_file,\
+                open(stderr_path, 'wb') as stderr_file:
+            stdout_file.write(stdout)
+            stderr_file.write(stderr)
+
+        return returncode
 
     @staticmethod
     def _call_pypi_json_api(pkg_name, pkg_version):
@@ -255,7 +278,7 @@ class _OneshotPipCheck():
                                     'install-error.txt')
         command = self._build_command(['install', '-U'] + self._packages)
         returncode = self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+            command, std_out_path, std_err_path)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.INSTALL_ERROR,
@@ -267,7 +290,7 @@ class _OneshotPipCheck():
         std_err_path = os.path.join(self._output_directory, 'check-error.txt')
         command = self._build_command(['check'])
         returncode = self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+            command, std_out_path, std_err_path)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.CHECK_WARNING,
@@ -284,7 +307,7 @@ class _OneshotPipCheck():
         # Get the package installed version and latest version
         command = self._build_command(['list', '--format=json'])
         self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+            command, std_out_path, std_err_path)
 
         pip_list_result = json.loads(self._read(std_out_path))
 
@@ -295,7 +318,7 @@ class _OneshotPipCheck():
 
         command = self._build_command(['list', '-o', '--format=json'])
         self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+            command, std_out_path, std_err_path)
 
         pip_list_latest_result = json.loads(self._read(std_out_path))
 
@@ -333,11 +356,11 @@ class _OneshotPipCheck():
                         latest_version)
                     installed_release = result.get('releases').get(
                         installed_version)
-                if latest_release:
-                    latest_version_time = latest_release[0].get('upload_time')
-                if installed_release:
-                    installed_version_time = installed_release[0].get(
-                        'upload_time')
+                    if latest_release:
+                        latest_version_time = latest_release[0].get('upload_time')
+                    if installed_release:
+                        installed_version_time = installed_release[0].get(
+                            'upload_time')
 
             pkg_info = {
                 'installed_version': installed_version,
