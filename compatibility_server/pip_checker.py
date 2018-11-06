@@ -36,9 +36,14 @@ import urllib.request
 from typing import Any, List, Mapping, Optional
 
 import docker
+from opencensus.trace import tracer
+from opencensus.trace.exporters import stackdriver_exporter
+exporter = stackdriver_exporter.StackdriverExporter()
+tracer = tracer.Tracer(exporter=exporter)
 
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_NAME = "checker:latest"
+CONTAINER_WITH_PKG = "checker_pkgs:latest"
 
 
 class PipError(Exception):
@@ -205,6 +210,7 @@ class _OneshotPipCheck():
         # Build and run the container for compatibility checker
         self._run_docker()
 
+    @tracer.trace_decorator()
     def _run_docker(self):
         python_version = self._pip_command[0]
 
@@ -220,11 +226,34 @@ class _OneshotPipCheck():
         container.wait()
         container.commit(CONTAINER_NAME)
 
-    def _run_command(self, command, stdout_path, stderr_path):
+    @tracer.trace_decorator()
+    def _build_container(self,
+                         container_name,
+                         command,
+                         stderr=True,
+                         detach=True):
         container = self._docker_client.containers.run(
-            CONTAINER_NAME, command=command, stderr=True, detach=True)
+            container_name,
+            command=command,
+            stderr=stderr,
+            detach=detach)
         result = container.wait()
         returncode = result.get('StatusCode')
+        return container, returncode
+
+    @tracer.trace_decorator()
+    def _run_command(self, command, stdout_path, stderr_path):
+        # Create a new container if running pip install
+        if 'install' in command:
+            container, returncode = self._build_container(
+                container_name=CONTAINER_NAME,
+                command=command)
+            container.commit(CONTAINER_WITH_PKG)
+        else:
+            container, returncode = self._build_container(
+                container_name=CONTAINER_WITH_PKG,
+                command=command)
+
         stdout = container.logs(stdout=True, stderr=False)
         stderr = container.logs(stdout=False, stderr=True)
 
@@ -271,6 +300,7 @@ class _OneshotPipCheck():
         with open(path) as f:
             return f.read()
 
+    @tracer.trace_decorator()
     def _install(self):
         std_out_path = os.path.join(self._output_directory,
                                     'install-out.txt')
@@ -285,6 +315,7 @@ class _OneshotPipCheck():
                                   self._read(std_err_path))
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
+    @tracer.trace_decorator()
     def _check(self):
         std_out_path = os.path.join(self._output_directory, 'check-out.txt')
         std_err_path = os.path.join(self._output_directory, 'check-error.txt')
@@ -297,6 +328,7 @@ class _OneshotPipCheck():
                                   self._read(std_out_path))
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
+    @tracer.trace_decorator()
     def _list(self):
         """Use pypi json api to get the release date of the latest version."""
         std_out_path = os.path.join(self._output_directory, 'list-out.txt')
@@ -375,6 +407,7 @@ class _OneshotPipCheck():
 
         return pkg_version_date
 
+    @tracer.trace_decorator()
     def run(self):
         """Run the version compatibility check."""
         self._output_directory = tempfile.mkdtemp(dir=self._tmp_path)
@@ -392,6 +425,8 @@ class _OneshotPipCheck():
 
         if install_result.result_type == PipCheckResultType.SUCCESS:
             install_result = self._check()
+
+        self._docker_client.containers.prune()
 
         return install_result.with_extra_attrs(
             dependency_info=dependency_info)
