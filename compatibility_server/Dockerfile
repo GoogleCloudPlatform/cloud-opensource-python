@@ -68,28 +68,10 @@ RUN make distclean >/dev/null
 WORKDIR /tmp
 RUN rm -rf /tmp/Pyt/tmp/Python-3.6.5
 
-# Install an independent a pristine version of Python 2.7 for dependency
-# testing.
-RUN curl -s -S -O https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz \
-  && tar -xzf Python-2.7.15.tgz && \
-  rm Python-2.7.15.tgz
-WORKDIR /tmp/Python-2.7.15
-RUN ./configure --prefix=/compatibility-checker >/dev/null
-RUN make >make.out
-RUN ! grep -A 2 "to build these optional modules were not found" make.out
-RUN make install >/dev/null
-RUN make distclean >/dev/null
-WORKDIR /tmp
-RUN rm -rf /tmp/Python-2.7.15
-
-# Install pip in the two Python versions used for dependency testing.
-RUN curl -s -S -O https://bootstrap.pypa.io/get-pip.py && \
-  /compatibility-checker/bin/python2.7 get-pip.py && \
-  /compatibility-checker/bin/python3.6 get-pip.py && \
-  rm get-pip.py
-
 COPY compatibility_checker_server.py /compatibility-checker
 COPY pip_checker.py /compatibility-checker
+
+RUN pip3 install docker
 
 EXPOSE 8888
 
@@ -101,5 +83,4 @@ CMD python3 /compatibility-checker/compatibility_checker_server.py \
      --host=0.0.0.0 --port=8888 \
      ${EXTRA_COMMAND_ARGUMENTS} \
      --python-version \
-     2:/compatibility-checker/bin/python2.7,3:/compatibility-checker/bin/python3.6
-
+     2:python2,3:python3
