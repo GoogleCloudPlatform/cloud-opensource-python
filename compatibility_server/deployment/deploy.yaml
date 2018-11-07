@@ -31,7 +31,7 @@ spec:
       containers:
       - image: gcr.io/python-compatibility-tools/compatibility-server:v1
         imagePullPolicy: IfNotPresent
-        name: checker11
+        name: compatibility-server
         ports:
         - containerPort: 8888
           protocol: TCP
