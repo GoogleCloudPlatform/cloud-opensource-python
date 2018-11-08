@@ -187,9 +187,7 @@ class _OneshotPipCheck():
 
     def __init__(self,
                  pip_command: List[str],
-                 packages: List[str],
-                 tmp_path: str,
-                 clean: bool):
+                 packages: List[str]):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -398,8 +396,7 @@ class _OneshotPipCheck():
 
 
 def check(pip_command: List[str],
-          packages: List[str],
-          tmp_path: str = None) -> PipCheckResultType:
+          packages: List[str]) -> PipCheckResultType:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
@@ -415,6 +412,5 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
-        tmp_path: The file system path to use for temporary files e.g. "/tmp".
     """
-    return _OneshotPipCheck(pip_command, packages, tmp_path, clean).run()
+    return _OneshotPipCheck(pip_command, packages).run()

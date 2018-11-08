@@ -76,22 +76,16 @@ def _parse_python_version_to_interpreter_mapping(s):
 
 class CompatibilityServer:
 
-    def __init__(self, host: str, port: int, clean: bool, install_once: bool):
+    def __init__(self, host: str, port: int):
         """Initialize an HTTP server that checks for pip package compatibility.
 
         Args:
             host: The host name to listen on e.g. "localhost".
             port: The port number to listen on e.g. 80.
-            clean: If True then uninstall previously installed packages before
-                handling each request.
-            install_once: If True then the server will exit after handling a
-                single request that involves installing pip packages.
         """
         self._host = host
         self._port = port
-        self._clean = clean
         self._python_version_to_interpreter = PYTHON_VERSION_TO_INTERPRETER
-        self._install_once = install_once
 
     def _shutdown(self):
         threading.Thread(target=self._httpd.shutdown).start()
@@ -123,9 +117,6 @@ class CompatibilityServer:
                         self._python_version_to_interpreter).encode('utf-8'))
             ]
         python_command = self._python_version_to_interpreter[python_version]
-
-        if self._install_once:
-            self._shutdown()
 
         try:
             pip_result = pip_checker.check(
@@ -220,13 +211,9 @@ def main():
         type=int,
         default=8888,
         help='port to which the server should bind')
-    parser.add_argument(
-        '--install-once',
-        action='store_true',
-        help='exit after doing a single "pip install" command')
     args = parser.parse_args()
     logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
-    CompatibilityServer(args.host, args.port, args.install_once).serve()
+    CompatibilityServer(args.host, args.port).serve()
 
 
 if __name__ == '__main__':
