@@ -87,6 +87,7 @@ def system(session, py):
         'py.test',
         '-s',
         'system_test/',
+        '--ignore=system_test/test_compatibility_checker_server.py',
         *session.posargs
     )
 

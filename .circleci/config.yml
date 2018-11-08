@@ -13,17 +13,6 @@ jobs:
 
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Install Docker client
-          command: |
-            apt-get --quiet=2 update && apt-get --quiet=2 install curl
-            set -x
-            VER="17.03.0-ce"
-            curl -L -o /tmp/docker-$VER.tgz https://download.docker.com/linux/static/stable/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            mv /tmp/docker/* /usr/bin
-            docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
       - run:
           name: Decrypt credentials
           command: |
