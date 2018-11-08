@@ -295,13 +295,13 @@ class _OneshotPipCheck():
         _, list_all = self._run_command(
             command, stdout=True, stderr=False, raise_on_failure=False)
 
-        pip_list_result = json.loads(list_all)
+        pip_list_result = json.loads(list_all.decode('utf-8'))
 
         command = self._build_command(['list', '-o', '--format=json'])
         _, list_outdated = self._run_command(
             command, stdout=True, stderr=False, raise_on_failure=False)
 
-        pip_list_latest_result = json.loads(list_outdated)
+        pip_list_latest_result = json.loads(list_outdated.decode('utf-8'))
 
         # Get the outdated packages and latest versions
         outdated_pkgs = {}
