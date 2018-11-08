@@ -55,6 +55,11 @@ WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform/',
                          'google/',
                          'googleapis/']
 
+PYTHON_VERSION_TO_INTERPRETER = {
+    '2': 'python2',
+    '3': 'python3',
+}
+
 
 def _parse_python_version_to_interpreter_mapping(s):
     version_to_interpreter = {}
@@ -71,9 +76,7 @@ def _parse_python_version_to_interpreter_mapping(s):
 
 class CompatibilityServer:
 
-    def __init__(self, host: str, port: int, clean: bool,
-                 python_version_to_interpreter: typing.Mapping[str, str],
-                 install_once: bool):
+    def __init__(self, host: str, port: int, clean: bool, install_once: bool):
         """Initialize an HTTP server that checks for pip package compatibility.
 
         Args:
@@ -81,16 +84,13 @@ class CompatibilityServer:
             port: The port number to listen on e.g. 80.
             clean: If True then uninstall previously installed packages before
                 handling each request.
-            python_version_to_interpreter: Maps python version e.g. "3" to
-                a Python interpreter that can corresponds to that version e.g.
-                "/usr/bin/python3.6"
             install_once: If True then the server will exit after handling a
                 single request that involves installing pip packages.
         """
         self._host = host
         self._port = port
         self._clean = clean
-        self._python_version_to_interpreter = python_version_to_interpreter
+        self._python_version_to_interpreter = PYTHON_VERSION_TO_INTERPRETER
         self._install_once = install_once
 
     def _shutdown(self):
@@ -129,19 +129,17 @@ class CompatibilityServer:
 
         try:
             pip_result = pip_checker.check(
-                [python_command, '-m', 'pip'], packages, clean=self._clean)
-        except pip_checker.PipError as pip_error:
+                [python_command, '-m', 'pip'], packages)
+        except pip_checker.PipCheckerError as pip_error:
             start_response('500 Internal Server Error',
                            [('Content-Type', 'text/plain; charset=utf-8')])
-            with open(pip_error.stderr_path, 'r') as f:
-                error_text = f.read()
-            logging.error('pip command ("%s") failed with:\n%s\n',
-                          pip_error.command_string, error_text)
+            logging.error('Command ("%s") failed with:\n%s\n',
+                          pip_error.command_string, pip_error.error_msg)
             return [
                 b'pip command ("%s") ' % pip_error.command_string.encode(
                     'utf-8'),
                 b'failed with:\n',
-                error_text.encode('utf-8'), b'\n'
+                pip_error.error_msg, b'\n'
             ]
         results = dict(
             result=pip_result.result_type.name,
@@ -223,25 +221,12 @@ def main():
         default=8888,
         help='port to which the server should bind')
     parser.add_argument(
-        '--clean',
-        action='store_true',
-        help='uninstall existing packages before performing dependency ' +
-             'checking')
-    parser.add_argument(
         '--install-once',
         action='store_true',
         help='exit after doing a single "pip install" command')
-    parser.add_argument(
-        '--python-versions',
-        type=_parse_python_version_to_interpreter_mapping,
-        default='2:python2,3:python3',
-        help='maps version strings to the Python command to execute when ' +
-             'running that version e.g. "2:python2;2,3:python3;' +
-             '3.5:/usr/bin/python3.5;3.6:/usr/bin/python3.6"')
     args = parser.parse_args()
     logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
-    CompatibilityServer(args.host, args.port, args.clean, args.python_versions,
-                        args.install_once).serve()
+    CompatibilityServer(args.host, args.port, args.install_once).serve()
 
 
 if __name__ == '__main__':
