@@ -208,7 +208,7 @@ class _OneshotPipCheck():
         if python_version == 'python2':
             base_image = "python:2.7"
         else:
-            base_image = "googleapis/nox:0.17.0"
+            base_image = "python:3.6"
 
         return base_image
 
