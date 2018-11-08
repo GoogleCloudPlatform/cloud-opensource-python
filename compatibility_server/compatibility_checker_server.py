@@ -43,7 +43,6 @@ import json
 import logging
 import pprint
 import threading
-import typing
 import urllib.parse
 import wsgiref.simple_server
 

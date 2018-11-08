@@ -27,9 +27,7 @@ import datetime
 import enum
 import json
 import logging
-import os.path
 import shlex
-import tempfile
 import urllib.request
 
 from typing import Any, List, Mapping, Optional
