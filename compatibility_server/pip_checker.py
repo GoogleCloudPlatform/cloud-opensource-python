@@ -207,7 +207,7 @@ class _OneshotPipCheck():
 
         if python_version == 'python2':
             base_image = "python:2.7"
-        elif python_version == 'python3':
+        else:
             base_image = "python:3.6"
 
         return base_image
@@ -266,7 +266,7 @@ class _OneshotPipCheck():
     def _install(self):
         command = self._build_command(['install', '-U'] + self._packages)
         returncode, output = self._run_command(
-            command, stdout=False, stderr=True)
+            command, stdout=False, stderr=True, raise_on_failure=False)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.INSTALL_ERROR,
@@ -293,13 +293,13 @@ class _OneshotPipCheck():
         # Get the package installed version and latest version
         command = self._build_command(['list', '--format=json'])
         _, list_all = self._run_command(
-            command, stdout=True, stderr=False)
+            command, stdout=True, stderr=False, raise_on_failure=False)
 
         pip_list_result = json.loads(list_all)
 
         command = self._build_command(['list', '-o', '--format=json'])
         _, list_outdated = self._run_command(
-            command, stdout=True, stderr=False)
+            command, stdout=True, stderr=False, raise_on_failure=False)
 
         pip_list_latest_result = json.loads(list_outdated)
 
@@ -338,7 +338,8 @@ class _OneshotPipCheck():
                     installed_release = result.get('releases').get(
                         installed_version)
                     if latest_release:
-                        latest_version_time = latest_release[0].get('upload_time')
+                        latest_version_time = latest_release[0].get(
+                            'upload_time')
                     if installed_release:
                         installed_version_time = installed_release[0].get(
                             'upload_time')

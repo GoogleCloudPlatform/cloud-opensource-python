@@ -21,9 +21,45 @@ Uses a script "fake_pip.py" to simulate the behavior of the pip
 import json
 import mock
 import os.path
+import subprocess
 import unittest
 
 import pip_checker
+
+
+class MockDockerClient(object):
+
+    def __init__(self):
+        self.containers = MockContainer()
+
+
+class MockContainer(object):
+
+    def __init__(self):
+        self.is_running = False
+
+    def create(self, image, command=None, **kwargs):
+        return self
+
+    def start(self):
+        self.is_running = True
+
+    def stop(self):
+        self.is_running = False
+
+    def remove(self):
+        pass
+
+    def exec_run(self, cmd, stdout=True, stderr=True):
+        _stdout = subprocess.PIPE if stdout else None
+        _stderr = subprocess.PIPE if stderr else None
+        result = subprocess.run(
+            cmd, stderr=_stderr, stdout=_stdout)
+
+        output = result.stdout if stdout else b''
+        output += result.stderr if stderr else b''
+
+        return result.returncode, output
 
 
 class TestPipChecker(unittest.TestCase):
@@ -33,7 +69,9 @@ class TestPipChecker(unittest.TestCase):
                                            'fake_pip.py')
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
-    def test_success(self, mock__call_pypi_json_api):
+    @mock.patch('pip_checker.docker.from_env')
+    def test_success(self, mock_docker, mock__call_pypi_json_api):
+        mock_docker.return_value=MockDockerClient()
         expected_list_output = [{
             'name': 'six',
             'version': '1.2.3',
@@ -92,7 +130,9 @@ class TestPipChecker(unittest.TestCase):
             expected_check_result)
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
-    def test_success_with_clean(self, mock__call_pypi_json_api):
+    @mock.patch('pip_checker.docker.from_env')
+    def test_success_with_clean(self, mock_docker, mock__call_pypi_json_api):
+        mock_docker.return_value = MockDockerClient()
         expected_list_output = [{
             'name': 'six',
             'version': '1.2.3',
@@ -151,7 +191,9 @@ class TestPipChecker(unittest.TestCase):
             check_result,
             expected_check_result)
 
-    def test_install_failure(self):
+    @mock.patch('pip_checker.docker.from_env')
+    def test_install_failure(self, mock_docker):
+        mock_docker.return_value = MockDockerClient()
         check_result = pip_checker.check(
             pip_command=[
                 self._fake_pip_path, '--expected-install-args=-U,six',
@@ -163,11 +205,13 @@ class TestPipChecker(unittest.TestCase):
             pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.INSTALL_ERROR,
-                result_text='bad-install',
+                result_text=b'bad-install',
                 dependency_info=None))
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
-    def test_check_warning(self, mock__call_pypi_json_api):
+    @mock.patch('pip_checker.docker.from_env')
+    def test_check_warning(self, mock_docker, mock__call_pypi_json_api):
+        mock_docker.return_value = MockDockerClient()
         expected_list_output = [{
             'name': 'six',
             'version': '1.2.3',
@@ -220,23 +264,25 @@ class TestPipChecker(unittest.TestCase):
         expected_check_result = pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.CHECK_WARNING,
-                result_text='bad-check',
+                result_text=b'',
                 dependency_info=expected_dependency_info)
-
-        print(check_result)
 
         self.assertEqual(
             check_result,
             expected_check_result)
 
-    def test_freeze_error(self):
+    @mock.patch('pip_checker.docker.from_env')
+    def test_freeze_error(self, mock_docker):
+        mock_docker.return_value = MockDockerClient()
         with self.assertRaises(pip_checker.PipError) as e:
             pip_checker.check(
                 pip_command=[self._fake_pip_path, '--freeze-returncode=1'],
                 packages=['six'], clean=True)
         self.assertIn('freeze', e.exception.command)
 
-    def test_uninstall_error(self):
+    @mock.patch('pip_checker.docker.from_env')
+    def test_uninstall_error(self, mock_docker):
+        mock_docker.return_value = MockDockerClient()
         with self.assertRaises(pip_checker.PipError) as e:
             pip_checker.check(
                 pip_command=[
