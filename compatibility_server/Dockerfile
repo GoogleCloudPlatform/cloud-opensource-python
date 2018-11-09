@@ -14,23 +14,14 @@
 
 # An image used to run a Python webserver that does compatibility checking
 # between pip-installable packages.
-#
-# Contains three independent versions of Python:
-#  - python 3.6: used to run the web application
-#  - python 3.6.5: used for python3 pip installation (build from source)
-#  - python 2.7.15: used for python2 pip installation (build from source)
 
 FROM python:3.6
-
-# Create /etc/timezone so the package `tzdata` won't prompt for time zone information.
-ENV TZ=America/Los_Angeles
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN mkdir /compatibility_checker
 ADD compatibility_checker_server.py /compatibility_checker
 ADD pip_checker.py /compatibility_checker
 
-RUN pip3 install docker
+RUN pip3 install docker requests
 
 EXPOSE 8888
 

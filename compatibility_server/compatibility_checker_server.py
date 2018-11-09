@@ -42,7 +42,6 @@ import collections.abc
 import json
 import logging
 import pprint
-import threading
 import urllib.parse
 import wsgiref.simple_server
 
@@ -85,9 +84,6 @@ class CompatibilityServer:
         self._host = host
         self._port = port
         self._python_version_to_interpreter = PYTHON_VERSION_TO_INTERPRETER
-
-    def _shutdown(self):
-        threading.Thread(target=self._httpd.shutdown).start()
 
     def _check(self, start_response, python_version, packages):
         if not packages:

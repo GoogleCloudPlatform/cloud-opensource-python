@@ -27,21 +27,29 @@ import datetime
 import enum
 import json
 import logging
+import requests
 import shlex
+import socket
 import urllib.request
 
 from typing import Any, List, Mapping, Optional
 
 import docker
 
+socket.setdefaulttimeout(3)
+
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
+TIME_OUT = 300  # seconds
 
 
 class PipCheckerError(Exception):
     """A pip or docker command failed in an unexpected way."""
 
-    def __init__(self, error_msg, command='', returncode=None):
+    def __init__(self,
+                 error_msg: str,
+                 command: Optional[str]='',
+                 returncode: Optional[int]=None):
         super(PipCheckerError, self).__init__(
             'Command ({command}) failed with error [{returncode}], '
             'logs are: {error_msg}'.format(
@@ -212,32 +220,38 @@ class _OneshotPipCheck():
 
     @property
     def _build_container(self):
-        """Build the container which contains a Python interpreter."""
+        """Build the container which contains a Python interpreter. The timeout
+        for running the commands is 300 seconds. Container will stop running
+        after the timeout.
+        """
         base_image = self._get_base_image()
 
         try:
-            container = self._docker_client.containers.create(
+            container = self._docker_client.containers.run(
                 base_image,
-                command="/bin/bash",
-                tty=True,
-                stdin_open=True)
-            container.start()
-        except docker.errors.APIError:
+                command="sleep {}".format(TIME_OUT),
+                detach=True)
+        except docker.errors.APIError as e:
             raise PipCheckerError(
-                error_msg="Error occurs when creating docker container.")
+                error_msg="Error occurs when starting docker container."
+                          "Error message: {}".format(e.explanation))
 
         return container
 
     def _cleanup_container(self):
-        """Stop and remove the container."""
+        """Remove the container."""
         try:
-            self._container.stop()
             self._container.remove()
-        except docker.errors.APIError:
+        except (docker.errors.APIError, docker.errors.NotFound):
             raise PipCheckerError(
-                error_msg="Error occurs when cleaning up docker container.")
+                error_msg="Error occurs when cleaning up docker container."
+                          "Container does not exist.")
 
-    def _run_command(self, command, stdout, stderr, raise_on_failure=True):
+    def _run_command(self,
+                     command: str,
+                     stdout: bool,
+                     stderr:bool,
+                     raise_on_failure: Optional[bool]=True):
         """Run docker commands using docker python sdk.
 
         Args:
@@ -249,8 +263,14 @@ class _OneshotPipCheck():
         Returns:
             A tuple containing returncode and output.
         """
-        returncode, output = self._container.exec_run(
-            command, stdout=stdout, stderr=stderr)
+        try:
+            returncode, output = self._container.exec_run(
+                command, stdout=stdout, stderr=stderr)
+        except docker.errors.APIError as e:
+            raise PipCheckerError(error_msg="Error occurs when executing"
+                                            "commands in container."
+                                            "Error message: "
+                                            "{}".format(e.explanation))
 
         if returncode and raise_on_failure:
             raise PipCheckerError(error_msg=output,
@@ -260,7 +280,7 @@ class _OneshotPipCheck():
         return returncode, output
 
     @staticmethod
-    def _call_pypi_json_api(pkg_name, pkg_version):
+    def _call_pypi_json_api(pkg_name: str, pkg_version: str):
         """Call PyPI json api to get the dependency info."""
         pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(pkg_name, pkg_version)
 
@@ -275,7 +295,7 @@ class _OneshotPipCheck():
             return None
         return result
 
-    def _build_command(self, subcommands):
+    def _build_command(self, subcommands: str):
         """Build pip commands."""
         return self._pip_command + subcommands
 
