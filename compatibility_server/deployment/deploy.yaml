@@ -47,7 +47,7 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
-      terminationGracePeriodSeconds: 300
+      terminationGracePeriodSeconds: 310
       volumes:
       - hostPath:
           path: /var/run/docker.sock
