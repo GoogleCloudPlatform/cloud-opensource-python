@@ -44,17 +44,12 @@ TIME_OUT = 300  # seconds
 
 
 class PipCheckerError(Exception):
-    """A pip or docker command failed in an unexpected way."""
+    """Pip checker failed in an unexpected way."""
 
-    def __init__(self,
-                 error_msg: str,
-                 command: Optional[str]='',
-                 returncode: Optional[int]=None):
+    def __init__(self, error_msg: str):
         super(PipCheckerError, self).__init__(
-            'Command ({command}) failed with error [{returncode}], '
-            'logs are: {error_msg}'.format(
-                command=command, returncode=returncode,
-                error_msg=error_msg))
+            'Pip Checker failed, '
+            'logs are: {error_msg}'.format(error_msg=error_msg))
 
         # Convert error_msg to bytes as this needed to be returned in the
         # response which should be bytes. And the message returned from docker
@@ -64,6 +59,18 @@ class PipCheckerError(Exception):
         else:
             self.error_msg = error_msg
 
+
+class PipError(PipCheckerError):
+    """A pip command failed in an unexpected way."""
+
+    def __init__(self, error_msg: List[str], command: str, returncode: int):
+        super(PipError, self).__init__(
+            'Pip command ({command}) failed with error [{returncode}], '
+            'logs at: {error_msg}'.format(
+                command=command, returncode=returncode,
+                error_msg=error_msg))
+
+        self.error_msg = error_msg
         self.command = command
         self.returncode = returncode
 
@@ -273,9 +280,9 @@ class _OneshotPipCheck():
                                             "{}".format(e.explanation))
 
         if returncode and raise_on_failure:
-            raise PipCheckerError(error_msg=output,
-                                  command=command,
-                                  returncode=returncode)
+            raise PipError(error_msg=output,
+                           command=command,
+                           returncode=returncode)
 
         return returncode, output
 
