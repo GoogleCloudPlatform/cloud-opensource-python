@@ -27,7 +27,6 @@ import datetime
 import enum
 import json
 import logging
-import requests
 import shlex
 import socket
 import urllib.request
@@ -260,8 +259,8 @@ class _OneshotPipCheck():
                      container: docker.models.containers.Container,
                      command: List[str],
                      stdout: bool,
-                     stderr:bool,
-                     raise_on_failure: Optional[bool]=True):
+                     stderr: bool,
+                     raise_on_failure: Optional[bool] = True):
         """Run docker commands using docker python sdk.
 
         Args:
@@ -276,8 +275,13 @@ class _OneshotPipCheck():
         try:
             returncode, output = container.exec_run(
                 command, stdout=stdout, stderr=stderr)
+
+            if isinstance(output, bytes):
+                output = output.decode('utf-8')
         except docker.errors.APIError as e:
-            raise PipCheckerError(error_msg="Error occurs when executing"
+            # Clean up the container if command fails
+            self._cleanup_container(container)
+            raise PipCheckerError(error_msg="Error occurs when executing "
                                             "commands in container."
                                             "Error message: "
                                             "{}".format(e.explanation))
@@ -333,7 +337,7 @@ class _OneshotPipCheck():
         returncode, output = self._run_command(
             container,
             command,
-            stdout=False,
+            stdout=True,
             stderr=True,
             raise_on_failure=False)
         if returncode:
@@ -356,7 +360,7 @@ class _OneshotPipCheck():
             stderr=False,
             raise_on_failure=False)
 
-        pip_list_result = json.loads(list_all.decode('utf-8'))
+        pip_list_result = json.loads(list_all)
 
         command = self._build_command(['list', '-o', '--format=json'])
         _, list_outdated = self._run_command(
@@ -366,7 +370,7 @@ class _OneshotPipCheck():
             stderr=False,
             raise_on_failure=False)
 
-        pip_list_latest_result = json.loads(list_outdated.decode('utf-8'))
+        pip_list_latest_result = json.loads(list_outdated)
 
         # Get the outdated packages and latest versions
         outdated_pkgs = {}
