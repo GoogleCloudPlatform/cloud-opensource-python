@@ -27,6 +27,20 @@ import unittest
 import pip_checker
 
 
+def timestamp_to_seconds(timestamp):
+    """Convert a timestamp string into a microseconds value
+    :param timestamp
+    :return time in microseconds
+    """
+    from datetime import datetime
+    import calendar
+
+    ISO_DATETIME_REGEX = '%Y-%m-%dT%H:%M:%S.%fZ'
+    timestamp_str = datetime.strptime(timestamp, ISO_DATETIME_REGEX)
+    epoch_time_secs = calendar.timegm(timestamp_str.timetuple())
+    return epoch_time_secs
+
+
 class MockDockerClient(object):
 
     def __init__(self):
@@ -37,6 +51,7 @@ class MockContainer(object):
 
     def __init__(self):
         self.is_running = False
+        self.start_time = None
 
     def create(self, image, command=None, **kwargs):
         return self
@@ -50,7 +65,17 @@ class MockContainer(object):
     def remove(self):
         pass
 
+    def run(self, base_image, command, detach=True):
+        from datetime import datetime
+
+        self.start_time = timestamp_to_seconds(
+            datetime.utcnow().isoformat() + 'Z')
+        return self
+
     def exec_run(self, cmd, stdout=True, stderr=True):
+        import docker
+        from datetime import datetime
+
         _stdout = subprocess.PIPE if stdout else None
         _stderr = subprocess.PIPE if stderr else None
         result = subprocess.run(
@@ -58,6 +83,14 @@ class MockContainer(object):
 
         output = result.stdout if stdout else b''
         output += result.stderr if stderr else b''
+
+        current_time = timestamp_to_seconds(
+            datetime.utcnow().isoformat() + 'Z')
+        duration = current_time - self.start_time
+
+        if duration > pip_checker.TIME_OUT:
+            raise docker.errors.APIError(message="time out",
+                                         explanation="Request time out.")
 
         return result.returncode, output
 
@@ -67,6 +100,25 @@ class TestPipChecker(unittest.TestCase):
     def setUp(self):
         self._fake_pip_path = os.path.join(os.path.dirname(__file__),
                                            'fake_pip.py')
+
+    def test__run_command_success(self):
+        command = [
+                self._fake_pip_path, '--expected-install-args=-U,six',
+                '--install-returncode=1', '--install-output=bad-install'
+            ]
+        checker = pip_checker._OneshotPipCheck(['python3'], packages=['six'])
+        container = checker._build_container(MockDockerClient())
+
+        returncode, output = checker._run_command(
+            container,
+            command,
+            stdout=True,
+            stderr=True,
+            raise_on_failure=False)
+
+        print(output)
+
+        self.assertEqual(output, 'hahaha')
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     @mock.patch('pip_checker.docker.from_env')

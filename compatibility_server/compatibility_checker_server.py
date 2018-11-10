@@ -119,12 +119,10 @@ class CompatibilityServer:
         except pip_checker.PipCheckerError as pip_error:
             start_response('500 Internal Server Error',
                            [('Content-Type', 'text/plain; charset=utf-8')])
-            logging.error('Command ("%s") failed with:\n%s\n',
-                          pip_error.command_string, pip_error.error_msg)
+            logging.error('Command failed with:\n%s\n',
+                          pip_error.error_msg)
             return [
-                b'pip command ("%s") ' % pip_error.command_string.encode(
-                    'utf-8'),
-                b'failed with:\n',
+                b'pip command failed with:\n',
                 pip_error.error_msg, b'\n'
             ]
         results = dict(

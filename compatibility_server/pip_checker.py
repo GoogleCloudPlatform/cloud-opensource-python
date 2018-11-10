@@ -63,7 +63,10 @@ class PipCheckerError(Exception):
 class PipError(PipCheckerError):
     """A pip command failed in an unexpected way."""
 
-    def __init__(self, error_msg: List[str], command: str, returncode: int):
+    def __init__(self,
+                 error_msg: List[str],
+                 command: List[str],
+                 returncode: int):
         super(PipError, self).__init__(
             'Pip command ({command}) failed with error [{returncode}], '
             'logs at: {error_msg}'.format(
@@ -211,8 +214,6 @@ class _OneshotPipCheck():
         """
         self._pip_command = pip_command
         self._packages = packages
-        self._docker_client = docker.from_env()
-        self._container = self._build_container
 
     def _get_base_image(self):
         """Get the base image name based on Python version."""
@@ -225,8 +226,7 @@ class _OneshotPipCheck():
 
         return base_image
 
-    @property
-    def _build_container(self):
+    def _build_container(self, docker_client):
         """Build the container which contains a Python interpreter. The timeout
         for running the commands is 300 seconds. Container will stop running
         after the timeout.
@@ -234,7 +234,7 @@ class _OneshotPipCheck():
         base_image = self._get_base_image()
 
         try:
-            container = self._docker_client.containers.run(
+            container = docker_client.containers.run(
                 base_image,
                 command="sleep {}".format(TIME_OUT),
                 detach=True)
@@ -245,17 +245,20 @@ class _OneshotPipCheck():
 
         return container
 
-    def _cleanup_container(self):
+    def _cleanup_container(self,
+                           container: docker.models.containers.Container):
         """Remove the container."""
         try:
-            self._container.remove()
+            container.stop()
+            container.remove()
         except (docker.errors.APIError, docker.errors.NotFound):
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
                           "Container does not exist.")
 
     def _run_command(self,
-                     command: str,
+                     container: docker.models.containers.Container,
+                     command: List[str],
                      stdout: bool,
                      stderr:bool,
                      raise_on_failure: Optional[bool]=True):
@@ -271,7 +274,7 @@ class _OneshotPipCheck():
             A tuple containing returncode and output.
         """
         try:
-            returncode, output = self._container.exec_run(
+            returncode, output = container.exec_run(
                 command, stdout=stdout, stderr=stderr)
         except docker.errors.APIError as e:
             raise PipCheckerError(error_msg="Error occurs when executing"
@@ -302,36 +305,44 @@ class _OneshotPipCheck():
             return None
         return result
 
-    def _build_command(self, subcommands: str):
+    def _build_command(self, subcommands: List[str]):
         """Build pip commands."""
         return self._pip_command + subcommands
 
-    def _install(self):
+    def _install(self, container):
         """Run pip install in the container."""
         command = self._build_command(['install', '-U'] + self._packages)
         returncode, output = self._run_command(
-            command, stdout=False, stderr=True, raise_on_failure=False)
+            container,
+            command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=False)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.INSTALL_ERROR,
                                   output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
-    def _check(self):
+    def _check(self, container):
         """Run pip check to detect if there are any version conflicts."""
         command = self._build_command(['check'])
 
         # The returncode is non-zero if there are conflicts,
         # shouldn't raise on this.
         returncode, output = self._run_command(
-            command, stdout=False, stderr=True, raise_on_failure=False)
+            container,
+            command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=False)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.CHECK_WARNING,
                                   output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
-    def _list(self):
+    def _list(self, container):
         """Run pip list to get the outdated packages and dependency info."""
         """Use pypi json api to get the release date of the latest version."""
         pkg_version_date = {}
@@ -339,13 +350,21 @@ class _OneshotPipCheck():
         # Get the package installed version and latest version
         command = self._build_command(['list', '--format=json'])
         _, list_all = self._run_command(
-            command, stdout=True, stderr=False, raise_on_failure=False)
+            container,
+            command,
+            stdout=True,
+            stderr=False,
+            raise_on_failure=False)
 
         pip_list_result = json.loads(list_all.decode('utf-8'))
 
         command = self._build_command(['list', '-o', '--format=json'])
         _, list_outdated = self._run_command(
-            command, stdout=True, stderr=False, raise_on_failure=False)
+            container,
+            command,
+            stdout=True,
+            stderr=False,
+            raise_on_failure=False)
 
         pip_list_latest_result = json.loads(list_outdated.decode('utf-8'))
 
@@ -405,16 +424,20 @@ class _OneshotPipCheck():
 
     def run(self):
         """Run the version compatibility check."""
-        install_result = self._install()
+        # Create docker client and start running the container
+        docker_client = docker.from_env()
+        container = self._build_container(docker_client)
+
+        install_result = self._install(container)
 
         dependency_info = None
         if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
-            dependency_info = self._list()
+            dependency_info = self._list(container)
 
         if install_result.result_type == PipCheckResultType.SUCCESS:
-            install_result = self._check()
+            install_result = self._check(container)
 
-        self._cleanup_container()
+        self._cleanup_container(container)
 
         return install_result.with_extra_attrs(
             dependency_info=dependency_info)
