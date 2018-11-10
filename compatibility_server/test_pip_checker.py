@@ -102,23 +102,32 @@ class TestPipChecker(unittest.TestCase):
                                            'fake_pip.py')
 
     def test__run_command_success(self):
-        command = [
-                self._fake_pip_path, '--expected-install-args=-U,six',
-                '--install-returncode=1', '--install-output=bad-install'
-            ]
         checker = pip_checker._OneshotPipCheck(['python3'], packages=['six'])
         container = checker._build_container(MockDockerClient())
 
         returncode, output = checker._run_command(
             container,
-            command,
+            ["echo", "testing"],
             stdout=True,
             stderr=True,
             raise_on_failure=False)
 
-        print(output)
+        self.assertEqual(output, b'testing\n')
 
-        self.assertEqual(output, 'hahaha')
+    def test__run_command_timeout(self):
+        checker = pip_checker._OneshotPipCheck(['python3'], packages=['six'])
+
+        TIME_OUT = 0.1
+        patch_timeout = mock.patch('pip_checker.TIME_OUT', TIME_OUT)
+
+        with patch_timeout, self.assertRaises(pip_checker.PipCheckerError):
+            container = checker._build_container(MockDockerClient())
+            checker._run_command(
+                container,
+                ["sleep", "1"],
+                stdout=True,
+                stderr=True,
+                raise_on_failure=False)
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     @mock.patch('pip_checker.docker.from_env')

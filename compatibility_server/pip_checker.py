@@ -277,7 +277,7 @@ class _OneshotPipCheck():
             returncode, output = container.exec_run(
                 command, stdout=stdout, stderr=stderr)
         except docker.errors.APIError as e:
-            raise PipCheckerError(error_msg="Error occurs when executing"
+            raise PipCheckerError(error_msg="Error occurs when executing "
                                             "commands in container."
                                             "Error message: "
                                             "{}".format(e.explanation))
