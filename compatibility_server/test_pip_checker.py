@@ -112,7 +112,7 @@ class TestPipChecker(unittest.TestCase):
             stderr=True,
             raise_on_failure=False)
 
-        self.assertEqual(output, b'testing\n')
+        self.assertEqual(output, 'testing\n')
 
     def test__run_command_timeout(self):
         checker = pip_checker._OneshotPipCheck(['python3'], packages=['six'])
@@ -204,7 +204,7 @@ class TestPipChecker(unittest.TestCase):
             pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.INSTALL_ERROR,
-                result_text=b'bad-install',
+                result_text='bad-install',
                 dependency_info=None))
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
@@ -263,7 +263,7 @@ class TestPipChecker(unittest.TestCase):
         expected_check_result = pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.CHECK_WARNING,
-                result_text=b'',
+                result_text='bad-check',
                 dependency_info=expected_dependency_info)
 
         self.assertEqual(
