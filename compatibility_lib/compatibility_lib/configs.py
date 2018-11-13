@@ -1,5 +1,4 @@
 # Copyright 2018 Google LLC
-
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +13,13 @@
 # limitations under the License.
 
 """Common configs for compatibility_lib."""
+
+
+def _format_url(repo_name, setuppy_path=''):
+    url = 'git%2Bgit://github.com/{}.git'.format(repo_name)
+    if setuppy_path != '':
+        url = '{}%23subdirectory={}'.format(url, setuppy_path)
+    return url
 
 
 # IGNORED_DEPENDENCIES are not direct dependencies for many packages and are
@@ -65,12 +71,6 @@ PKG_LIST = [
     'gcloud',
 ]
 
-def _format_url(repo_name, setuppy_path=''):
-    url = 'git%2Bgit://github.com/{}.git'.format(repo_name)
-    if setuppy_path != '':
-        url = '{}%23subdirectory={}'.format(url, setuppy_path)
-    return url
-
 WHITELIST_PKGS = PKG_LIST
 
 WHITELIST_URLS = {
@@ -80,7 +80,7 @@ WHITELIST_URLS = {
     _format_url('googleapis/google-cloud-python', 'dlp'): 'gcloud',
     _format_url('googleapis/google-cloud-python', 'iot'): 'gcloud',
     _format_url('googleapis/google-cloud-python', 'kms'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'legacy/google-cloud'): \
+    _format_url('googleapis/google-cloud-python', 'legacy/google-cloud'):
         'gcloud',
     _format_url('googleapis/google-cloud-python', 'ndb'): 'gcloud',
     _format_url('googleapis/google-cloud-python', 'oslogin'): 'gcloud',
@@ -89,57 +89,57 @@ WHITELIST_URLS = {
     _format_url('googleapis/google-cloud-python', 'tasks'): 'gcloud',
     _format_url('googleapis/google-cloud-python', 'test_utils'): 'gcloud',
     _format_url('googleapis/google-cloud-python', 'texttospeech'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'websecurityscanner'): \
+    _format_url('googleapis/google-cloud-python', 'websecurityscanner'):
         'gcloud',
-    _format_url('googleapis/google-cloud-python', 'api_core'): \
+    _format_url('googleapis/google-cloud-python', 'api_core'):
         'google-api-core',
-    _format_url('googleapis/google-cloud-python', 'bigquery'): \
+    _format_url('googleapis/google-cloud-python', 'bigquery'):
         'google-cloud-bigquery',
-    _format_url('googleapis/google-cloud-python', 'bigquery_datatransfer'): \
+    _format_url('googleapis/google-cloud-python', 'bigquery_datatransfer'):
         'google-cloud-bigquery-datatransfer',
-    _format_url('googleapis/google-cloud-python', 'bigtable'): \
+    _format_url('googleapis/google-cloud-python', 'bigtable'):
         'google-cloud-bigtable',
-    _format_url('googleapis/google-cloud-python', 'container'): \
+    _format_url('googleapis/google-cloud-python', 'container'):
         'google-cloud-container',
-    _format_url('googleapis/google-cloud-python', 'core'): \
+    _format_url('googleapis/google-cloud-python', 'core'):
         'google-cloud-core',
-    _format_url('googleapis/google-cloud-python', 'datastore'): \
+    _format_url('googleapis/google-cloud-python', 'datastore'):
         'google-cloud-datastore',
     _format_url('googleapis/google-cloud-python', 'dns'): 'google-cloud-dns',
-    _format_url('googleapis/google-cloud-python', 'error_reporting'): \
+    _format_url('googleapis/google-cloud-python', 'error_reporting'):
         'google-cloud-error-reporting',
-    _format_url('googleapis/google-cloud-python', 'firestore'): \
+    _format_url('googleapis/google-cloud-python', 'firestore'):
         'google-cloud-firestore',
-    _format_url('googleapis/google-cloud-python', 'language'): \
+    _format_url('googleapis/google-cloud-python', 'language'):
         'google-cloud-language',
-    _format_url('googleapis/google-cloud-python', 'logging'): \
+    _format_url('googleapis/google-cloud-python', 'logging'):
         'google-cloud-logging',
-    _format_url('googleapis/google-cloud-python', 'monitoring'): \
+    _format_url('googleapis/google-cloud-python', 'monitoring'):
         'google-cloud-monitoring',
-    _format_url('googleapis/google-cloud-python', 'pubsub'): \
+    _format_url('googleapis/google-cloud-python', 'pubsub'):
         'google-cloud-pubsub',
-    _format_url('googleapis/google-cloud-python', 'resource_manager'): \
+    _format_url('googleapis/google-cloud-python', 'resource_manager'):
         'google-cloud-resource-manager',
-    _format_url('googleapis/google-cloud-python', 'runtimeconfig'): \
+    _format_url('googleapis/google-cloud-python', 'runtimeconfig'):
         'google-cloud-runtimeconfig',
-    _format_url('googleapis/google-cloud-python', 'spanner'): \
+    _format_url('googleapis/google-cloud-python', 'spanner'):
         'google-cloud-spanner',
-    _format_url('googleapis/google-cloud-python', 'speech'): \
+    _format_url('googleapis/google-cloud-python', 'speech'):
         'google-cloud-speech',
-    _format_url('googleapis/google-cloud-python', 'storage'): \
+    _format_url('googleapis/google-cloud-python', 'storage'):
         'google-cloud-storage',
-    _format_url('googleapis/google-cloud-python', 'trace'): \
+    _format_url('googleapis/google-cloud-python', 'trace'):
         'google-cloud-trace',
-    _format_url('googleapis/google-cloud-python', 'translate'): \
+    _format_url('googleapis/google-cloud-python', 'translate'):
         'google-cloud-translate',
-    _format_url('googleapis/google-cloud-python', 'videointelligence'): \
+    _format_url('googleapis/google-cloud-python', 'videointelligence'):
         'google-cloud-videointelligence',
-    _format_url('googleapis/google-cloud-python', 'vision'): \
+    _format_url('googleapis/google-cloud-python', 'vision'):
         'google-cloud-vision',
-    _format_url('googleapis/google-api-python-client'): \
+    _format_url('googleapis/google-api-python-client'):
         'google-api-python-client',
     _format_url('googleapis/google-auth-library-python'): 'google-auth',
-    _format_url('GoogleCloudPlatform/google-resumable-media-python'): \
+    _format_url('GoogleCloudPlatform/google-resumable-media-python'):
         'google-resumable-media',
     _format_url('apache/beam', 'sdks/python'): 'apache-beam[gcp]',
     _format_url('google/apitools'): 'google-apitools',
@@ -147,7 +147,7 @@ WHITELIST_URLS = {
     _format_url('census-instrumentation/opencensus-python'): 'opencensus',
     _format_url('protocolbuffers/protobuf', 'python'): 'protobuf',
     _format_url('google/protorpc'): 'protorpc',
-    _format_url('tensorflow/tensorflow', 'tensorflow/tools/pip_package'): \
+    _format_url('tensorflow/tensorflow', 'tensorflow/tools/pip_package'):
         'tensorflow',
     _format_url('tensorflow/tensorflow',
                 'tensorflow/contrib/tpu/profiler/pip_package'): 'tensorflow',
@@ -156,7 +156,7 @@ WHITELIST_URLS = {
     # grpc-google-iam-v1
     # grpcio
     # tensorboard - not sure what the build process is
-    # _format_url('tensorflow/tensorboard', 'tensorboard/pip_package'): \
+    # _format_url('tensorflow/tensorboard', 'tensorboard/pip_package'):
     #     'tensorboard',
 }
 
