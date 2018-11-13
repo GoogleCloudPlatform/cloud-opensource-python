@@ -102,7 +102,8 @@ class TestPipChecker(unittest.TestCase):
                                            'fake_pip.py')
 
     def test__run_command_success(self):
-        checker = pip_checker._OneshotPipCheck(['python3'], packages=['six'])
+        checker = pip_checker._OneshotPipCheck(
+            ['python3', '-m', 'pip'], packages=['six'])
         container = checker._build_container(MockDockerClient())
 
         returncode, output = checker._run_command(
@@ -115,7 +116,8 @@ class TestPipChecker(unittest.TestCase):
         self.assertEqual(output, 'testing\n')
 
     def test__run_command_timeout(self):
-        checker = pip_checker._OneshotPipCheck(['python3'], packages=['six'])
+        checker = pip_checker._OneshotPipCheck(
+            ['python3', '-m', 'pip'], packages=['six'])
 
         TIME_OUT = 0.1
         patch_timeout = mock.patch('pip_checker.TIME_OUT', TIME_OUT)
@@ -132,7 +134,7 @@ class TestPipChecker(unittest.TestCase):
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     @mock.patch('pip_checker.docker.from_env')
     def test_success(self, mock_docker, mock__call_pypi_json_api):
-        mock_docker.return_value=MockDockerClient()
+        mock_docker.return_value = MockDockerClient()
         expected_list_output = [{
             'name': 'six',
             'version': '1.2.3',
