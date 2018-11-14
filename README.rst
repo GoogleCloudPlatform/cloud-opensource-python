@@ -18,10 +18,10 @@ Dependency Management Toolkit for Google Cloud Python Projects
    :target: https://circleci.com/gh/GoogleCloudPlatform/cloud-opensource-python/tree/master
 .. |pypi| image:: https://img.shields.io/pypi/v/compatibility_lib.svg
    :target: https://pypi.org/project/compatibility_lib/
-.. |package_details| image:: http://35.226.8.89/one_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/one_badge_target?package=compatibility_lib
-.. |github_head| image:: http://35.226.8.89/one_badge_image?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
-   :target: http://35.226.8.89/one_badge_target?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
+.. |package_details| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=compatibility_lib
+   :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=compatibility_lib
+.. |github_head| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
+   :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
 
 -  `Compatibility Status Dashboard`_
 
@@ -37,12 +37,12 @@ Dependency Management Toolkit for Google Cloud Python Projects
    "Google Compatibility", |google_compatibility|
    "Dependency Version Status", |dependency_version_status|
 
-.. |self_compatibility| image:: http://35.226.8.89/self_compatibility_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/self_compatibility_badge_target?package=compatibility_lib
-.. |google_compatibility| image:: http://35.226.8.89/google_compatibility_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/google_compatibility_badge_target?package=compatibility_lib
-.. |dependency_version_status| image:: http://35.226.8.89/self_dependency_badge_image?package=compatibility_lib
-   :target: http://35.226.8.89/self_dependency_badge_target?package=compatibility_lib
+.. |self_compatibility| image:: https://python-compatibility-tools.appspot.com/self_compatibility_badge_image?package=compatibility_lib
+   :target: https://python-compatibility-tools.appspot.com/self_compatibility_badge_target?package=compatibility_lib
+.. |google_compatibility| image:: https://python-compatibility-tools.appspot.com/google_compatibility_badge_image?package=compatibility_lib
+   :target: https://python-compatibility-tools.appspot.com/google_compatibility_badge_target?package=compatibility_lib
+.. |dependency_version_status| image:: https://python-compatibility-tools.appspot.com/self_dependency_badge_image?package=compatibility_lib
+   :target: https://python-compatibility-tools.appspot.com/self_dependency_badge_target?package=compatibility_lib
 
 -----------------
 Compatibility Lib

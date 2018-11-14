@@ -39,6 +39,7 @@ $ python3 compatibility_checker_server.py --help
 
 import argparse
 import collections.abc
+import configs
 import json
 import logging
 import pprint
@@ -95,6 +96,13 @@ class CompatibilityServer:
             start_response('400 Bad Request',
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify at least one package']
+
+        sanitized_packages = _sanitize_packages(packages)
+
+        if sanitized_packages != packages:
+            start_response('400 Bad Request',
+                           [('Content-Type', 'text/plain; charset=utf-8')])
+            return [b'Request contains third party github head packages.']
 
         if not python_version:
             start_response('400 Bad Request',
@@ -170,13 +178,27 @@ class CompatibilityServer:
                 environ.get('REQUEST_METHOD').encode('utf-8')
             ]
 
-        return self._check(start_response, python_version,
-                           packages)
+        return self._check(start_response, python_version, packages)
 
     def serve(self):
         with wsgiref.simple_server.make_server(self._host, self._port,
                                                self._wsgi_app) as self._httpd:
             self._httpd.serve_forever()
+
+
+def _sanitize_packages(packages):
+    """Checks if packages are whitelisted
+
+    Args:
+        packages: a list of packages
+    Returns:
+        a subset of packages that are whitelisted
+    """
+    sanitized_packages = []
+    for pkg in packages:
+        if pkg in configs.WHITELIST_PKGS or pkg in configs.WHITELIST_URLS:
+            sanitized_packages.append(pkg)
+    return sanitized_packages
 
 
 def main():

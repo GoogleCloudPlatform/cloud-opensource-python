@@ -29,15 +29,6 @@ PACKAGE_FOR_TEST = 'opencensus'
 RETRY_WAIT_PERIOD = 8000 # Wait 8 seconds between each retry
 RETRY_MAX_ATTEMPT = 10 # Retry 10 times
 
-EXPECTED_SELF_SVG = open(
-    'system_test/test_data/self_compatibility_badge', 'rb').read()
-EXPECTED_GOOGLE_SVG = open(
-    'system_test/test_data/google_compatibility_badge', 'rb').read()
-EXPECTED_DEP_SVG = open(
-    'system_test/test_data/self_dependency_badge', 'rb').read()
-EXPECTED_ONE_SVG = open(
-    'system_test/test_data/one_badge', 'rb').read()
-
 
 def wait_app_to_start():
     """Wait the application to start running."""
@@ -47,7 +38,7 @@ def wait_app_to_start():
 
 def run_application():
     """Start running the compatibility checker server."""
-    cmd = 'python badge_server/badge_server.py ' \
+    cmd = 'python badge_server/main.py ' \
           '--host=\'0.0.0.0\' --port=8080'
     process = subprocess.Popen(
         cmd,
@@ -83,7 +74,7 @@ class TestBadgeServer(unittest.TestCase):
         content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertEqual(content, EXPECTED_SELF_SVG)
+        self.assertIn(b"SUCCESS", content)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
@@ -95,7 +86,7 @@ class TestBadgeServer(unittest.TestCase):
         content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertEqual(content, EXPECTED_GOOGLE_SVG)
+        self.assertIn(b"CALCULATING", content)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
@@ -108,7 +99,7 @@ class TestBadgeServer(unittest.TestCase):
         print(content)
 
         self.assertEqual(status_code, 200)
-        self.assertEqual(content, EXPECTED_DEP_SVG)
+        self.assertIn(b"CALCULATING", content)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
@@ -121,4 +112,4 @@ class TestBadgeServer(unittest.TestCase):
         print(content)
 
         self.assertEqual(status_code, 200)
-        self.assertEqual(content, EXPECTED_ONE_SVG)
+        self.assertIn(b"CALCULATING", content)
