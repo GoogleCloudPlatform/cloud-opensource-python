@@ -50,13 +50,7 @@ class PipCheckerError(Exception):
             'Pip Checker failed, '
             'logs are: {error_msg}'.format(error_msg=error_msg))
 
-        # Convert error_msg to bytes as this needed to be returned in the
-        # response which should be bytes. And the message returned from docker
-        # is already bytes so that won't need the conversion.
-        if isinstance(error_msg, str):
-            self.error_msg = error_msg.encode('utf-8')
-        else:
-            self.error_msg = error_msg
+        self.error_msg = error_msg
 
 
 class PipError(PipCheckerError):
@@ -226,21 +220,20 @@ class _OneshotPipCheck():
         return base_image
 
     def _build_container(self, docker_client):
-        """Build the container which contains a Python interpreter. The timeout
-        for running the commands is 300 seconds. Container will stop running
-        after the timeout.
-        """
+        """Build the container which contains a Python interpreter."""
         base_image = self._get_base_image()
 
         try:
+            # The timeout for running the commands is 300 seconds.
+            # Container will stop running after the timeout.
             container = docker_client.containers.run(
                 base_image,
                 command="sleep {}".format(TIME_OUT),
                 detach=True)
         except docker.errors.APIError as e:
             raise PipCheckerError(
-                error_msg="Error occurs when starting docker container."
-                          "Error message: {}".format(e.explanation))
+                error_msg="An error occurred while starting a docker"
+                          "container. Error message: {}".format(e.explanation))
 
         return container
 
@@ -260,24 +253,26 @@ class _OneshotPipCheck():
                      command: List[str],
                      stdout: bool,
                      stderr: bool,
-                     raise_on_failure: Optional[bool] = True):
+                     raise_on_failure: Optional[bool] = True)\
+            -> (int, str):
         """Run docker commands using docker python sdk.
 
         Args:
-            command (str): The command to run in docker container.
-            stdout (boolean): Whether to include stdout in output.
-            stderr (boolean): Whether to include stderr in output.
-            raise_on_failure (boolean): Whether to raise on failure.
+            container: The docker container that runs this command.
+            command: The command to run in docker container.
+            stdout: Whether to include stdout in output.
+            stderr: Whether to include stderr in output.
+            raise_on_failure: Whether to raise on failure.
 
         Returns:
-            A tuple containing returncode and output.
+            A tuple containing the return code of the given command and the
+            output of that command.
         """
         try:
             returncode, output = container.exec_run(
                 command, stdout=stdout, stderr=stderr)
 
-            if isinstance(output, bytes):
-                output = output.decode('utf-8')
+            output = output.decode('utf-8')
         except docker.errors.APIError as e:
             # Clean up the container if command fails
             self._cleanup_container(container)

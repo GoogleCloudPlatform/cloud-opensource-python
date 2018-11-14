@@ -53,9 +53,9 @@ WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform/',
                          'google/',
                          'googleapis/']
 
-PYTHON_VERSION_TO_INTERPRETER = {
-    '2': 'python2',
-    '3': 'python3',
+PYTHON_VERSION_TO_COMMAND = {
+    '2': ['python2', '-m', 'pip'],
+    '3': ['python3', '-m', 'pip'],
 }
 
 
@@ -83,7 +83,6 @@ class CompatibilityServer:
         """
         self._host = host
         self._port = port
-        self._python_version_to_interpreter = PYTHON_VERSION_TO_INTERPRETER
 
     def _check(self, start_response, python_version, packages):
         if not packages:
@@ -103,19 +102,19 @@ class CompatibilityServer:
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify the Python version to use']
 
-        if python_version not in self._python_version_to_interpreter:
+        if python_version not in PYTHON_VERSION_TO_COMMAND:
             start_response('400 Bad Request',
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [
                 b'Invalid Python version specified. Must be one of: %s' % (
                     ', '.join(
-                        self._python_version_to_interpreter).encode('utf-8'))
+                        PYTHON_VERSION_TO_COMMAND).encode('utf-8'))
             ]
-        python_command = self._python_version_to_interpreter[python_version]
+        python_command = PYTHON_VERSION_TO_COMMAND[python_version]
 
         try:
             pip_result = pip_checker.check(
-                [python_command, '-m', 'pip'], packages)
+                python_command, packages)
         except pip_checker.PipCheckerError as pip_error:
             start_response('500 Internal Server Error',
                            [('Content-Type', 'text/plain; charset=utf-8')])

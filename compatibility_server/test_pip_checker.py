@@ -18,6 +18,8 @@ Uses a script "fake_pip.py" to simulate the behavior of the pip
 (https://pypi.org/project/pip/) installation tool.
 """
 
+import calendar
+import datetime
 import json
 import mock
 import os.path
@@ -29,14 +31,15 @@ import pip_checker
 
 def timestamp_to_seconds(timestamp):
     """Convert a timestamp string into a microseconds value
-    :param timestamp
-    :return time in microseconds
-    """
-    from datetime import datetime
-    import calendar
+    
+    Args:
+        timestamp: A timestamp string
 
+    Returns:
+        A string of the timestamp in microseconds.
+    """
     ISO_DATETIME_REGEX = '%Y-%m-%dT%H:%M:%S.%fZ'
-    timestamp_str = datetime.strptime(timestamp, ISO_DATETIME_REGEX)
+    timestamp_str = datetime.datetime.strptime(timestamp, ISO_DATETIME_REGEX)
     epoch_time_secs = calendar.timegm(timestamp_str.timetuple())
     return epoch_time_secs
 
