@@ -35,7 +35,7 @@ Tools
 
     To detect and prevent version incompatibilities between Google Open Source Python
     packages, we provide a set of tooling to ensure we are compatible with
-    ourselves. Below lists our tooling:
+    ourselves. Our tools are as follows:
 
 Dependency Compatibility Dashboard
 ----------------------------------
