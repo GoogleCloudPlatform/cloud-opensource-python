@@ -39,6 +39,7 @@ $ python3 compatibility_checker_server.py --help
 
 import argparse
 import collections.abc
+import configs
 import json
 import logging
 import pprint
@@ -48,12 +49,6 @@ import urllib.parse
 import wsgiref.simple_server
 
 import pip_checker
-
-# White list Google owned Python packages
-GITHUB_PREFIX = 'github.com/'
-WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform/',
-                         'google/',
-                         'googleapis/']
 
 
 def _parse_python_version_to_interpreter_mapping(s):
@@ -102,7 +97,7 @@ class CompatibilityServer:
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify at least one package']
 
-        sanitized_packages = self._sanitize_packages(packages)
+        sanitized_packages = _sanitize_packages(packages)
 
         if sanitized_packages != packages:
             start_response('400 Bad Request',
@@ -152,21 +147,6 @@ class CompatibilityServer:
         start_response('200 OK', [('Content-Type', 'application/json')])
         return [json.dumps(results).encode('utf-8')]
 
-    def _sanitize_packages(self, packages):
-        # If checking github head version, only run checks for whitelisted
-        # repos.
-        sanitized_packages = []
-        for pkg in packages:
-            if GITHUB_PREFIX in pkg:
-                for whitelist_repo in WHITELIST_GITHUB_REPO:
-                    github_whitelist = GITHUB_PREFIX + whitelist_repo
-                    if github_whitelist in pkg:
-                        sanitized_packages.append(pkg)
-            else:
-                sanitized_packages.append(pkg)
-
-        return sanitized_packages
-
     def _wsgi_app(self, environ, start_response):
         if environ.get('REQUEST_METHOD') == 'GET':
             parameters = urllib.parse.parse_qs(environ.get('QUERY_STRING', ''))
@@ -204,6 +184,21 @@ class CompatibilityServer:
         with wsgiref.simple_server.make_server(self._host, self._port,
                                                self._wsgi_app) as self._httpd:
             self._httpd.serve_forever()
+
+
+def _sanitize_packages(packages):
+    """Checks if packages are whitelisted
+
+    Args:
+        packages: a list of packages
+    Returns:
+        a subset of packages that are whitelisted
+    """
+    sanitized_packages = []
+    for pkg in packages:
+        if pkg in configs.WHITELIST_PKGS or pkg in configs.WHITELIST_URLS:
+            sanitized_packages.append(pkg)
+    return sanitized_packages
 
 
 def main():
