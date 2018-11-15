@@ -63,7 +63,6 @@ class PipError(PipCheckerError):
                 command=command, returncode=returncode,
                 error_msg=error_msg))
 
-        self.error_msg = error_msg
         self.command = command
         self.returncode = returncode
 

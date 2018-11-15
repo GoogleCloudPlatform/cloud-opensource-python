@@ -48,12 +48,6 @@ import wsgiref.simple_server
 
 import pip_checker
 
-# White list Google owned Python packages
-GITHUB_PREFIX = 'github.com/'
-WHITELIST_GITHUB_REPO = ['GoogleCloudPlatform/',
-                         'google/',
-                         'googleapis/']
-
 PYTHON_VERSION_TO_COMMAND = {
     '2': ['python2', '-m', 'pip'],
     '3': ['python3', '-m', 'pip'],
