@@ -28,14 +28,11 @@ import enum
 import json
 import logging
 import shlex
-import socket
 import urllib.request
 
 from typing import Any, List, Mapping, Optional
 
 import docker
-
-socket.setdefaulttimeout(3)
 
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
@@ -57,7 +54,7 @@ class PipError(PipCheckerError):
     """A pip command failed in an unexpected way."""
 
     def __init__(self,
-                 error_msg: List[str],
+                 error_msg: str,
                  command: List[str],
                  returncode: int):
         super(PipError, self).__init__(
@@ -253,8 +250,7 @@ class _OneshotPipCheck():
                      command: List[str],
                      stdout: bool,
                      stderr: bool,
-                     raise_on_failure: Optional[bool] = True)\
-            -> (int, str):
+                     raise_on_failure: Optional[bool] = True) -> (int, str):
         """Run docker commands using docker python sdk.
 
         Args:

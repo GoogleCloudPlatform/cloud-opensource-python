@@ -29,14 +29,15 @@ import unittest
 import pip_checker
 
 
-def timestamp_to_seconds(timestamp):
-    """Convert a timestamp string into a microseconds value
+def timestamp_to_seconds(timestamp: str) -> int:
+    """Convert a timestamp string into a seconds value
     
     Args:
-        timestamp: A timestamp string
+        timestamp: An ISO 8601 format string returned by calling isoformat()
+                   on a `datetime.datetime` type timestamp.
 
     Returns:
-        A string of the timestamp in microseconds.
+        Timestamp in seconds.
     """
     ISO_DATETIME_REGEX = '%Y-%m-%dT%H:%M:%S.%fZ'
     timestamp_str = datetime.datetime.strptime(timestamp, ISO_DATETIME_REGEX)
