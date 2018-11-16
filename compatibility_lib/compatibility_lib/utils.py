@@ -27,6 +27,16 @@ DATETIME_FORMAT = "%Y-%m-%d"
 PYPI_URL = 'https://pypi.org/pypi/'
 
 
+class PackageNotSupportError(Exception):
+    """Package is not supported by our checker server."""
+
+    def __init__(self, package_name):
+        super(PackageNotSupportError, self).__init__(
+            'Package {} is not supported by our checker server.'.format(
+                package_name))
+        self.package_name = package_name
+
+
 def call_pypi_json_api(package_name, pkg_version=None):
     if pkg_version is not None:
         pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(
@@ -95,7 +105,7 @@ class DependencyInfo(object):
             logging.warning(
                 "Could not get the dependency info of package {} from server."
                 .format(package_name))
-            return {}
+            raise PackageNotSupportError(package_name)
 
         fields = ('installed_version_time',
                   'current_time', 'latest_version_time')

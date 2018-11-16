@@ -31,6 +31,7 @@ from compatibility_lib import configs
 from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package as package_module
+from compatibility_lib import utils
 
 
 app = flask.Flask(__name__)
@@ -259,6 +260,12 @@ def _get_all_results_from_cache(package_name):
         dependency_res['status']
     ):
         status = 'CALCULATING'
+    elif 'UNKNOWN' in (
+        self_compat_res['py3']['status'],
+        google_compat_res['py3']['status'],
+        dependency_res['status']
+    ):
+        status = 'UNKNOWN'
     else:
         status = 'CHECK_WARNING'
 
@@ -452,26 +459,35 @@ def self_dependency_badge_image():
             'status': 'CALCULATING',
             'details': {},
         }
-        outdated = highlighter.check_package(package_name)
-        deprecated_deps_list = finder.get_deprecated_dep(package_name)[1]
-        deprecated_deps = ', '.join(deprecated_deps_list)
+
         details = {}
+        deprecated_deps = ''
 
-        max_level = priority_level.UP_TO_DATE
-        for dep in outdated:
-            dep_detail = {}
-            level = dep.priority.level
-            if level.value > max_level.value:
-                max_level = level
-            dep_detail['installed_version'] = dep.installed_version
-            dep_detail['latest_version'] = dep.latest_version
-            dep_detail['priority'] = dep.priority.level.name
-            dep_detail['detail'] = dep.priority.details
-            details[dep.name] = dep_detail
+        try:
+            outdated = highlighter.check_package(package_name)
+            deprecated_deps_list = finder.get_deprecated_dep(package_name)[1]
+            deprecated_deps = ', '.join(deprecated_deps_list)
 
-        res['status'] = max_level.name
-        res['details'] = details
-        res['deprecated_deps'] = deprecated_deps
+            max_level = priority_level.UP_TO_DATE
+            for dep in outdated:
+                dep_detail = {}
+                level = dep.priority.level
+                if level.value > max_level.value:
+                    max_level = level
+                dep_detail['installed_version'] = dep.installed_version
+                dep_detail['latest_version'] = dep.latest_version
+                dep_detail['priority'] = dep.priority.level.name
+                dep_detail['detail'] = dep.priority.details
+                details[dep.name] = dep_detail
+                res['status'] = max_level.name
+                res['details'] = details
+                res['deprecated_deps'] = deprecated_deps
+        except utils.PackageNotSupportError:
+            logging.warning('Package {} is not supported, dependency info not'
+                            'available.'.format(package_name))
+            res['status'] = 'UNKNOWN'
+            res['details'] = details
+            res['deprecated_deps'] = deprecated_deps
 
         # Write the result to Cloud Datastore
         CACHE.set(
