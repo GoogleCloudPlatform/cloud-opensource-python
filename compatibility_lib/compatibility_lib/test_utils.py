@@ -18,42 +18,55 @@ import unittest
 from compatibility_lib import fake_compatibility_store
 from compatibility_lib import utils
 
+UNKNOWN_STATUS_RESULT = {
+    'result': 'UNKNOWN',
+}
+
+DEP_INFO = {
+    'dep1': {
+        'installed_version': '2.1.0',
+        'installed_version_time': '2018-05-12T16:26:31',
+        'latest_version': '2.1.0',
+        'current_time': '2018-08-27T17:04:57.260105',
+        'latest_version_time': '2018-05-12T16:26:31',
+        'is_latest': True,
+    },
+    'dep2': {
+        'installed_version': '3.6.1',
+        'installed_version_time': '2018-08-13T22:47:09',
+        'latest_version': '3.6.1',
+        'current_time': '2018-08-27T17:04:57.934866',
+        'latest_version_time': '2018-08-13T22:47:09',
+        'is_latest': True,
+    },
+}
+
+
+class MockChecker(object):
+    def check(self, packages, python_version):
+        if not utils._is_package_in_whitelist(packages):
+            UNKNOWN_STATUS_RESULT['packages'] = packages
+            UNKNOWN_STATUS_RESULT['description'] = 'Package is not supported' \
+                                                   ' by our checker server.'
+            return UNKNOWN_STATUS_RESULT
+
+        return {
+            'result': 'SUCCESS',
+            'packages': packages,
+            'description': None,
+            'dependency_info': DEP_INFO,
+        }
+
+    def get_self_compatibility(self, python_version, packages=None):
+        return [[self.check(
+            packages=packages, python_version=python_version)]]
+
 
 class TestDependencyInfo(unittest.TestCase):
 
     def setUp(self):
-        self.DEP_INFO = {
-            'dep1': {
-                'installed_version': '2.1.0',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.1.0',
-                'current_time': '2018-08-27T17:04:57.260105',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': True,
-            },
-            'dep2': {
-                'installed_version': '3.6.1',
-                'installed_version_time': '2018-08-13T22:47:09',
-                'latest_version': '3.6.1',
-                'current_time': '2018-08-27T17:04:57.934866',
-                'latest_version_time': '2018-08-13T22:47:09',
-                'is_latest': True,
-            },
-        }
-
-        self.SELF_COMP_RES = ((
-            {
-                'result': 'SUCCESS',
-                'packages': ['package1'],
-                'description': None,
-                'dependency_info': self.DEP_INFO,
-            },
-        ),)
-        self.mock_checker = mock.Mock(autospec=True)
+        self.mock_checker = MockChecker()
         self.fake_store = fake_compatibility_store.CompatibilityStore()
-
-        self.mock_checker.get_self_compatibility.return_value = \
-            self.SELF_COMP_RES
 
     def test_constructor_default(self):
         dep_info_getter = utils.DependencyInfo(
@@ -84,9 +97,16 @@ class TestDependencyInfo(unittest.TestCase):
     def test__get_from_endpoint(self):
         dep_info_getter = utils.DependencyInfo(
             checker=self.mock_checker, store=self.fake_store)
-        dep_info = dep_info_getter._get_from_endpoint('package1')
+        dep_info = dep_info_getter._get_from_endpoint('opencensus')
 
-        self.assertEqual(dep_info, self.DEP_INFO)
+        self.assertEqual(dep_info, DEP_INFO)
+
+    def test__get_from_endpoint_raise_exception(self):
+        dep_info_getter = utils.DependencyInfo(
+            checker=self.mock_checker, store=self.fake_store)
+
+        with self.assertRaises(utils.PackageNotSupportedError):
+            dep_info_getter._get_from_endpoint('pkg_not_in_config')
 
     def test_get_dependency_info_bigquery(self):
         dep_info_getter = utils.DependencyInfo(
@@ -94,13 +114,6 @@ class TestDependencyInfo(unittest.TestCase):
         dep_info = dep_info_getter.get_dependency_info('opencensus')
 
         self.assertIsNotNone(dep_info)
-
-    def test_get_dependency_info_endpoint(self):
-        dep_info_getter = utils.DependencyInfo(
-            checker=self.mock_checker, store=self.fake_store)
-        dep_info = dep_info_getter.get_dependency_info('package1')
-
-        self.assertEqual(dep_info, self.DEP_INFO)
 
 
 class Test__parse_datetime(unittest.TestCase):

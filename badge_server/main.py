@@ -482,7 +482,7 @@ def self_dependency_badge_image():
                 res['status'] = max_level.name
                 res['details'] = details
                 res['deprecated_deps'] = deprecated_deps
-        except utils.PackageNotSupportError:
+        except utils.PackageNotSupportedError:
             logging.warning('Package {} is not supported, dependency info not'
                             'available.'.format(package_name))
             res['status'] = 'UNKNOWN'
