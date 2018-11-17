@@ -27,6 +27,16 @@ DATETIME_FORMAT = "%Y-%m-%d"
 PYPI_URL = 'https://pypi.org/pypi/'
 
 
+class PackageNotSupportedError(Exception):
+    """Package is not supported by our checker server."""
+
+    def __init__(self, package_name):
+        super(PackageNotSupportedError, self).__init__(
+            'Package {} is not supported by our checker server.'.format(
+                package_name))
+        self.package_name = package_name
+
+
 def call_pypi_json_api(package_name, pkg_version=None):
     if pkg_version is not None:
         pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(
@@ -44,6 +54,22 @@ def call_pypi_json_api(package_name, pkg_version=None):
                       format(package_name, pkg_version))
         return None
     return result
+
+
+def _is_package_in_whitelist(packages):
+    """Return True if all the given packages are in whitelist.
+
+    Args:
+        packages: A list of package names.
+
+    Returns:
+        True if all packages are in whitelist, else False.
+    """
+    for pkg in packages:
+        if pkg not in configs.PKG_LIST and pkg not in configs.WHITELIST_URLS:
+            return False
+
+    return True
 
 
 class DependencyInfo(object):
@@ -88,14 +114,16 @@ class DependencyInfo(object):
         _result = self.checker.get_self_compatibility(
             self.py_version, [package_name])
         result = [item for item in _result]
+        print(result)
         depinfo = result[0][0].get('dependency_info')
 
-        # depinfo can be None if there is an exception during pip install.
+        # depinfo can be None if there is an exception during pip install or
+        # the package is not supported by checker server (not in whitelist).
         if depinfo is None:
             logging.warning(
                 "Could not get the dependency info of package {} from server."
                 .format(package_name))
-            return {}
+            raise PackageNotSupportedError(package_name)
 
         fields = ('installed_version_time',
                   'current_time', 'latest_version_time')

@@ -146,6 +146,7 @@ class DependencyHighlighter(object):
         """
         dependency_info = self._dependency_info_getter.get_dependency_info(
             package_name)
+
         outdated_dependencies = []
         for name, info in dependency_info.items():
             if name in configs.IGNORED_DEPENDENCIES:

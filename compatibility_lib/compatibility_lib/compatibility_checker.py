@@ -21,10 +21,9 @@ import requests
 import retrying
 
 from compatibility_lib import configs
+from compatibility_lib import utils
 
 SERVER_URL = 'http://104.197.8.72'
-
-PACKAGE_NOT_IN_WHITELIST = 'Request contains third party github head packages.'
 
 UNKNOWN_STATUS_RESULT = {
     'result': 'UNKNOWN',
@@ -38,16 +37,19 @@ class CompatibilityChecker(object):
 
     def check(self, packages, python_version):
         """Call the checker server to get back status results."""
+        if not utils._is_package_in_whitelist(packages):
+
+            UNKNOWN_STATUS_RESULT['packages'] = packages
+            UNKNOWN_STATUS_RESULT['description'] = 'Package is not supported' \
+                                                   ' by our checker server.'
+            return UNKNOWN_STATUS_RESULT
+
         data = {
             'python-version': python_version,
             'package': packages
         }
         result = requests.get(SERVER_URL, params=data)
         content = result.content.decode('utf-8')
-        if content == PACKAGE_NOT_IN_WHITELIST:
-            UNKNOWN_STATUS_RESULT['packages'] = packages
-            UNKNOWN_STATUS_RESULT['description'] = PACKAGE_NOT_IN_WHITELIST
-            return UNKNOWN_STATUS_RESULT
 
         return json.loads(content)
 
