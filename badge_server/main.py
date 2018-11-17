@@ -238,8 +238,8 @@ def _get_google_compatibility_from_cache(package_name):
 def _get_dependency_result_from_cache(package_name):
     if not utils._is_package_in_whitelist([package_name]):
         result_dict = {
-        'status': 'UNKNOWN',
-        'details': PACKAGE_NOT_SUPPORTED,
+            'status': 'UNKNOWN',
+            'details': PACKAGE_NOT_SUPPORTED,
         }
     else:
         result_dict = CACHE.get(

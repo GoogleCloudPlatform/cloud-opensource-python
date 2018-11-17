@@ -51,9 +51,6 @@ def run_application():
 class TestBadgeServer(unittest.TestCase):
 
     def setUp(self):
-        # Set the env var to run the badge server locally
-        os.environ['RUN_LOCALLY'] = 'True'
-
         # Run application
         self.process = run_application()
 
@@ -83,10 +80,8 @@ class TestBadgeServer(unittest.TestCase):
             '{}google_compatibility_badge_image?package={}'.format(
                 BASE_URL, PACKAGE_FOR_TEST))
         status_code = response.status_code
-        content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
@@ -96,10 +91,9 @@ class TestBadgeServer(unittest.TestCase):
                 BASE_URL, PACKAGE_FOR_TEST))
         status_code = response.status_code
         content = response.content
-        print(content)
 
         self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
+        self.assertIn(b"UP TO DATE", content)
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
@@ -108,8 +102,5 @@ class TestBadgeServer(unittest.TestCase):
             '{}one_badge_image?package={}'.format(
                 BASE_URL, PACKAGE_FOR_TEST))
         status_code = response.status_code
-        content = response.content
-        print(content)
 
         self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
