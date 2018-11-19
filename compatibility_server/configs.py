@@ -69,10 +69,10 @@ PKG_LIST = [
     'tensorboard',
     'tensorflow',
     'gcloud',
-    'compatibility-lib'
 ]
 
-WHITELIST_PKGS = PKG_LIST
+# TODO: add compatibility-lib to PKG_LIST for next release
+WHITELIST_PKGS = PKG_LIST + ['compatibility-lib']
 
 WHITELIST_URLS = {
     _format_url('googleapis/google-cloud-python', 'asset'): 'gcloud',
@@ -153,7 +153,7 @@ WHITELIST_URLS = {
     _format_url('tensorflow/tensorflow',
                 'tensorflow/contrib/tpu/profiler/pip_package'): 'tensorflow',
     _format_url('GoogleCloudPlatform/cloud-opensource-python',
-        'compatibility_lib'): 'compatibility-lib',
+                'compatibility_lib'): 'compatibility-lib',
     # TODO: The following projects do not use setup.py
     # googleapis-common-protos
     # grpc-google-iam-v1
