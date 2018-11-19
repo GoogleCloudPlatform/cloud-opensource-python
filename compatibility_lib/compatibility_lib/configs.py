@@ -69,10 +69,10 @@ PKG_LIST = [
     'tensorboard',
     'tensorflow',
     'gcloud',
+    'compatibility-lib',
 ]
 
-# TODO: add compatibility-lib to PKG_LIST for next release
-WHITELIST_PKGS = PKG_LIST + ['compatibility-lib']
+WHITELIST_PKGS = PKG_LIST
 
 WHITELIST_URLS = {
     _format_url('googleapis/google-cloud-python', 'asset'): 'gcloud',
