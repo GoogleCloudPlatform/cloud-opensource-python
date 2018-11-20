@@ -16,9 +16,9 @@
 
 
 def _format_url(repo_name, setuppy_path=''):
-    url = 'git%2Bgit://github.com/{}.git'.format(repo_name)
+    url = 'git+git://github.com/{}.git'.format(repo_name)
     if setuppy_path != '':
-        url = '{}%23subdirectory={}'.format(url, setuppy_path)
+        url = '{}#subdirectory={}'.format(url, setuppy_path)
     return url
 
 

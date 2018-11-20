@@ -17,7 +17,6 @@ import configs
 import logging
 import pip_checker
 import unittest
-import urllib
 
 class Test__sanitize_packages(unittest.TestCase):
 
@@ -40,11 +39,10 @@ class Test__sanitize_packages(unittest.TestCase):
                 py3_pkgs.append(pkg)
 
         for url, pkg in configs.WHITELIST_URLS.items():
-            unquoted_url = urllib.parse.unquote(url)
             if pkg not in configs.PKG_PY_VERSION_NOT_SUPPORTED[2]:
-                py2_pkgs.append(unquoted_url)
+                py2_pkgs.append(url)
             if pkg not in configs.PKG_PY_VERSION_NOT_SUPPORTED[3]:
-                py3_pkgs.append(unquoted_url)
+                py3_pkgs.append(url)
 
         args = [
             # ('python', py2_pkgs),
