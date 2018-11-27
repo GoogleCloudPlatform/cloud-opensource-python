@@ -31,6 +31,7 @@ from compatibility_lib import configs
 from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder
 from compatibility_lib import package as package_module
+from compatibility_lib import utils
 
 
 app = flask.Flask(__name__)
@@ -97,44 +98,18 @@ STATUS_COLOR_MAPPING = {
     'CONVERSION_ERROR': 'orange',
 }
 
-DEFAULT_COMPATIBILITY_RESULT = {
-        'py2': {
-            'status': 'CALCULATING',
-            'details': {},
-        },
-        'py3': {
-            'status': 'CALCULATING',
-            'details': {},
-        }
-}
-
 DEFAULT_DEPENDENCY_RESULT = {
         'status': 'CALCULATING',
         'details': {},
 }
 
-CONVERSION_ERROR_RES = {
-    'py2': {
-        'status': 'CONVERSION_ERROR',
-        'details': None,
-    },
-    'py3': {
-        'status': 'CONVERSION_ERROR',
-        'details': None,
-    }
-}
-
 DEP_STATUS_COLOR_MAPPING = {
     'CALCULATING':                      'blue',
     'CONVERSION_ERROR':                 'purple',
+    'UNKNOWN':                          'purple',
     priority_level.UP_TO_DATE.name:     'green',
     priority_level.LOW_PRIORITY.name:   'yellow',
     priority_level.HIGH_PRIORITY.name:  'red'
-}
-
-DEP_CONVERSION_ERROR_RES = {
-    'status': 'CONVERSION_ERROR',
-    'details': None,
 }
 
 GITHUB_HEAD_NAME = 'github head'
@@ -148,7 +123,27 @@ SELF_COMP_BADGE = 'self_comp_badge'
 GOOGLE_COMP_BADGE = 'google_comp_badge'
 API_BADGE = 'api_badge'
 
-CACHED_PACKAGES = configs.PKG_LIST + configs.THIRD_PARTY_PACKAGE_LIST
+PACKAGE_NOT_SUPPORTED = "The package is not supported by checker server."
+
+
+def _build_result(status, details):
+    """Build the default result for different conditions."""
+    result = {
+        'py2': {
+            'status': 'CALCULATING',
+            'details': {},
+        },
+        'py3': {
+            'status': 'CALCULATING',
+            'details': {},
+        }
+    }
+    result['py2']['status'] = status
+    result['py3']['status'] = status
+    result['py2']['details'] = details
+    result['py3']['details'] = details
+
+    return result
 
 
 def _get_pair_status_for_packages(pkg_sets):
@@ -216,27 +211,39 @@ def _get_badge(res, badge_name):
 
 
 def _get_self_compatibility_from_cache(package_name):
-    result_dict = CACHE.get(
-        '{}_self_comp_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        result_dict = _build_result('UNKNOWN', PACKAGE_NOT_SUPPORTED)
+    else:
+        result_dict = CACHE.get(
+            '{}_self_comp_badge'.format(package_name))
 
     if result_dict is None:
-        result_dict = DEFAULT_COMPATIBILITY_RESULT
+        result_dict = _build_result('CALCULATING', {})
     return result_dict
 
 
 def _get_google_compatibility_from_cache(package_name):
-    result_dict = CACHE.get(
-        '{}_google_comp_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        result_dict = _build_result('UNKNOWN', {})
+    else:
+        result_dict = CACHE.get(
+            '{}_google_comp_badge'.format(package_name))
 
     if result_dict is None:
-        result_dict = DEFAULT_COMPATIBILITY_RESULT
+        result_dict = _build_result('CALCULATING', {})
 
     return result_dict
 
 
 def _get_dependency_result_from_cache(package_name):
-    result_dict = CACHE.get(
-        '{}_dependency_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        result_dict = {
+            'status': 'UNKNOWN',
+            'details': PACKAGE_NOT_SUPPORTED,
+        }
+    else:
+        result_dict = CACHE.get(
+            '{}_dependency_badge'.format(package_name))
 
     if result_dict is None:
         result_dict = DEFAULT_DEPENDENCY_RESULT
@@ -259,6 +266,12 @@ def _get_all_results_from_cache(package_name):
         dependency_res['status']
     ):
         status = 'CALCULATING'
+    elif 'UNKNOWN' in (
+        self_compat_res['py3']['status'],
+        google_compat_res['py3']['status'],
+        dependency_res['status']
+    ):
+        status = 'UNKNOWN'
     else:
         status = 'CHECK_WARNING'
 
@@ -345,16 +358,7 @@ def self_compatibility_badge_image():
     if badge_name is None:
         badge_name = 'self compatibility'
 
-    version_and_res = {
-        'py2': {
-            'status': 'CALCULATING',
-            'details': None,
-        },
-        'py3': {
-            'status': 'CALCULATING',
-            'details': None,
-        }
-    }
+    version_and_res = _build_result('CALCULATING', None)
 
     def run_check():
         # First see if this package is already stored in BigQuery.
@@ -387,19 +391,18 @@ def self_compatibility_badge_image():
         CACHE.set(
             '{}_self_comp_badge'.format(package_name), version_and_res)
 
-    self_comp_res = CACHE.get(
-        '{}_self_comp_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        self_comp_res = _build_result('UNKNOWN', PACKAGE_NOT_SUPPORTED)
+    else:
+        self_comp_res = CACHE.get('{}_self_comp_badge'.format(package_name))
 
     if self_comp_res is None:
         details = version_and_res
     else:
         details = self_comp_res
 
-    # Run the check if there is not cached result or forced to populate the
-    # cache or package not in cached package list.
-    if self_comp_res is None or \
-        force_run_check is not None or \
-            package_name not in CACHED_PACKAGES:
+    # Run the check if forced to populate the cache.
+    if force_run_check is not None:
         threading.Thread(target=run_check).start()
 
     badge = _get_badge(details, badge_name)
@@ -447,15 +450,16 @@ def self_dependency_badge_image():
     if badge_name is None:
         badge_name = 'dependency status'
 
+    res = {
+        'status': 'CALCULATING',
+        'details': {},
+    }
+
     def run_check():
-        res = {
-            'status': 'CALCULATING',
-            'details': {},
-        }
+        details = {}
         outdated = highlighter.check_package(package_name)
         deprecated_deps_list = finder.get_deprecated_dep(package_name)[1]
         deprecated_deps = ', '.join(deprecated_deps_list)
-        details = {}
 
         max_level = priority_level.UP_TO_DATE
         for dep in outdated:
@@ -468,28 +472,28 @@ def self_dependency_badge_image():
             dep_detail['priority'] = dep.priority.level.name
             dep_detail['detail'] = dep.priority.details
             details[dep.name] = dep_detail
-
-        res['status'] = max_level.name
-        res['details'] = details
-        res['deprecated_deps'] = deprecated_deps
+            res['status'] = max_level.name
+            res['details'] = details
+            res['deprecated_deps'] = deprecated_deps
 
         # Write the result to Cloud Datastore
         CACHE.set(
             '{}_dependency_badge'.format(package_name), res)
 
-    dependency_res = CACHE.get(
-        '{}_dependency_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        res['status'] = 'UNKNOWN'
+        dependency_res = res
+    else:
+        dependency_res = CACHE.get(
+            '{}_dependency_badge'.format(package_name))
 
     if dependency_res is None:
         details = DEFAULT_DEPENDENCY_RESULT
     else:
         details = dependency_res
 
-    # Run the check if there is not cached result or forced to populate the
-    # cache or package not in cached package list.
-    if dependency_res is None or \
-        force_run_check is not None or \
-            package_name not in CACHED_PACKAGES:
+    # Run the check if forced to populate the cache.
+    if force_run_check is not None:
         threading.Thread(target=run_check).start()
 
     badge = _get_badge(details, badge_name)
@@ -581,17 +585,17 @@ def google_compatibility_badge_image():
     google_comp_res = CACHE.get(
         '{}_google_comp_badge'.format(package_name))
 
-    if google_comp_res is None:
-        details = DEFAULT_COMPATIBILITY_RESULT
-    else:
-        details = google_comp_res
+    if not utils._is_package_in_whitelist([package_name]):
+        google_comp_res = _build_result('UNKNOWN', {})
 
-    # Run the check if there is not cached result or forced to populate the
-    # cache or package not in cached package list.
-    if google_comp_res is None or \
-        force_run_check is not None or \
-            package_name not in CACHED_PACKAGES:
+    if google_comp_res is None:
+        google_comp_res = _build_result('CALCULATING', {})
+
+    # Run the check if forced to populate the cache.
+    if force_run_check is not None:
         threading.Thread(target=run_check).start()
+
+    details = google_comp_res
 
     badge = _get_badge(details, badge_name)
     response = flask.make_response(badge)

@@ -16,9 +16,9 @@
 
 
 def _format_url(repo_name, setuppy_path=''):
-    url = 'git%2Bgit://github.com/{}.git'.format(repo_name)
+    url = 'git+git://github.com/{}.git'.format(repo_name)
     if setuppy_path != '':
-        url = '{}%23subdirectory={}'.format(url, setuppy_path)
+        url = '{}#subdirectory={}'.format(url, setuppy_path)
     return url
 
 
@@ -69,6 +69,7 @@ PKG_LIST = [
     'tensorboard',
     'tensorflow',
     'gcloud',
+    'compatibility-lib',
 ]
 
 WHITELIST_PKGS = PKG_LIST
@@ -151,6 +152,8 @@ WHITELIST_URLS = {
         'tensorflow',
     _format_url('tensorflow/tensorflow',
                 'tensorflow/contrib/tpu/profiler/pip_package'): 'tensorflow',
+    _format_url('GoogleCloudPlatform/cloud-opensource-python',
+                'compatibility_lib'): 'compatibility-lib',
     # TODO: The following projects do not use setup.py
     # googleapis-common-protos
     # grpc-google-iam-v1

@@ -22,11 +22,9 @@ from compatibility_lib import compatibility_checker
 class TestCompatibilityChecker(unittest.TestCase):
 
     def test_check(self):
-        import json
-
         checker = compatibility_checker.CompatibilityChecker()
 
-        packages = 'test_pkg'
+        packages = ['opencensus']
         python_version = 3
         expected_server_url = 'http://104.197.8.72'
 
