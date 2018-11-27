@@ -22,6 +22,7 @@ import pybadges
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
+from compatibility_lib import configs
 from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder
 

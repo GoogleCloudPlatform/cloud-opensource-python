@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import mock
+import os
 import unittest
 
 from compatibility_lib import fake_compatibility_store
@@ -23,11 +24,16 @@ import main
 class TestBadgeServer(unittest.TestCase):
 
     def setUp(self):
+        os.environ["RUN_LOCALLY"] = 'true'
         self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
         self.patch_checker = mock.patch(
-            'main.checker', self.mock_checker)
-        self.patch_store = mock.patch('main.store', self.fake_store)
+            'main.badge_utils.checker', self.mock_checker)
+        self.patch_store = mock.patch(
+            'main.badge_utils.store', self.fake_store)
+
+    def tearDown(self):
+        del os.environ["RUN_LOCALLY"]
 
     def test__get_pair_status_for_packages_success(self):
         pkg_sets = [
@@ -88,7 +94,7 @@ class TestBadgeServer(unittest.TestCase):
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'main._get_self_compatibility_from_cache',
+            'main._get_result_from_cache',
             mock_self_res)
 
         with self.patch_checker, self.patch_store, patch_self_status:
@@ -176,7 +182,7 @@ class TestBadgeServer(unittest.TestCase):
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'main._get_self_compatibility_from_cache',
+            'main._get_result_from_cache',
             mock_self_res)
 
         with self.patch_checker, self.patch_store, patch_self_status:
@@ -189,7 +195,7 @@ class TestBadgeServer(unittest.TestCase):
         package_name = 'git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib'
         expected = 'github head'
 
-        sanitized = main._sanitize_badge_name(package_name)
+        sanitized = main.badge_utils._sanitize_badge_name(package_name)
         self.assertEqual(sanitized, expected)
 
     def test__get_badge_use_py2(self):
@@ -203,7 +209,7 @@ class TestBadgeServer(unittest.TestCase):
             }
         }
 
-        image = main._get_badge(res, package_name)
+        image = main.badge_utils._get_badge(res, package_name)
         self.assertIn(package_name, image)
         self.assertIn("CHECK WARNING", image)
 
@@ -218,7 +224,7 @@ class TestBadgeServer(unittest.TestCase):
             }
         }
 
-        image = main._get_badge(res, package_name)
+        image = main.badge_utils._get_badge(res, package_name)
         self.assertIn(package_name, image)
         self.assertIn("CHECK WARNING", image)
 
@@ -231,11 +237,6 @@ class TestBadgeServer(unittest.TestCase):
                 'status': 'SUCCESS', 'details': {}
             }
         }
-        mock_self_res = mock.Mock()
-        mock_self_res.return_value = self_res
-        patch_self_status = mock.patch(
-            'main._get_self_compatibility_from_cache',
-            mock_self_res)
 
         google_res = {
             'py2': {
@@ -245,114 +246,83 @@ class TestBadgeServer(unittest.TestCase):
                 'status': 'SUCCESS', 'details': {}
             }
         }
-        mock_google_res = mock.Mock()
-        mock_google_res.return_value = google_res
-        patch_google_status = mock.patch(
-            'main._get_google_compatibility_from_cache',
-            mock_google_res)
 
         dep_res = {
             'status': 'UP_TO_DATE',
             'details': {},
         }
-        mock_dep_res = mock.Mock()
-        mock_dep_res.return_value = dep_res
-        patch_dep_status = mock.patch(
-            'main._get_dependency_result_from_cache',
-            mock_dep_res)
 
-        with patch_self_status, patch_google_status, patch_dep_status:
-            status, _, _, _ = main._get_all_results_from_cache(
-                'package1')
+        main.cache.set("opencensus_self_comp_badge", self_res)
+        main.cache.set("opencensus_google_comp_badge", google_res)
+        main.cache.set("opencensus_dependency_badge", dep_res)
+
+        status, _, _, _ = main._get_all_results_from_cache(
+            'opencensus')
 
         self.assertEqual(status, 'SUCCESS')
 
     def test__get_all_results_from_cache_calculating(self):
         self_res = {
             'py2': {
-                'status': 'SUCCESS', 'details': {}
+                'status': 'CALCULATING', 'details': {}
             },
             'py3': {
-                'status': 'SUCCESS', 'details': {}
+                'status': 'CALCULATING', 'details': {}
             }
         }
-        mock_self_res = mock.Mock()
-        mock_self_res.return_value = self_res
-        patch_self_status = mock.patch(
-            'main._get_self_compatibility_from_cache',
-            mock_self_res)
 
         google_res = {
             'py2': {
-                'status': 'CALCULATING', 'details': {}
+                'status': 'SUCCESS', 'details': {}
             },
             'py3': {
-                'status': 'CALCULATING', 'details': {}
+                'status': 'SUCCESS', 'details': {}
             }
         }
-        mock_google_res = mock.Mock()
-        mock_google_res.return_value = google_res
-        patch_google_status = mock.patch(
-            'main._get_google_compatibility_from_cache',
-            mock_google_res)
 
         dep_res = {
             'status': 'UP_TO_DATE',
             'details': {},
         }
-        mock_dep_res = mock.Mock()
-        mock_dep_res.return_value = dep_res
-        patch_dep_status = mock.patch(
-            'main._get_dependency_result_from_cache',
-            mock_dep_res)
 
-        with patch_self_status, patch_google_status, patch_dep_status:
-            status, _, _, _ = main._get_all_results_from_cache(
-                'package1')
+        main.cache.set("opencensus_self_comp_badge", self_res)
+        main.cache.set("opencensus_google_comp_badge", google_res)
+        main.cache.set("opencensus_dependency_badge", dep_res)
+
+        status, _, _, _ = main._get_all_results_from_cache(
+            'opencensus')
 
         self.assertEqual(status, 'CALCULATING')
 
     def test__get_all_results_from_cache_check_warning(self):
         self_res = {
             'py2': {
-                'status': 'SUCCESS', 'details': {}
+                'status': 'CHECK_WARNING', 'details': {}
             },
             'py3': {
-                'status': 'SUCCESS', 'details': {}
+                'status': 'CHECK_WARNING', 'details': {}
             }
         }
-        mock_self_res = mock.Mock()
-        mock_self_res.return_value = self_res
-        patch_self_status = mock.patch(
-            'main._get_self_compatibility_from_cache',
-            mock_self_res)
 
         google_res = {
             'py2': {
-                'status': 'CHECK_WARNING', 'details': {}
+                'status': 'SUCCESS', 'details': {}
             },
             'py3': {
-                'status': 'CHECK_WARNING', 'details': {}
+                'status': 'SUCCESS', 'details': {}
             }
         }
-        mock_google_res = mock.Mock()
-        mock_google_res.return_value = google_res
-        patch_google_status = mock.patch(
-            'main._get_google_compatibility_from_cache',
-            mock_google_res)
 
         dep_res = {
             'status': 'UP_TO_DATE',
             'details': {},
         }
-        mock_dep_res = mock.Mock()
-        mock_dep_res.return_value = dep_res
-        patch_dep_status = mock.patch(
-            'main._get_dependency_result_from_cache',
-            mock_dep_res)
 
-        with patch_self_status, patch_google_status, patch_dep_status:
-            status, _, _, _ = main._get_all_results_from_cache(
-                'package1')
+        main.cache.set("opencensus_self_comp_badge", self_res)
+        main.cache.set("opencensus_google_comp_badge", google_res)
+        main.cache.set("opencensus_dependency_badge", dep_res)
+
+        status, _, _, _ = main._get_all_results_from_cache(
+            'opencensus')
 
         self.assertEqual(status, 'CHECK_WARNING')
