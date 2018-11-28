@@ -34,7 +34,7 @@ def timestamp_to_seconds(timestamp: str) -> int:
     
     Args:
         timestamp: An ISO 8601 format string returned by calling isoformat()
-                   on a `datetime.datetime` type timestamp.
+            on a `datetime.datetime` type timestamp.
 
     Returns:
         Timestamp in seconds.

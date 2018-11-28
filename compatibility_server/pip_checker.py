@@ -58,8 +58,8 @@ class PipError(PipCheckerError):
                  command: List[str],
                  returncode: int):
         super(PipError, self).__init__(
-            'Pip command ({command}) failed with error [{returncode}], '
-            'logs at: {error_msg}'.format(
+            'Pip command ({command}) failed with error [{returncode}]: '
+            '{error_msg}'.format(
                 command=command, returncode=returncode,
                 error_msg=error_msg))
 

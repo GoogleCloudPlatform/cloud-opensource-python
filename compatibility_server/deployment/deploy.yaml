@@ -47,6 +47,9 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
+      # Wait for up to 310 seconds for the server to complete the request
+      # before deleting the pod. The request timeout is 300 seconds for this
+      # service, and the grace period is slightly longer than that.
       terminationGracePeriodSeconds: 310
       volumes:
       - hostPath:
