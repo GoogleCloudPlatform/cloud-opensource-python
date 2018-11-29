@@ -16,15 +16,17 @@ import ast
 import os
 import unittest
 
+from compatibility_lib.semver_checker import check
 from compatibility_lib.package_crawler_static import get_package_info, get_module_info
 
 
-class TestSimplePackages(unittest.TestCase):
-    def setUp(self):
-        self.cwd = os.path.dirname(os.path.realpath(__file__))
-        self.cwd = os.path.join(self.cwd, 'testpkgs')
+CWD = os.path.dirname(os.path.realpath(__file__))
+TEST_DIR = os.path.join(cwd, 'testpkgs')
 
-    def test_simple_function(self):
+
+class TestSimplePackages(unittest.TestCase):
+
+    def test_get_package_info(self):
         expected = {
             'modules': {
                 'simple_function': {
@@ -38,7 +40,20 @@ class TestSimplePackages(unittest.TestCase):
             },
             'subpackages': {}
         }
-        location = os.path.join(self.cwd, 'simple_function')
+        location = os.path.join(TEST_DIR, 'simple_function')
         info = get_package_info(location)
         self.assertEqual(expected, info)
 
+    def test_semver_check_on_removed_func(self):
+        old_dir = os.path.join(TEST_DIR, 'removed_func/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'removed_func/0.2.0')
+
+        res = check(old_dir, new_dir)
+        self.assertEqual(False, res)
+
+    def test_semver_check_on_added_func(self):
+        old_dir = os.path.join(TEST_DIR, 'added_func/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'added_func/0.2.0')
+
+        res = check(old_dir, new_dir)
+        self.assertEqual(True, res)
