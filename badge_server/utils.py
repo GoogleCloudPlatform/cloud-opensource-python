@@ -65,7 +65,7 @@ DEFAULT_DEPENDENCY_RESULT = {
 
 
 class BadgeType(enum.Enum):
-    "Enum class for badge types."
+    """Enum class for badge types."""
     DEP_BADGE = 'dependency_badge'
     SELF_COMP_BADGE = 'self_comp_badge'
     GOOGLE_COMP_BADGE = 'google_comp_badge'
