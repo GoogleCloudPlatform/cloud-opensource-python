@@ -14,7 +14,6 @@
 
 """ doc string """
 
-import git
 import os
 import shutil
 
