@@ -12,12 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-""" doc string """
-
-import os
-import shutil
+"""checks two packages for semver breakage"""
 
 from compatibility_lib import package_crawler_static as crawler
+
 
 # TODO: This needs more sophisticated logic
 # - needs to look at args
