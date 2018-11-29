@@ -21,7 +21,7 @@ from compatibility_lib.package_crawler_static import get_package_info, get_modul
 
 
 CWD = os.path.dirname(os.path.realpath(__file__))
-TEST_DIR = os.path.join(cwd, 'testpkgs')
+TEST_DIR = os.path.join(CWD, 'testpkgs')
 
 
 class TestSimplePackages(unittest.TestCase):
