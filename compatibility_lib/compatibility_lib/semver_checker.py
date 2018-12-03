@@ -42,14 +42,10 @@ def check(old_dir, new_dir):
         for key in old.keys():
             if new.get(key) is None:
                 return False
-            if key == 'args':
-                old_args = old[key]
-                new_args = new[key]
-                for arg in old[key]:
-                    if arg not in new_args:
-                        return False
-            else:
+            if key != 'args':
                 unseen.append((old[key], new[key]))
+            elif old[key] != new[key]:
+                return False
         i += 1
 
     return True
