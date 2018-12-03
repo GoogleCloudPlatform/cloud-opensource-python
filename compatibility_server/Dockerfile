@@ -20,6 +20,7 @@ FROM python:3.6
 RUN mkdir /compatibility_checker
 ADD compatibility_checker_server.py /compatibility_checker
 ADD pip_checker.py /compatibility_checker
+ADD configs.py /compatibility_checker
 
 RUN pip3 install docker requests
 
