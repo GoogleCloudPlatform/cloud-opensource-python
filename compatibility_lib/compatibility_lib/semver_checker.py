@@ -21,10 +21,13 @@ from compatibility_lib import package_crawler_static as crawler
 # - needs to look at args
 def check(old_dir, new_dir):
     """checks for semver breakage for two local directories
+    it looks at all the attributes found by get_package_info
+    (module, class, function names) for old_dir and making sure they are also
+    in new_dir in a BFS
 
     Args:
-        old_tag: the tag for an older commit/release
-        new_tag: the tag for a newer commit/release
+        old_dir: directory containing old files
+        new_dir: directory containing new files
 
     Returns:
         False if changes breaks semver, True if semver is preserved
