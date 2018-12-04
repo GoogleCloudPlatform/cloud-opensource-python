@@ -18,22 +18,21 @@ import unittest
 
 from compatibility_lib import fake_compatibility_store
 
+os.environ["RUN_LOCALLY"] = 'true'
+
+# Set the cache to use local cache before importing the main module
 import main
 
 
 class TestBadgeServer(unittest.TestCase):
 
     def setUp(self):
-        os.environ["RUN_LOCALLY"] = 'true'
         self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
         self.patch_checker = mock.patch(
             'main.badge_utils.checker', self.mock_checker)
         self.patch_store = mock.patch(
             'main.badge_utils.store', self.fake_store)
-
-    def tearDown(self):
-        del os.environ["RUN_LOCALLY"]
 
     def test__get_pair_status_for_packages_success(self):
         pkg_sets = [
@@ -196,6 +195,7 @@ class TestBadgeServer(unittest.TestCase):
         expected = 'github head'
 
         sanitized = main.badge_utils._sanitize_badge_name(package_name)
+
         self.assertEqual(sanitized, expected)
 
     def test__get_badge_use_py2(self):
@@ -210,6 +210,7 @@ class TestBadgeServer(unittest.TestCase):
         }
 
         image = main.badge_utils._get_badge(res, package_name)
+
         self.assertIn(package_name, image)
         self.assertIn("CHECK WARNING", image)
 
@@ -225,6 +226,7 @@ class TestBadgeServer(unittest.TestCase):
         }
 
         image = main.badge_utils._get_badge(res, package_name)
+
         self.assertIn(package_name, image)
         self.assertIn("CHECK WARNING", image)
 

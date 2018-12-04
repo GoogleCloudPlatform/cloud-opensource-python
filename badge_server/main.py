@@ -60,7 +60,7 @@ def _get_result_from_cache(
 
 def _get_pair_status_for_packages(pkg_sets):
     """Get the pairwise dependency compatibility check result for packages.
-    
+
     Rules:
         - Return warning status if not compatible with any of the listed
           Google owned Python packages. Whole list in compatibility_lib.config.
@@ -103,13 +103,13 @@ def _get_pair_status_for_packages(pkg_sets):
                 version_and_res[py_version]['status'] = res.status.value
                 version_and_res[py_version]['details'][pkg_set[1]] = \
                     res.details if res.details is not None \
-                        else badge_utils.EMPTY_DETAILS
+                    else badge_utils.EMPTY_DETAILS
     return version_and_res
 
 
 def _get_all_results_from_cache(package_name):
     """Get all the check results from cache.
-    
+
     Rules:
         - Return success status if all the check results are success.
         - Otherwise return warning status.
@@ -117,7 +117,7 @@ def _get_all_results_from_cache(package_name):
     self_compat_res = _get_result_from_cache(
         package_name=package_name,
         badge_type=badge_utils.BadgeType.SELF_COMP_BADGE)
-    google_compat_res =_get_result_from_cache(
+    google_compat_res = _get_result_from_cache(
         package_name=package_name,
         badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE)
     dependency_res = _get_result_from_cache(
@@ -254,12 +254,12 @@ def self_compatibility_badge_image():
             version_and_res['py2']['status'] = py2_res.get('result')
             py2_description = py2_res.get('description')
             py2_details = badge_utils.EMPTY_DETAILS if py2_description \
-                               is None else py2_description
+                is None else py2_description
             version_and_res['py2']['details'] = py2_details
             version_and_res['py3']['status'] = py3_res.get('result')
             py3_description = py3_res.get('description')
             py3_details = badge_utils.EMPTY_DETAILS if py3_description \
-                               is None else py3_description
+                is None else py3_description
             version_and_res['py3']['details'] = py3_details
 
         # Write the result to Cloud Datastore
@@ -458,7 +458,7 @@ def google_compatibility_badge_image():
                             py_version]['status'] = res_item.get('result')
                         description = res_item.get('description')
                         details = badge_utils.EMPTY_DETAILS if description \
-                                       is None else description
+                            is None else description
                         version_and_res[
                             py_version]['details'][package] = details
             result = version_and_res
