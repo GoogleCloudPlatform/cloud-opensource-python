@@ -36,16 +36,23 @@ def check(old_dir, new_dir):
     new_pkg_info = crawler.get_package_info(new_dir)
 
     unseen = [(old_pkg_info, new_pkg_info)]
+    errors = []
+    missing = 'missing attribute "%s" from new version'
+    bad_args = 'args do not match; expecting: "%s", got: "%s"'
+
     i = 0
     while i < len(unseen):
         old, new = unseen[i]
         for key in old.keys():
             if new.get(key) is None:
-                return False
+                errors.append(missing % key)
+                continue
             if key != 'args':
                 unseen.append((old[key], new[key]))
             elif old[key] != new[key]:
-                return False
+                old_args = ', '.join(old[key])
+                new_args = ', '.join(new[key])
+                errors.append(bad_args % (old_args, new_args))
         i += 1
 
-    return True
+    return errors

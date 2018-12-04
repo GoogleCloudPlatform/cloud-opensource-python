@@ -49,25 +49,28 @@ class TestSimplePackages(unittest.TestCase):
         new_dir = os.path.join(TEST_DIR, 'added_func/0.2.0')
 
         res = check(old_dir, new_dir)
-        self.assertEqual(True, res)
+        self.assertEqual([], res)
 
     def test_semver_check_on_removed_func(self):
         old_dir = os.path.join(TEST_DIR, 'removed_func/0.1.0')
         new_dir = os.path.join(TEST_DIR, 'removed_func/0.2.0')
 
         res = check(old_dir, new_dir)
-        self.assertEqual(False, res)
+        expected = ['missing attribute "bar" from new version']
+        self.assertEqual(expected, res)
 
     def test_semver_check_on_added_args(self):
         old_dir = os.path.join(TEST_DIR, 'added_args/0.1.0')
         new_dir = os.path.join(TEST_DIR, 'added_args/0.2.0')
 
         res = check(old_dir, new_dir)
-        self.assertEqual(False, res)
+        expected = ['args do not match; expecting: "self, x", got: "self, x, y"']
+        self.assertEqual(expected, res)
 
     def test_semver_check_on_removed_args(self):
         old_dir = os.path.join(TEST_DIR, 'removed_args/0.1.0')
         new_dir = os.path.join(TEST_DIR, 'removed_args/0.2.0')
 
         res = check(old_dir, new_dir)
-        self.assertEqual(False, res)
+        expected = ['args do not match; expecting: "self, x", got: "self"']
+        self.assertEqual(expected, res)
