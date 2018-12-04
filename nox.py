@@ -87,6 +87,9 @@ def system(session, py):
         'py.test',
         '-s',
         'system_test/',
+        # Skip the system test for compatibility server as circle ci does not
+        # support running docker in docker.
+        '--ignore=system_test/test_compatibility_checker_server.py',
         *session.posargs
     )
 

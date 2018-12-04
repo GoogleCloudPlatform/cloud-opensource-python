@@ -27,29 +27,44 @@ import datetime
 import enum
 import json
 import logging
-import os.path
 import shlex
-import subprocess
-import tempfile
 import urllib.request
 
 from typing import Any, List, Mapping, Optional
 
+import docker
+
 PYPI_URL = 'https://pypi.org/pypi/'
+CONTAINER_WITH_PKG = "checker"
+TIME_OUT = 300  # seconds
 
 
-class PipError(Exception):
+class PipCheckerError(Exception):
+    """Pip checker failed in an unexpected way."""
+
+    def __init__(self, error_msg: str):
+        super(PipCheckerError, self).__init__(
+            'Pip Checker failed, '
+            'logs are: {error_msg}'.format(error_msg=error_msg))
+
+        self.error_msg = error_msg
+
+
+class PipError(PipCheckerError):
     """A pip command failed in an unexpected way."""
 
-    def __init__(self, command: List[str], returncode: int, stderr_path: str):
+    def __init__(self,
+                 error_msg: str,
+                 command: List[str],
+                 returncode: int):
         super(PipError, self).__init__(
-            'pip command ({command}) failed with error [{returncode}], '
-            'logs at: {stderr_path}'.format(
+            'Pip command ({command}) failed with error [{returncode}]: '
+            '{error_msg}'.format(
                 command=command, returncode=returncode,
-                stderr_path=stderr_path))
+                error_msg=error_msg))
+
         self.command = command
         self.returncode = returncode
-        self.stderr_path = stderr_path
 
     @property
     def command_string(self) -> str:
@@ -177,9 +192,7 @@ class _OneshotPipCheck():
 
     def __init__(self,
                  pip_command: List[str],
-                 packages: List[str],
-                 tmp_path: str,
-                 clean: bool):
+                 packages: List[str]):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -187,33 +200,92 @@ class _OneshotPipCheck():
                 ['python3', '-m', 'pip'].
             packages: The packages to check for compatibility e.g.
                 ['numpy', 'tensorflow'].
-            tmp_path: The file system path to use for temporary files
-                e.g."/tmp".
-            clean: If True then all previously installed packages will be
-                uninstalled before installing "packages".
         """
         self._pip_command = pip_command
         self._packages = packages
-        self._tmp_path = tmp_path
-        self._output_directory = None
-        self._clean = clean
+
+    def _get_base_image(self):
+        """Get the base image name based on Python version."""
+        python_version = self._pip_command[0]
+
+        if python_version == 'python2':
+            base_image = "python:2.7"
+        else:
+            base_image = "python:3.6"
+
+        return base_image
+
+    def _build_container(self, docker_client):
+        """Build the container which contains a Python interpreter."""
+        base_image = self._get_base_image()
+
+        try:
+            # The timeout for running the commands is 300 seconds.
+            # Container will stop running after the timeout.
+            container = docker_client.containers.run(
+                base_image,
+                command="sleep {}".format(TIME_OUT),
+                detach=True)
+        except docker.errors.APIError as e:
+            raise PipCheckerError(
+                error_msg="An error occurred while starting a docker"
+                          "container. Error message: {}".format(e.explanation))
+
+        return container
+
+    def _cleanup_container(self,
+                           container: docker.models.containers.Container):
+        """Remove the container."""
+        try:
+            container.stop()
+            container.remove()
+        except (docker.errors.APIError, docker.errors.NotFound):
+            raise PipCheckerError(
+                error_msg="Error occurs when cleaning up docker container."
+                          "Container does not exist.")
+
+    def _run_command(self,
+                     container: docker.models.containers.Container,
+                     command: List[str],
+                     stdout: bool,
+                     stderr: bool,
+                     raise_on_failure: Optional[bool] = True) -> (int, str):
+        """Run docker commands using docker python sdk.
+
+        Args:
+            container: The docker container that runs this command.
+            command: The command to run in docker container.
+            stdout: Whether to include stdout in output.
+            stderr: Whether to include stderr in output.
+            raise_on_failure: Whether to raise on failure.
+
+        Returns:
+            A tuple containing the return code of the given command and the
+            output of that command.
+        """
+        try:
+            returncode, output = container.exec_run(
+                command, stdout=stdout, stderr=stderr)
+
+            output = output.decode('utf-8')
+        except docker.errors.APIError as e:
+            # Clean up the container if command fails
+            self._cleanup_container(container)
+            raise PipCheckerError(error_msg="Error occurs when executing "
+                                            "commands in container."
+                                            "Error message: "
+                                            "{}".format(e.explanation))
+
+        if returncode and raise_on_failure:
+            raise PipError(error_msg=output,
+                           command=command,
+                           returncode=returncode)
+
+        return returncode, output
 
     @staticmethod
-    def _run_command(command, stdout_path, stderr_path, raise_on_failure=True):
-        with open(stdout_path, 'w') as stdout_file, open(stderr_path,
-                                                         'w') as stderr_file:
-            completed_command = subprocess.run(
-                command, stdout=stdout_file, stderr=stderr_file)
-
-        logging.debug('Running %s [returncode=%s]', command,
-                      completed_command.returncode)
-        if completed_command.returncode and raise_on_failure:
-            raise PipError(command, completed_command.returncode, stderr_path)
-
-        return completed_command.returncode
-
-    @staticmethod
-    def _call_pypi_json_api(pkg_name, pkg_version):
+    def _call_pypi_json_api(pkg_name: str, pkg_version: str):
+        """Call PyPI json api to get the dependency info."""
         pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(pkg_name, pkg_version)
 
         try:
@@ -227,77 +299,68 @@ class _OneshotPipCheck():
             return None
         return result
 
-    def _build_command(self, subcommands):
+    def _build_command(self, subcommands: List[str]):
+        """Build pip commands."""
         return self._pip_command + subcommands
 
-    def _freeze(self, requirements_file_path):
-        command = self._build_command(['freeze'])
-        std_err_path = os.path.join(self._output_directory, 'freeze-error.txt')
-        self._run_command(command, requirements_file_path, std_err_path)
-
-    def _uninstall(self, requirements_file_path):
-        std_out_path = os.path.join(self._output_directory,
-                                    'uninstall-out.txt')
-        std_err_path = os.path.join(self._output_directory,
-                                    'uninstall-error.txt')
-        command = self._build_command(
-            ['uninstall', '--yes', '-r', requirements_file_path])
-        self._run_command(command, std_out_path, std_err_path)
-
-    def _read(self, path):
-        with open(path) as f:
-            return f.read()
-
-    def _install(self):
-        std_out_path = os.path.join(self._output_directory,
-                                    'install-out.txt')
-        std_err_path = os.path.join(self._output_directory,
-                                    'install-error.txt')
+    def _install(self, container):
+        """Run pip install in the container."""
         command = self._build_command(['install', '-U'] + self._packages)
-        returncode = self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+        returncode, output = self._run_command(
+            container,
+            command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=False)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.INSTALL_ERROR,
-                                  self._read(std_err_path))
+                                  output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
-    def _check(self):
-        std_out_path = os.path.join(self._output_directory, 'check-out.txt')
-        std_err_path = os.path.join(self._output_directory, 'check-error.txt')
+    def _check(self, container):
+        """Run pip check to detect if there are any version conflicts."""
         command = self._build_command(['check'])
-        returncode = self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+
+        # The returncode is non-zero if there are conflicts,
+        # shouldn't raise on this.
+        returncode, output = self._run_command(
+            container,
+            command,
+            stdout=True,
+            stderr=True,
+            raise_on_failure=False)
         if returncode:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.CHECK_WARNING,
-                                  self._read(std_out_path))
+                                  output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
-    def _list(self):
+    def _list(self, container):
+        """Run pip list to get the outdated packages and dependency info."""
         """Use pypi json api to get the release date of the latest version."""
-        std_out_path = os.path.join(self._output_directory, 'list-out.txt')
-        std_err_path = os.path.join(self._output_directory, 'list-error.txt')
-
         pkg_version_date = {}
 
         # Get the package installed version and latest version
         command = self._build_command(['list', '--format=json'])
-        self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+        _, list_all = self._run_command(
+            container,
+            command,
+            stdout=True,
+            stderr=False,
+            raise_on_failure=False)
 
-        pip_list_result = json.loads(self._read(std_out_path))
-
-        std_out_path = os.path.join(
-            self._output_directory, 'list-outdate-out.txt')
-        std_err_path = os.path.join(
-            self._output_directory, 'list-outdate-error.txt')
+        pip_list_result = json.loads(list_all)
 
         command = self._build_command(['list', '-o', '--format=json'])
-        self._run_command(
-            command, std_out_path, std_err_path, raise_on_failure=False)
+        _, list_outdated = self._run_command(
+            container,
+            command,
+            stdout=True,
+            stderr=False,
+            raise_on_failure=False)
 
-        pip_list_latest_result = json.loads(self._read(std_out_path))
+        pip_list_latest_result = json.loads(list_outdated)
 
         # Get the outdated packages and latest versions
         outdated_pkgs = {}
@@ -333,11 +396,12 @@ class _OneshotPipCheck():
                         latest_version)
                     installed_release = result.get('releases').get(
                         installed_version)
-                if latest_release:
-                    latest_version_time = latest_release[0].get('upload_time')
-                if installed_release:
-                    installed_version_time = installed_release[0].get(
-                        'upload_time')
+                    if latest_release:
+                        latest_version_time = latest_release[0].get(
+                            'upload_time')
+                    if installed_release:
+                        installed_version_time = installed_release[0].get(
+                            'upload_time')
 
             pkg_info = {
                 'installed_version': installed_version,
@@ -354,30 +418,27 @@ class _OneshotPipCheck():
 
     def run(self):
         """Run the version compatibility check."""
-        self._output_directory = tempfile.mkdtemp(dir=self._tmp_path)
-        if self._clean:
-            requirements_old_file_path = os.path.join(self._output_directory,
-                                                      'requirements-old.txt')
-            self._freeze(requirements_old_file_path)
-            if os.path.getsize(requirements_old_file_path) > 0:
-                self._uninstall(requirements_old_file_path)
-        install_result = self._install()
+        # Create docker client and start running the container
+        docker_client = docker.from_env()
+        container = self._build_container(docker_client)
+
+        install_result = self._install(container)
 
         dependency_info = None
         if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
-            dependency_info = self._list()
+            dependency_info = self._list(container)
 
         if install_result.result_type == PipCheckResultType.SUCCESS:
-            install_result = self._check()
+            install_result = self._check(container)
+
+        self._cleanup_container(container)
 
         return install_result.with_extra_attrs(
             dependency_info=dependency_info)
 
 
 def check(pip_command: List[str],
-          packages: List[str],
-          tmp_path: str = None,
-          clean: bool = False) -> PipCheckResultType:
+          packages: List[str]) -> PipCheckResultType:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
@@ -393,8 +454,5 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
-        tmp_path: The file system path to use for temporary files e.g. "/tmp".
-        clean: If True then all previously installed packages will be
-            uninstalled before installing "packages".
     """
-    return _OneshotPipCheck(pip_command, packages, tmp_path, clean).run()
+    return _OneshotPipCheck(pip_command, packages).run()
