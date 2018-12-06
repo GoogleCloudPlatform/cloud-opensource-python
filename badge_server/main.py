@@ -17,9 +17,11 @@ URL for creating the badge:
 [TODO] Switch to use pybadges once figure out the module not found issue.
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
 """
+import datetime
 import logging
 import requests
 import threading
+
 
 import flask
 import pybadges
@@ -143,7 +145,16 @@ def _get_all_results_from_cache(package_name):
     else:
         status = 'CHECK_WARNING'
 
-    return status, self_compat_res, google_compat_res, dependency_res
+    # Get the latest timestamp
+    self_ts = self_compat_res.get('timestamp', '')
+    google_ts = google_compat_res.get('timestamp', '')
+    dep_ts = dependency_res.get('timestamp', '')
+    ts_list = [self_ts, google_ts, dep_ts]
+    ts_list.sort(reverse=True)
+    timestamp = ts_list[0] if ts_list else ''
+
+    return status, timestamp, \
+        self_compat_res, google_compat_res, dependency_res
 
 
 @app.route('/')
@@ -157,11 +168,14 @@ def one_badge_image():
     """Generate the badge for all the checks."""
     package_name = flask.request.args.get('package')
     badge_name = flask.request.args.get('badge_name')
+    is_github = False
 
     if badge_name is None:
         badge_name = package_name
 
-    badge_name = badge_utils._sanitize_badge_name(badge_name)
+    if 'github.com' in badge_name:
+        badge_name = badge_utils.GITHUB_HEAD_NAME
+        is_github = True
 
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
@@ -184,11 +198,15 @@ def one_badge_image():
         package=package_name,
         force_run_check=force_run_check))
 
-    status, _, _, _ = _get_all_results_from_cache(package_name)
+    status, timestamp, _, _, _ = _get_all_results_from_cache(package_name)
     color = badge_utils.STATUS_COLOR_MAPPING[status]
 
     details_link = url_prefix + flask.url_for('one_badge_target',
                                               package=package_name)
+
+    # Include the check timestamp for github head
+    if is_github and timestamp:
+        badge_name = '{} {}'.format(badge_name, timestamp)
 
     response = flask.make_response(
         pybadges.badge(
@@ -206,7 +224,7 @@ def one_badge_image():
 @app.route('/one_badge_target')
 def one_badge_target():
     package_name = flask.request.args.get('package')
-    status, self_compat_res, google_compat_res, dependency_res = \
+    status, _, self_compat_res, google_compat_res, dependency_res = \
         _get_all_results_from_cache(package_name)
 
     return flask.render_template(
@@ -261,6 +279,10 @@ def self_compatibility_badge_image():
             py3_details = badge_utils.EMPTY_DETAILS if py3_description \
                 is None else py3_description
             version_and_res['py3']['details'] = py3_details
+
+        # Add the timestamp
+        version_and_res['timestamp'] = datetime.datetime.now().strftime(
+            badge_utils.TIMESTAMP_FORMAT)
 
         # Write the result to Cloud Datastore
         cache.set(
@@ -334,6 +356,7 @@ def self_dependency_badge_image():
         res = {
             'status': 'UP_TO_DATE',
             'details': {},
+            'timestamp': '',
         }
         details = {}
         outdated = badge_utils.highlighter.check_package(package_name)
@@ -355,6 +378,8 @@ def self_dependency_badge_image():
             res['status'] = max_level.name
             res['details'] = details
             res['deprecated_deps'] = deprecated_deps
+        res['timestamp'] = datetime.datetime.now().strftime(
+            badge_utils.TIMESTAMP_FORMAT)
 
         # Write the result to Cloud Datastore
         cache.set(
@@ -426,7 +451,8 @@ def google_compatibility_badge_image():
                 'py3': {
                     'status': 'SUCCESS',
                     'details': {},
-                }
+                },
+                'timestamp': '',
             }
 
             for py_ver in [2, 3]:
@@ -461,6 +487,8 @@ def google_compatibility_badge_image():
                             is None else description
                         version_and_res[
                             py_version]['details'][package] = details
+            version_and_res['timestamp'] = datetime.datetime.now().strftime(
+                badge_utils.TIMESTAMP_FORMAT)
             result = version_and_res
 
         # Write the result to Cloud Datastore

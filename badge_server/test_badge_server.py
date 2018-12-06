@@ -190,13 +190,6 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(version_and_res, expected)
 
-    def test__sanitize_badge_name_github(self):
-        package_name = 'git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib'
-        expected = 'github head'
-
-        sanitized = main.badge_utils._sanitize_badge_name(package_name)
-
-        self.assertEqual(sanitized, expected)
 
     def test__get_badge_use_py2(self):
         package_name = 'package-1'
@@ -258,7 +251,7 @@ class TestBadgeServer(unittest.TestCase):
         main.cache.set("opencensus_google_comp_badge", google_res)
         main.cache.set("opencensus_dependency_badge", dep_res)
 
-        status, _, _, _ = main._get_all_results_from_cache(
+        status, _, _, _, _ = main._get_all_results_from_cache(
             'opencensus')
 
         self.assertEqual(status, 'SUCCESS')
@@ -291,7 +284,7 @@ class TestBadgeServer(unittest.TestCase):
         main.cache.set("opencensus_google_comp_badge", google_res)
         main.cache.set("opencensus_dependency_badge", dep_res)
 
-        status, _, _, _ = main._get_all_results_from_cache(
+        status, _, _, _, _ = main._get_all_results_from_cache(
             'opencensus')
 
         self.assertEqual(status, 'CALCULATING')
@@ -324,7 +317,7 @@ class TestBadgeServer(unittest.TestCase):
         main.cache.set("opencensus_google_comp_badge", google_res)
         main.cache.set("opencensus_dependency_badge", dep_res)
 
-        status, _, _, _ = main._get_all_results_from_cache(
+        status, _, _, _, _ = main._get_all_results_from_cache(
             'opencensus')
 
         self.assertEqual(status, 'CHECK_WARNING')

@@ -35,6 +35,8 @@ finder = deprecated_dep_finder.DeprecatedDepFinder(
     checker=checker, store=store)
 priority_level = dependency_highlighter.PriorityLevel
 
+TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
 URL_PREFIX = 'https://img.shields.io/badge/'
 GITHUB_HEAD_NAME = 'github head'
 SVG_CONTENT_TYPE = 'image/svg+xml'
@@ -115,19 +117,11 @@ def _build_default_result(
     return result
 
 
-def _sanitize_badge_name(badge_name: str) -> str:
-    """Shorten the github badge name"""
-    # If the package is from github head, replace the github url to
-    # 'github head'
+def _get_badge(res: dict, badge_name: str) -> str:
+    """Generate badge using the check result."""
     if 'github.com' in badge_name:
         badge_name = GITHUB_HEAD_NAME
 
-    return badge_name
-
-
-def _get_badge(res: dict, badge_name: str) -> str:
-    """Generate badge using the check result."""
-    badge_name = _sanitize_badge_name(badge_name)
     status = res.get('status')
     if status is not None:
         # Dependency badge
