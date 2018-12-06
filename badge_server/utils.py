@@ -16,7 +16,7 @@
 
 import enum
 import os
-from typing import Optional, Tuple
+from typing import Optional
 
 import pybadges
 
@@ -117,22 +117,11 @@ def _build_default_result(
     return result
 
 
-def _process_github_head_name(badge_name: str) -> Tuple[str, bool]:
-    """Shorten the github badge name"""
-    # If the package is from github head, replace the github url to
-    # 'github head'
-    is_github = False
-
-    if 'github.com' in badge_name:
-        badge_name = GITHUB_HEAD_NAME
-        is_github = True
-
-    return badge_name, is_github
-
-
 def _get_badge(res: dict, badge_name: str) -> str:
     """Generate badge using the check result."""
-    badge_name, _ = _process_github_head_name(badge_name)
+    if 'github.com' in badge_name:
+         badge_name = GITHUB_HEAD_NAME
+
     status = res.get('status')
     if status is not None:
         # Dependency badge

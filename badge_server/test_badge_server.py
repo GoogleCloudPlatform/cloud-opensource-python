@@ -190,13 +190,6 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(version_and_res, expected)
 
-    def test__process_github_head_name(self):
-        package_name = 'git+git://github.com/GoogleCloudPlatform/cloud-opensource-python.git#subdirectory=compatibility_lib'
-        expected = 'github head', True
-
-        sanitized = main.badge_utils._process_github_head_name(package_name)
-
-        self.assertEqual(sanitized, expected)
 
     def test__get_badge_use_py2(self):
         package_name = 'package-1'

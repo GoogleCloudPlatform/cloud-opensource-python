@@ -168,11 +168,14 @@ def one_badge_image():
     """Generate the badge for all the checks."""
     package_name = flask.request.args.get('package')
     badge_name = flask.request.args.get('badge_name')
+    is_github = False
 
     if badge_name is None:
         badge_name = package_name
 
-    badge_name, is_github = badge_utils._process_github_head_name(badge_name)
+    if 'github.com' in badge_name:
+        badge_name = badge_utils.GITHUB_HEAD_NAME
+        is_github = True
 
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
