@@ -17,10 +17,11 @@ URL for creating the badge:
 [TODO] Switch to use pybadges once figure out the module not found issue.
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
 """
+import datetime
 import logging
 import requests
 import threading
-import datetime
+
 
 import flask
 import pybadges
