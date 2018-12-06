@@ -120,7 +120,7 @@ def _build_default_result(
 def _get_badge(res: dict, badge_name: str) -> str:
     """Generate badge using the check result."""
     if 'github.com' in badge_name:
-         badge_name = GITHUB_HEAD_NAME
+        badge_name = GITHUB_HEAD_NAME
 
     status = res.get('status')
     if status is not None:
