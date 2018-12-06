@@ -16,7 +16,7 @@
 
 import enum
 import os
-from typing import Optional
+from typing import Optional, Tuple
 
 import pybadges
 
@@ -34,6 +34,8 @@ highlighter = dependency_highlighter.DependencyHighlighter(
 finder = deprecated_dep_finder.DeprecatedDepFinder(
     checker=checker, store=store)
 priority_level = dependency_highlighter.PriorityLevel
+
+TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 URL_PREFIX = 'https://img.shields.io/badge/'
 GITHUB_HEAD_NAME = 'github head'
@@ -115,19 +117,22 @@ def _build_default_result(
     return result
 
 
-def _sanitize_badge_name(badge_name: str) -> str:
+def _process_github_head_name(badge_name: str) -> Tuple[str, bool]:
     """Shorten the github badge name"""
     # If the package is from github head, replace the github url to
     # 'github head'
+    is_github = False
+
     if 'github.com' in badge_name:
         badge_name = GITHUB_HEAD_NAME
+        is_github = True
 
-    return badge_name
+    return badge_name, is_github
 
 
 def _get_badge(res: dict, badge_name: str) -> str:
     """Generate badge using the check result."""
-    badge_name = _sanitize_badge_name(badge_name)
+    badge_name, _ = _process_github_head_name(badge_name)
     status = res.get('status')
     if status is not None:
         # Dependency badge

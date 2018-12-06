@@ -114,7 +114,6 @@ class DependencyInfo(object):
         _result = self.checker.get_self_compatibility(
             self.py_version, [package_name])
         result = [item for item in _result]
-        print(result)
         depinfo = result[0][0].get('dependency_info')
 
         # depinfo can be None if there is an exception during pip install or
