@@ -154,7 +154,7 @@ def _get_all_results_from_cache(package_name):
     timestamp = ts_list[0] if ts_list else ''
 
     return status, timestamp, \
-           self_compat_res, google_compat_res, dependency_res
+        self_compat_res, google_compat_res, dependency_res
 
 
 @app.route('/')
