@@ -72,6 +72,30 @@ class TestGetCompatibilityData(unittest.TestCase):
             'compatibility_lib.get_compatibility_data.store',
             self.fake_store)
 
+    def test__generate_pairs_for_github_head(self):
+        pkg_list = ['package1', 'package2']
+        gh_pkgs = {
+            'gh_pkg1_url': 'gh_pkg1',
+            'gh_pkg2_url':'gh_pkg2'
+        }
+        patch_pkg_list = mock.patch(
+            'compatibility_lib.configs.PKG_LIST', pkg_list)
+        patch_gh_list = mock.patch(
+            'compatibility_lib.configs.WHITELIST_URLS', gh_pkgs)
+
+        with self.patch_constructor, self.patch_checker, self.patch_store,\
+             patch_pkg_list, patch_gh_list:
+            from compatibility_lib import get_compatibility_data
+
+            pairs = get_compatibility_data._generate_pairs_for_github_head()
+
+        expected = [('gh_pkg1_url', 'package1'),
+                    ('gh_pkg1_url', 'package2'),
+                    ('gh_pkg2_url', 'package1'),
+                    ('gh_pkg2_url', 'package2')]
+
+        self.assertEqual(pairs, expected)
+
     def test__result_dict_to_compatibility_result(self):
         with self.patch_constructor, self.patch_checker, self.patch_store:
             from compatibility_lib import compatibility_store
