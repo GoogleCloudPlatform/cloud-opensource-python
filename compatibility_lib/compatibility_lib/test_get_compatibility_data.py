@@ -99,7 +99,7 @@ class TestGetCompatibilityData(unittest.TestCase):
         saved_results = self.fake_store._packages_to_compatibility_result.get(
             frozenset({self.packages[0]}))
         self.assertIsNotNone(saved_results)
-        self.assertEqual(len(saved_results), 4)
+        self.assertEqual(len(saved_results), 6)
         saved_item = saved_results[0]
         self.assertEqual(saved_item.packages, self.packages)
         self.assertEqual(saved_item.dependency_info, self.dependency_info)
