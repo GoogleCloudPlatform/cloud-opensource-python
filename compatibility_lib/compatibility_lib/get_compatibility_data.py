@@ -79,16 +79,14 @@ def write_to_status_table():
         res_list = _result_dict_to_compatibility_result(results, py_version)
         self_res_list.extend(res_list)
 
-    print(self_res_list)
-
-    # store.save_compatibility_statuses(self_res_list)
+    store.save_compatibility_statuses(self_res_list)
 
     # Write pairwise compatibility status to BigQuery
     for py_version in [PY2, PY3]:
         # For PyPI released versions
         results = checker.get_pairwise_compatibility(py_version)
         res_list = _result_dict_to_compatibility_result(results, py_version)
-        # store.save_compatibility_statuses(res_list)
+        store.save_compatibility_statuses(res_list)
 
         # For github head versions
         pkg_sets = _generate_pairs_for_github_head()
@@ -96,8 +94,7 @@ def write_to_status_table():
             python_version=py_version,
             pkg_sets=pkg_sets)
         res_list = _result_dict_to_compatibility_result(results, py_version)
-        print(res_list)
-        # store.save_compatibility_statuses(res_list)
+        store.save_compatibility_statuses(res_list)
 
 
 if __name__ == '__main__':
