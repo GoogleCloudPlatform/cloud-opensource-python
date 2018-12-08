@@ -34,28 +34,40 @@ PKG_LIST = [
     'google-api-core',
     'google-api-python-client',
     'google-auth',
+    'google-cloud-asset',
+    'google-cloud-automl',
     'google-cloud-bigquery',
     'google-cloud-bigquery-datatransfer',
     'google-cloud-bigtable',
     'google-cloud-container',
     'google-cloud-core',
+    'google-cloud-dataproc',
     'google-cloud-datastore',
+    'google-cloud-dlp',
     'google-cloud-dns',
     'google-cloud-error-reporting',
     'google-cloud-firestore',
+    'google-cloud-iot',
+    'google-cloud-kms',
     'google-cloud-language',
     'google-cloud-logging',
     'google-cloud-monitoring',
+    'google-cloud-ndb',
     'google-cloud-pubsub',
+    'google-cloud-redis',
     'google-cloud-resource-manager',
     'google-cloud-runtimeconfig',
+    'google-cloud-securitycenter',
     'google-cloud-spanner',
     'google-cloud-speech',
     'google-cloud-storage',
+    'google-cloud-tasks',
+    'google-cloud-texttospeech',
     'google-cloud-trace',
     'google-cloud-translate',
     'google-cloud-videointelligence',
     'google-cloud-vision',
+    'google-cloud-websecurityscanner',
     'google-resumable-media',
     'apache-beam[gcp]',
     'google-apitools',
@@ -75,23 +87,36 @@ PKG_LIST = [
 WHITELIST_PKGS = PKG_LIST
 
 WHITELIST_URLS = {
-    _format_url('googleapis/google-cloud-python', 'asset'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'automl'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'dataproc'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'dlp'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'iot'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'kms'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'legacy/google-cloud'):
-        'gcloud',
-    _format_url('googleapis/google-cloud-python', 'ndb'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'oslogin'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'redis'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'securitycenter'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'tasks'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'test_utils'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'texttospeech'): 'gcloud',
+    _format_url('googleapis/google-cloud-python', 'asset'):
+        'google-cloud-asset',
+    _format_url('googleapis/google-cloud-python', 'automl'):
+        'google-cloud-automl',
+    _format_url('googleapis/google-cloud-python', 'dataproc'):
+        'google-cloud-dataproc',
+    _format_url('googleapis/google-cloud-python', 'dlp'):
+        'google-cloud-dlp',
+    _format_url('googleapis/google-cloud-python', 'iot'):
+        'google-cloud-iot',
+    _format_url('googleapis/google-cloud-python', 'kms'):
+        'google-cloud-kms',
+    _format_url('googleapis/google-cloud-python', 'ndb'):
+        'google-cloud-ndb',
+    # This is not released yet
+    _format_url('googleapis/google-cloud-python', 'oslogin'):
+        'google-cloud-os-login',
+    _format_url('googleapis/google-cloud-python', 'redis'):
+        'google-cloud-redis',
+    _format_url('googleapis/google-cloud-python', 'securitycenter'):
+        'google-cloud-securitycenter',
+    _format_url('googleapis/google-cloud-python', 'tasks'):
+        'google-cloud-tasks',
+    # This is the system test utilities for google-cloud-python
+    _format_url('googleapis/google-cloud-python', 'test_utils'):
+        'google-cloud-testutils',
+    _format_url('googleapis/google-cloud-python', 'texttospeech'):
+        'google-cloud-texttospeech',
     _format_url('googleapis/google-cloud-python', 'websecurityscanner'):
-        'gcloud',
+        'google-cloud-websecurityscanner',
     _format_url('googleapis/google-cloud-python', 'api_core'):
         'google-api-core',
     _format_url('googleapis/google-cloud-python', 'bigquery'):
