@@ -94,7 +94,7 @@ class TestGetCompatibilityData(unittest.TestCase):
                     ('gh_pkg2_url', 'package1'),
                     ('gh_pkg2_url', 'package2')]
 
-        self.assertEqual(pairs, expected)
+        self.assertEqual(set(pairs), set(expected))
 
     def test__result_dict_to_compatibility_result(self):
         with self.patch_constructor, self.patch_checker, self.patch_store:
