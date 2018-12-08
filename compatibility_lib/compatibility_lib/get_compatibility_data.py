@@ -55,7 +55,7 @@ def _result_dict_to_compatibility_result(results, python_version):
 
 def _generate_pairs_for_github_head():
     """Generate pairs for each github head package with the PyPI packages.
-    
+
     e.g. [(github_pkg, pkg1), (github_pkg, pkg2),...]
     """
     pkg_pairs = []
