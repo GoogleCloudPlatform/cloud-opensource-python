@@ -163,3 +163,17 @@ def _parse_datetime(date_string):
     date_string = date_string.replace('T', ' ')
     short_date = date_string.split(' ')[0]
     return datetime.strptime(short_date, DATETIME_FORMAT)
+
+
+def _generate_pairs_for_github_head():
+    """Generate pairs for each github head package with the PyPI packages.
+
+    e.g. [(github_pkg, pkg1), (github_pkg, pkg2),...]
+    """
+    pkg_pairs = []
+
+    for gh_pkg in configs.WHITELIST_URLS.keys():
+        gh_pairs = [(gh_pkg, package) for package in configs.PKG_LIST]
+        pkg_pairs.extend(gh_pairs)
+
+    return pkg_pairs
