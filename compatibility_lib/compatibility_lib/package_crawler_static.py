@@ -219,9 +219,11 @@ def _get_function_info(functions):
 
 
 def _get_args(node):
-    """returns a list of args"""
+    """returns a list of non-default args, ignoring args with defaults"""
     args = []
-    for arg in node.args:
+    num_args = len(node.args) - len(node.defaults)
+    for i in range(num_args):
+        arg = node.args[i]
         if isinstance(arg, ast.arg):
             args.append(arg.arg)
         elif isinstance(arg, ast.Name):

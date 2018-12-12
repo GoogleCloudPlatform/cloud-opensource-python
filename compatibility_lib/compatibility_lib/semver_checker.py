@@ -18,7 +18,6 @@ from compatibility_lib import package_crawler_static as crawler
 
 
 # TODO: This needs more sophisticated logic
-# - needs to look at args
 def check(old_dir, new_dir):
     """checks for semver breakage for two local directories
     it looks at all the attributes found by get_package_info
@@ -30,7 +29,7 @@ def check(old_dir, new_dir):
         new_dir: directory containing new files
 
     Returns:
-        False if changes breaks semver, True if semver is preserved
+        a list of error strings describing semver breakages
     """
     old_pkg_info = crawler.get_package_info(old_dir)
     new_pkg_info = crawler.get_package_info(new_dir)

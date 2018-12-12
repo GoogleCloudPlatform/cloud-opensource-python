@@ -74,3 +74,10 @@ class TestSimplePackages(unittest.TestCase):
         res = check(old_dir, new_dir)
         expected = ['args do not match; expecting: "self, x", got: "self"']
         self.assertEqual(expected, res)
+
+    def test_sember_check_on_added_optional_args(self):
+        old_dir = os.path.join(TEST_DIR, 'optional_args/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'optional_args/0.2.0')
+
+        res = check(old_dir, new_dir)
+        self.assertEqual([], res)
