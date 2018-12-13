@@ -87,6 +87,9 @@ def system(session, py):
         'py.test',
         '-s',
         'system_test/',
+        # Skip the system test for compatibility server as circle ci does not
+        # support running docker in docker.
+        '--ignore=system_test/test_compatibility_checker_server.py',
         *session.posargs
     )
 
@@ -96,7 +99,7 @@ def update_dashboard(session):
     """Build the dashboard."""
 
     session.interpreter = 'python3.6'
-    session.install('-e', ','.join(LOCAL_DEPS))
+    session.install('compatibility-lib')
     session.install('-r', 'requirements-test.txt')
 
     # Set the virtualenv dirname.

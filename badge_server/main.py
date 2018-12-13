@@ -17,141 +17,62 @@ URL for creating the badge:
 [TODO] Switch to use pybadges once figure out the module not found issue.
 'https://img.shields.io/badge/{name}-{status}-{color}.svg'
 """
+import datetime
 import logging
-import os
 import requests
 import threading
+
 
 import flask
 import pybadges
 
-from compatibility_lib import compatibility_checker
-from compatibility_lib import compatibility_store
+import utils as badge_utils
 from compatibility_lib import configs
-from compatibility_lib import dependency_highlighter
-from compatibility_lib import deprecated_dep_finder
+from compatibility_lib import utils
 from compatibility_lib import package as package_module
 
 
 app = flask.Flask(__name__)
 
-# Cache storing the package name associated with its check results.
-# {
-#     'pkg1_dep_badge':{},
-#     'pkg1_self_comp_badge': {
-#         'py2':{
-#             'status': 'SUCCESS',
-#             'details': None,
-#         },
-#         'py3':{
-#             'status': 'CHECK_WARNING',
-#             'details': '...',
-#         }
-#     },
-#     'pkg1_google_comp_badge': {
-#         'py2':{
-#             'status': 'SUCCESS',
-#             'details': None,
-#         },
-#         'py3':{
-#             'status': 'CHECK_WARNING',
-#             'details': {
-#                 'package1': '...',
-#             },
-#         }
-#     },
-#     'pkg1_api_badge':{},
-# }
+cache = badge_utils.initialize_cache()
 
-if os.environ.get('RUN_LOCALLY') is not None:
-    import fake_cache
-    CACHE = fake_cache.FakeCache()
-elif os.environ.get('REDISHOST') is not None:
-    import redis_cache
-    CACHE = redis_cache.RedisCache()
-else:
-    import datastore_cache
-    CACHE = datastore_cache.DatastoreCache()
 
-checker = compatibility_checker.CompatibilityChecker()
-store = compatibility_store.CompatibilityStore()
-highlighter = dependency_highlighter.DependencyHighlighter(
-    checker=checker, store=store)
-finder = deprecated_dep_finder.DeprecatedDepFinder(
-    checker=checker, store=store)
-priority_level = dependency_highlighter.PriorityLevel
+def _get_result_from_cache(
+        package_name: str,
+        badge_type: badge_utils.BadgeType) -> dict:
+    """Get check result from cache."""
+    # Return unknown if package not in whitelist
+    if not utils._is_package_in_whitelist([package_name]):
+        result = badge_utils._build_default_result(
+            badge_type=badge_type,
+            status='UNKNOWN',
+            details={})
+    # Get the result from cache, return None if not in cache
+    else:
+        result = cache.get('{}_{}'.format(package_name, badge_type.value))
 
-URL_PREFIX = 'https://img.shields.io/badge/'
+    if result is None:
+        result = badge_utils._build_default_result(
+            badge_type=badge_type,
+            status='CALCULATING',
+            details={})
 
-PY_VER_MAPPING = {
-    2: 'py2',
-    3: 'py3',
-}
-
-STATUS_COLOR_MAPPING = {
-    'SUCCESS': 'green',
-    'UNKNOWN': 'purple',
-    'INSTALL_ERROR': 'yellow',
-    'CHECK_WARNING': 'red',
-    'CALCULATING': 'blue',
-    'CONVERSION_ERROR': 'orange',
-}
-
-DEFAULT_COMPATIBILITY_RESULT = {
-        'py2': {
-            'status': 'CALCULATING',
-            'details': {},
-        },
-        'py3': {
-            'status': 'CALCULATING',
-            'details': {},
-        }
-}
-
-DEFAULT_DEPENDENCY_RESULT = {
-        'status': 'CALCULATING',
-        'details': {},
-}
-
-CONVERSION_ERROR_RES = {
-    'py2': {
-        'status': 'CONVERSION_ERROR',
-        'details': None,
-    },
-    'py3': {
-        'status': 'CONVERSION_ERROR',
-        'details': None,
-    }
-}
-
-DEP_STATUS_COLOR_MAPPING = {
-    'CALCULATING':                      'blue',
-    'CONVERSION_ERROR':                 'purple',
-    priority_level.UP_TO_DATE.name:     'green',
-    priority_level.LOW_PRIORITY.name:   'yellow',
-    priority_level.HIGH_PRIORITY.name:  'red'
-}
-
-DEP_CONVERSION_ERROR_RES = {
-    'status': 'CONVERSION_ERROR',
-    'details': None,
-}
-
-GITHUB_HEAD_NAME = 'github head'
-
-SVG_CONTENT_TYPE = 'image/svg+xml'
-
-EMPTY_DETAILS = 'NO DETAILS'
-
-DEP_BADGE = 'dep_badge'
-SELF_COMP_BADGE = 'self_comp_badge'
-GOOGLE_COMP_BADGE = 'google_comp_badge'
-API_BADGE = 'api_badge'
-
-CACHED_PACKAGES = configs.PKG_LIST + configs.THIRD_PARTY_PACKAGE_LIST
+    return result
 
 
 def _get_pair_status_for_packages(pkg_sets):
+    """Get the pairwise dependency compatibility check result for packages.
+
+    Rules:
+        - Return warning status if not compatible with any of the listed
+          Google owned Python packages. Whole list in compatibility_lib.config.
+        - Ignore the warning status if:
+            - The package doesn't support one of the Python versions.
+            - The package's pair is not self compatible, which means the
+              pairwise conflict isn't related to the package being checked.
+        - Return success status if compatible with all the list of Google owned
+          Python packages.
+    """
     version_and_res = {
         'py2': {
             'status': 'SUCCESS',
@@ -164,9 +85,10 @@ def _get_pair_status_for_packages(pkg_sets):
     }
     for pkg_set in pkg_sets:
         pkgs = [package_module.Package(pkg) for pkg in pkg_set]
-        pair_res = store.get_pair_compatibility(pkgs)
+        pair_res = badge_utils.store.get_pair_compatibility(pkgs)
+
         for res in pair_res:
-            py_version = PY_VER_MAPPING[res.python_major_version]
+            py_version = badge_utils.PY_VER_MAPPING[res.python_major_version]
             # Status showing one of the check failures
             if res.status.value != 'SUCCESS':
                 # Ignore the package that not support for given py_ver
@@ -175,79 +97,34 @@ def _get_pair_status_for_packages(pkg_sets):
                             res.python_major_version):
                     continue
                 # Ignore the package that are not self compatible
-                self_status = _get_self_compatibility_from_cache(pkg_set[1])
-                if self_status[py_version]['status'] not in [
-                        'SUCCESS', 'CALCULATING']:
+                self_status = _get_result_from_cache(
+                    package_name=pkg_set[1],
+                    badge_type=badge_utils.BadgeType.SELF_COMP_BADGE)
+                if self_status[py_version]['status'] != 'SUCCESS':
                     continue
                 version_and_res[py_version]['status'] = res.status.value
                 version_and_res[py_version]['details'][pkg_set[1]] = \
-                    res.details if res.details is not None else EMPTY_DETAILS
+                    res.details if res.details is not None \
+                    else badge_utils.EMPTY_DETAILS
     return version_and_res
 
 
-def _sanitize_badge_name(badge_name):
-    # If the package is from github head, replace the github url to
-    # 'github head'
-    if 'github.com' in badge_name:
-        badge_name = GITHUB_HEAD_NAME
-
-    return badge_name
-
-
-def _get_badge(res, badge_name):
-    badge_name = _sanitize_badge_name(badge_name)
-    status = res.get('status')
-    if status is not None:
-        color = DEP_STATUS_COLOR_MAPPING[status]
-    else:
-        status = res['py3']['status']
-        if status == 'SUCCESS' and \
-            badge_name not in \
-                configs.PKG_PY_VERSION_NOT_SUPPORTED.get(2):
-            status = res['py2']['status']
-
-        color = STATUS_COLOR_MAPPING[status]
-
-    status = status.replace('_', ' ')
-    return pybadges.badge(
-        left_text=badge_name,
-        right_text=status,
-        right_color=color)
-
-
-def _get_self_compatibility_from_cache(package_name):
-    result_dict = CACHE.get(
-        '{}_self_comp_badge'.format(package_name))
-
-    if result_dict is None:
-        result_dict = DEFAULT_COMPATIBILITY_RESULT
-    return result_dict
-
-
-def _get_google_compatibility_from_cache(package_name):
-    result_dict = CACHE.get(
-        '{}_google_comp_badge'.format(package_name))
-
-    if result_dict is None:
-        result_dict = DEFAULT_COMPATIBILITY_RESULT
-
-    return result_dict
-
-
-def _get_dependency_result_from_cache(package_name):
-    result_dict = CACHE.get(
-        '{}_dependency_badge'.format(package_name))
-
-    if result_dict is None:
-        result_dict = DEFAULT_DEPENDENCY_RESULT
-
-    return result_dict
-
-
 def _get_all_results_from_cache(package_name):
-    self_compat_res = _get_self_compatibility_from_cache(package_name)
-    google_compat_res = _get_google_compatibility_from_cache(package_name)
-    dependency_res = _get_dependency_result_from_cache(package_name)
+    """Get all the check results from cache.
+
+    Rules:
+        - Return success status if all the check results are success.
+        - Otherwise return warning status.
+    """
+    self_compat_res = _get_result_from_cache(
+        package_name=package_name,
+        badge_type=badge_utils.BadgeType.SELF_COMP_BADGE)
+    google_compat_res = _get_result_from_cache(
+        package_name=package_name,
+        badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE)
+    dependency_res = _get_result_from_cache(
+        package_name=package_name,
+        badge_type=badge_utils.BadgeType.DEP_BADGE)
 
     if self_compat_res['py3']['status'] == 'SUCCESS' and \
         google_compat_res['py3']['status'] == 'SUCCESS' and \
@@ -259,24 +136,46 @@ def _get_all_results_from_cache(package_name):
         dependency_res['status']
     ):
         status = 'CALCULATING'
+    elif 'UNKNOWN' in (
+        self_compat_res['py3']['status'],
+        google_compat_res['py3']['status'],
+        dependency_res['status']
+    ):
+        status = 'UNKNOWN'
     else:
         status = 'CHECK_WARNING'
 
-    return status, self_compat_res, google_compat_res, dependency_res
+    # Get the latest timestamp
+    self_ts = self_compat_res.get('timestamp', '')
+    google_ts = google_compat_res.get('timestamp', '')
+    dep_ts = dependency_res.get('timestamp', '')
+    ts_list = [self_ts, google_ts, dep_ts]
+    ts_list.sort(reverse=True)
+    timestamp = ts_list[0] if ts_list else ''
+
+    return status, timestamp, \
+        self_compat_res, google_compat_res, dependency_res
 
 
 @app.route('/')
 def greetings():
+    """This is for testing the server health."""
     return 'hello world'
 
 
 @app.route('/one_badge_image')
 def one_badge_image():
+    """Generate the badge for all the checks."""
     package_name = flask.request.args.get('package')
     badge_name = flask.request.args.get('badge_name')
+    is_github = False
 
     if badge_name is None:
         badge_name = package_name
+
+    if 'github.com' in badge_name:
+        badge_name = badge_utils.GITHUB_HEAD_NAME
+        is_github = True
 
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
@@ -299,18 +198,23 @@ def one_badge_image():
         package=package_name,
         force_run_check=force_run_check))
 
-    status, _, _, _ = _get_all_results_from_cache(package_name)
-    color = STATUS_COLOR_MAPPING[status]
+    status, timestamp, _, _, _ = _get_all_results_from_cache(package_name)
+    color = badge_utils.STATUS_COLOR_MAPPING[status]
 
     details_link = url_prefix + flask.url_for('one_badge_target',
                                               package=package_name)
+
+    # Include the check timestamp for github head
+    if is_github and timestamp:
+        badge_name = '{} {}'.format(badge_name, timestamp)
+
     response = flask.make_response(
         pybadges.badge(
             left_text=badge_name,
             right_text=status,
             right_color=color,
             whole_link=details_link))
-    response.content_type = SVG_CONTENT_TYPE
+    response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
 
@@ -320,7 +224,7 @@ def one_badge_image():
 @app.route('/one_badge_target')
 def one_badge_target():
     package_name = flask.request.args.get('package')
-    status, self_compat_res, google_compat_res, dependency_res = \
+    status, _, self_compat_res, google_compat_res, dependency_res = \
         _get_all_results_from_cache(package_name)
 
     return flask.render_template(
@@ -342,66 +246,68 @@ def self_compatibility_badge_image():
     if badge_name is None:
         badge_name = 'self compatibility'
 
-    version_and_res = {
-        'py2': {
-            'status': 'CALCULATING',
-            'details': None,
-        },
-        'py3': {
-            'status': 'CALCULATING',
-            'details': None,
-        }
-    }
+    version_and_res = badge_utils._build_default_result(
+        badge_type=badge_utils.BadgeType.SELF_COMP_BADGE,
+        status='CALCULATING',
+        details=None)
 
     def run_check():
         # First see if this package is already stored in BigQuery.
         package = package_module.Package(package_name)
-        compatibility_status = store.get_self_compatibility(package)
+        compatibility_status = badge_utils.store.get_self_compatibility(
+            package)
         if compatibility_status:
             for res in compatibility_status:
-                py_version = PY_VER_MAPPING[res.python_major_version]
+                py_version = badge_utils.PY_VER_MAPPING[
+                    res.python_major_version]
                 version_and_res[py_version]['status'] = res.status.value
                 version_and_res[py_version]['details'] = res.details \
-                    if res.details is not None else EMPTY_DETAILS
+                    if res.details is not None else badge_utils.EMPTY_DETAILS
 
         # If not pre stored in BigQuery, run the check for the package.
         else:
-            py2_res = checker.check([package_name], '2')
-            py3_res = checker.check([package_name], '3')
+            py2_res = badge_utils.checker.check([package_name], '2')
+            py3_res = badge_utils.checker.check([package_name], '3')
 
             version_and_res['py2']['status'] = py2_res.get('result')
             py2_description = py2_res.get('description')
-            py2_details = EMPTY_DETAILS if py2_description is None \
-                else py2_description
+            py2_details = badge_utils.EMPTY_DETAILS if py2_description \
+                is None else py2_description
             version_and_res['py2']['details'] = py2_details
             version_and_res['py3']['status'] = py3_res.get('result')
             py3_description = py3_res.get('description')
-            py3_details = EMPTY_DETAILS if py3_description is None \
-                else py3_description
+            py3_details = badge_utils.EMPTY_DETAILS if py3_description \
+                is None else py3_description
             version_and_res['py3']['details'] = py3_details
 
-        # Write the result to memory store
-        CACHE.set(
+        # Add the timestamp
+        version_and_res['timestamp'] = datetime.datetime.now().strftime(
+            badge_utils.TIMESTAMP_FORMAT)
+
+        # Write the result to Cloud Datastore
+        cache.set(
             '{}_self_comp_badge'.format(package_name), version_and_res)
 
-    self_comp_res = CACHE.get(
-        '{}_self_comp_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        self_comp_res = badge_utils._build_default_result(
+            badge_type=badge_utils.BadgeType.SELF_COMP_BADGE,
+            status='UNKNOWN',
+            details=badge_utils.PACKAGE_NOT_SUPPORTED)
+    else:
+        self_comp_res = cache.get('{}_self_comp_badge'.format(package_name))
 
     if self_comp_res is None:
         details = version_and_res
     else:
         details = self_comp_res
 
-    # Run the check if there is not cached result or forced to populate the
-    # cache or package not in cached package list.
-    if self_comp_res is None or \
-        force_run_check is not None or \
-            package_name not in CACHED_PACKAGES:
+    # Run the check if details is None or forced to populate the cache.
+    if self_comp_res is None or force_run_check is not None:
         threading.Thread(target=run_check).start()
 
-    badge = _get_badge(details, badge_name)
+    badge = badge_utils._get_badge(details, badge_name)
     response = flask.make_response(badge)
-    response.content_type = SVG_CONTENT_TYPE
+    response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
 
@@ -425,7 +331,9 @@ def self_compatibility_badge_target():
       }
     """
     package_name = flask.request.args.get('package')
-    result_dict = _get_self_compatibility_from_cache(package_name)
+    result_dict = _get_result_from_cache(
+        package_name=package_name,
+        badge_type=badge_utils.BadgeType.SELF_COMP_BADGE)
 
     return flask.render_template(
         'self-compatibility.html',
@@ -446,15 +354,17 @@ def self_dependency_badge_image():
 
     def run_check():
         res = {
-            'status': 'CALCULATING',
+            'status': 'UP_TO_DATE',
             'details': {},
+            'timestamp': '',
         }
-        outdated = highlighter.check_package(package_name)
-        deprecated_deps_list = finder.get_deprecated_dep(package_name)[1]
-        deprecated_deps = ', '.join(deprecated_deps_list)
         details = {}
+        outdated = badge_utils.highlighter.check_package(package_name)
+        deprecated_deps_list = badge_utils.finder.get_deprecated_dep(
+            package_name)[1]
+        deprecated_deps = ', '.join(deprecated_deps_list)
 
-        max_level = priority_level.UP_TO_DATE
+        max_level = badge_utils.priority_level.UP_TO_DATE
         for dep in outdated:
             dep_detail = {}
             level = dep.priority.level
@@ -465,33 +375,37 @@ def self_dependency_badge_image():
             dep_detail['priority'] = dep.priority.level.name
             dep_detail['detail'] = dep.priority.details
             details[dep.name] = dep_detail
+            res['status'] = max_level.name
+            res['details'] = details
+            res['deprecated_deps'] = deprecated_deps
+        res['timestamp'] = datetime.datetime.now().strftime(
+            badge_utils.TIMESTAMP_FORMAT)
 
-        res['status'] = max_level.name
-        res['details'] = details
-        res['deprecated_deps'] = deprecated_deps
-
-        # Write the result to memory store
-        CACHE.set(
+        # Write the result to Cloud Datastore
+        cache.set(
             '{}_dependency_badge'.format(package_name), res)
 
-    dependency_res = CACHE.get(
-        '{}_dependency_badge'.format(package_name))
+    if not utils._is_package_in_whitelist([package_name]):
+        dependency_res = badge_utils._build_default_result(
+            badge_type=badge_utils.BadgeType.DEP_BADGE,
+            status='UNKNOWN',
+            details={})
+    else:
+        dependency_res = cache.get(
+            '{}_dependency_badge'.format(package_name))
 
     if dependency_res is None:
-        details = DEFAULT_DEPENDENCY_RESULT
+        details = badge_utils.DEFAULT_DEPENDENCY_RESULT
     else:
         details = dependency_res
 
-    # Run the check if there is not cached result or forced to populate the
-    # cache or package not in cached package list.
-    if dependency_res is None or \
-        force_run_check is not None or \
-            package_name not in CACHED_PACKAGES:
+    # Run the check if dependency_res is None or forced to populate the cache.
+    if dependency_res is None or force_run_check is not None:
         threading.Thread(target=run_check).start()
 
-    badge = _get_badge(details, badge_name)
+    badge = badge_utils._get_badge(details, badge_name)
     response = flask.make_response(badge)
-    response.content_type = SVG_CONTENT_TYPE
+    response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
 
@@ -502,7 +416,9 @@ def self_dependency_badge_image():
 def self_dependency_badge_target():
     """Return a dict that contains dependency status and details."""
     package_name = flask.request.args.get('package')
-    result_dict = _get_dependency_result_from_cache(package_name)
+    result_dict = _get_result_from_cache(
+        package_name=package_name,
+        badge_type=badge_utils.BadgeType.DEP_BADGE)
 
     return flask.render_template(
         'dependency-result.html',
@@ -535,14 +451,15 @@ def google_compatibility_badge_image():
                 'py3': {
                     'status': 'SUCCESS',
                     'details': {},
-                }
+                },
+                'timestamp': '',
             }
 
             for py_ver in [2, 3]:
-                results = list(checker.get_pairwise_compatibility(
+                results = list(badge_utils.checker.get_pairwise_compatibility(
                     py_ver, pkg_sets))
                 logging.warning(results)
-                py_version = PY_VER_MAPPING[py_ver]
+                py_version = badge_utils.PY_VER_MAPPING[py_ver]
 
                 for res in results:
                     res_item = res[0]
@@ -556,8 +473,9 @@ def google_compatibility_badge_image():
                             continue
 
                         # Ignore the package that are not self compatible
-                        self_status = _get_self_compatibility_from_cache(
-                            package)
+                        self_status = _get_result_from_cache(
+                            package_name=package_name,
+                            badge_type=badge_utils.BadgeType.SELF_COMP_BADGE)
                         if self_status[py_version]['status'] not in [
                                 'SUCCESS', 'CALCULATING']:
                             continue
@@ -565,34 +483,42 @@ def google_compatibility_badge_image():
                         version_and_res[
                             py_version]['status'] = res_item.get('result')
                         description = res_item.get('description')
-                        details = EMPTY_DETAILS if description is None \
-                            else description
+                        details = badge_utils.EMPTY_DETAILS if description \
+                            is None else description
                         version_and_res[
                             py_version]['details'][package] = details
+            version_and_res['timestamp'] = datetime.datetime.now().strftime(
+                badge_utils.TIMESTAMP_FORMAT)
             result = version_and_res
 
-        # Write the result to memory store
-        CACHE.set(
+        # Write the result to Cloud Datastore
+        cache.set(
             '{}_google_comp_badge'.format(package_name), result)
 
-    google_comp_res = CACHE.get(
+    google_comp_res = cache.get(
         '{}_google_comp_badge'.format(package_name))
 
+    if not utils._is_package_in_whitelist([package_name]):
+        google_comp_res = badge_utils._build_default_result(
+            badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE,
+            status='UNKNOWN',
+            details={})
+
     if google_comp_res is None:
-        details = DEFAULT_COMPATIBILITY_RESULT
+        details = badge_utils._build_default_result(
+            badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE,
+            status='CALCULATING',
+            details={})
     else:
         details = google_comp_res
 
-    # Run the check if there is not cached result or forced to populate the
-    # cache or package not in cached package list.
-    if google_comp_res is None or \
-        force_run_check is not None or \
-            package_name not in CACHED_PACKAGES:
+    # Run the check if google_comp_res is None or forced to populate the cache.
+    if google_comp_res is None or force_run_check is not None:
         threading.Thread(target=run_check).start()
 
-    badge = _get_badge(details, badge_name)
+    badge = badge_utils._get_badge(details, badge_name)
     response = flask.make_response(badge)
-    response.content_type = SVG_CONTENT_TYPE
+    response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
     response.add_etag()
 
@@ -618,7 +544,9 @@ def google_compatibility_badge_target():
           }
     """
     package_name = flask.request.args.get('package')
-    result_dict = _get_google_compatibility_from_cache(package_name)
+    result_dict = _get_result_from_cache(
+                      package_name=package_name,
+                      badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE)
 
     return flask.render_template(
         'google-compatibility.html',

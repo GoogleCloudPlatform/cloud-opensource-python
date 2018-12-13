@@ -12,19 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# An image used to run a Python webserver that does compatibility checking
-# between pip-installable packages.
 
-FROM python:3.6
+class Foo(object):
 
-RUN mkdir /compatibility_checker
-ADD compatibility_checker_server.py /compatibility_checker
-ADD pip_checker.py /compatibility_checker
-ADD configs.py /compatibility_checker
-
-RUN pip3 install docker requests
-
-EXPOSE 8888
-
-CMD python ./compatibility_checker/compatibility_checker_server.py \
-     --host=0.0.0.0 --port=8888
+    def __init__(self, x):
+        pass

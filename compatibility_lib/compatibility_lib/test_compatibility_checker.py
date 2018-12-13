@@ -22,12 +22,11 @@ from compatibility_lib import compatibility_checker
 class TestCompatibilityChecker(unittest.TestCase):
 
     def test_check(self):
-        import json
-
         checker = compatibility_checker.CompatibilityChecker()
 
-        packages = 'test_pkg'
+        packages = ['opencensus']
         python_version = 3
+        expected_server_url = 'http://104.197.8.72'
 
         data = {
             'python-version': python_version,
@@ -47,6 +46,8 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         mock_requests.get.assert_called_with(
             compatibility_checker.SERVER_URL, params=data)
+        self.assertEqual(compatibility_checker.SERVER_URL,
+                         expected_server_url)
 
     def _mock_retrying_check(self, *args):
         packages = args[0][0]

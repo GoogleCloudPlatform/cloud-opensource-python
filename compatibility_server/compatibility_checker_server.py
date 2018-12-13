@@ -39,16 +39,20 @@ $ python3 compatibility_checker_server.py --help
 
 import argparse
 import collections.abc
+import configs
 import json
 import logging
 import pprint
 import sys
-import threading
-import typing
 import urllib.parse
 import wsgiref.simple_server
 
 import pip_checker
+
+PYTHON_VERSION_TO_COMMAND = {
+    '2': ['python2', '-m', 'pip'],
+    '3': ['python3', '-m', 'pip'],
+}
 
 
 def _parse_python_version_to_interpreter_mapping(s):
@@ -66,30 +70,15 @@ def _parse_python_version_to_interpreter_mapping(s):
 
 class CompatibilityServer:
 
-    def __init__(self, host: str, port: int, clean: bool,
-                 python_version_to_interpreter: typing.Mapping[str, str],
-                 install_once: bool):
+    def __init__(self, host: str, port: int):
         """Initialize an HTTP server that checks for pip package compatibility.
 
         Args:
             host: The host name to listen on e.g. "localhost".
             port: The port number to listen on e.g. 80.
-            clean: If True then uninstall previously installed packages before
-                handling each request.
-            python_version_to_interpreter: Maps python version e.g. "3" to
-                a Python interpreter that can corresponds to that version e.g.
-                "/usr/bin/python3.6"
-            install_once: If True then the server will exit after handling a
-                single request that involves installing pip packages.
         """
         self._host = host
         self._port = port
-        self._clean = clean
-        self._python_version_to_interpreter = python_version_to_interpreter
-        self._install_once = install_once
-
-    def _shutdown(self):
-        threading.Thread(target=self._httpd.shutdown).start()
 
     def _check(self, start_response, python_version, packages):
         if not packages:
@@ -97,39 +86,39 @@ class CompatibilityServer:
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify at least one package']
 
+        sanitized_packages = _sanitize_packages(packages)
+
+        if sanitized_packages != packages:
+            start_response('400 Bad Request',
+                           [('Content-Type', 'text/plain; charset=utf-8')])
+            return [b'Request contains third party github head packages.']
+
         if not python_version:
             start_response('400 Bad Request',
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [b'Request must specify the Python version to use']
 
-        if python_version not in self._python_version_to_interpreter:
+        if python_version not in PYTHON_VERSION_TO_COMMAND:
             start_response('400 Bad Request',
                            [('Content-Type', 'text/plain; charset=utf-8')])
             return [
                 b'Invalid Python version specified. Must be one of: %s' % (
                     ', '.join(
-                        self._python_version_to_interpreter).encode('utf-8'))
+                        PYTHON_VERSION_TO_COMMAND).encode('utf-8'))
             ]
-        python_command = self._python_version_to_interpreter[python_version]
-
-        if self._install_once:
-            self._shutdown()
+        python_command = PYTHON_VERSION_TO_COMMAND[python_version]
 
         try:
             pip_result = pip_checker.check(
-                [python_command, '-m', 'pip'], packages, clean=self._clean)
-        except pip_checker.PipError as pip_error:
+                python_command, packages)
+        except pip_checker.PipCheckerError as pip_error:
             start_response('500 Internal Server Error',
                            [('Content-Type', 'text/plain; charset=utf-8')])
-            with open(pip_error.stderr_path, 'r') as f:
-                error_text = f.read()
-            logging.error('pip command ("%s") failed with:\n%s\n',
-                          pip_error.command_string, error_text)
+            logging.error('Command failed with:\n%s\n',
+                          pip_error.error_msg)
             return [
-                b'pip command ("%s") ' % pip_error.command_string.encode(
-                    'utf-8'),
-                b'failed with:\n',
-                error_text.encode('utf-8'), b'\n'
+                b'pip command failed with:\n',
+                pip_error.error_msg, b'\n'
             ]
         results = dict(
             result=pip_result.result_type.name,
@@ -171,8 +160,7 @@ class CompatibilityServer:
                 environ.get('REQUEST_METHOD').encode('utf-8')
             ]
 
-        return self._check(start_response, python_version,
-                           packages)
+        return self._check(start_response, python_version, packages)
 
     def serve(self):
         class Handler(wsgiref.simple_server.WSGIRequestHandler):
@@ -186,6 +174,21 @@ class CompatibilityServer:
                 self._wsgi_app,
                 handler_class=Handler) as self._httpd:
             self._httpd.serve_forever()
+
+
+def _sanitize_packages(packages):
+    """Checks if packages are whitelisted
+
+    Args:
+        packages: a list of packages
+    Returns:
+        a subset of packages that are whitelisted
+    """
+    sanitized_packages = []
+    for pkg in packages:
+        if pkg in configs.WHITELIST_PKGS or pkg in configs.WHITELIST_URLS:
+            sanitized_packages.append(pkg)
+    return sanitized_packages
 
 
 def main():
@@ -204,26 +207,9 @@ def main():
         type=int,
         default=8888,
         help='port to which the server should bind')
-    parser.add_argument(
-        '--clean',
-        action='store_true',
-        help='uninstall existing packages before performing dependency ' +
-             'checking')
-    parser.add_argument(
-        '--install-once',
-        action='store_true',
-        help='exit after doing a single "pip install" command')
-    parser.add_argument(
-        '--python-versions',
-        type=_parse_python_version_to_interpreter_mapping,
-        default='2:python2,3:python3',
-        help='maps version strings to the Python command to execute when ' +
-             'running that version e.g. "2:python2;2,3:python3;' +
-             '3.5:/usr/bin/python3.5;3.6:/usr/bin/python3.6"')
     args = parser.parse_args()
     logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
-    CompatibilityServer(args.host, args.port, args.clean, args.python_versions,
-                        args.install_once).serve()
+    CompatibilityServer(args.host, args.port).serve()
 
 
 if __name__ == '__main__':

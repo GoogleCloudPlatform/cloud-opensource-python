@@ -1,3 +1,4 @@
+docker==3.5.1
 Flask==1.0.2
 google-cloud-bigquery==1.3.0
 google-cloud-datastore==1.7.0
@@ -7,6 +8,6 @@ mock==2.0.0
 pybadges==1.0.2
 pytest==3.6.1
 redis==2.10.6
-requests==2.19.1
+requests==2.20.0
 retrying==1.3.3
 wrapt==1.10.11

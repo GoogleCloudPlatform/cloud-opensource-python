@@ -18,6 +18,7 @@ import datetime
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
+from compatibility_lib import configs
 from compatibility_lib import package
 
 checker = compatibility_checker.CompatibilityChecker()
@@ -52,11 +53,29 @@ def _result_dict_to_compatibility_result(results, python_version):
     return res_list
 
 
+def _generate_pairs_for_github_head():
+    """Generate pairs for each github head package with the PyPI packages.
+
+    e.g. [(github_pkg, pkg1), (github_pkg, pkg2),...]
+    """
+    pkg_pairs = []
+
+    for gh_pkg in configs.WHITELIST_URLS.keys():
+        gh_pairs = [(gh_pkg, package) for package in configs.PKG_LIST]
+        pkg_pairs.extend(gh_pairs)
+
+    return pkg_pairs
+
+
 def write_to_status_table():
+    """Get the compatibility status for PyPI and github head versions."""
     # Write self compatibility status to BigQuery
     self_res_list = []
+    packages = configs.PKG_LIST + list(configs.WHITELIST_URLS.keys())
     for py_version in [PY2, PY3]:
-        results = checker.get_self_compatibility(py_version)
+        results = checker.get_self_compatibility(
+            python_version=py_version,
+            packages=packages)
         res_list = _result_dict_to_compatibility_result(results, py_version)
         self_res_list.extend(res_list)
 
@@ -64,7 +83,16 @@ def write_to_status_table():
 
     # Write pairwise compatibility status to BigQuery
     for py_version in [PY2, PY3]:
+        # For PyPI released versions
         results = checker.get_pairwise_compatibility(py_version)
+        res_list = _result_dict_to_compatibility_result(results, py_version)
+        store.save_compatibility_statuses(res_list)
+
+        # For github head versions
+        pkg_sets = _generate_pairs_for_github_head()
+        results = checker.get_pairwise_compatibility(
+            python_version=py_version,
+            pkg_sets=pkg_sets)
         res_list = _result_dict_to_compatibility_result(results, py_version)
         store.save_compatibility_statuses(res_list)
 
