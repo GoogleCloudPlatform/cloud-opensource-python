@@ -39,7 +39,8 @@ cache = badge_utils.initialize_cache()
 
 def _get_result_from_cache(
         package_name: str,
-        badge_type: badge_utils.BadgeType) -> dict:
+        badge_type: badge_utils.BadgeType,
+        commit_number: str = None) -> dict:
     """Get check result from cache."""
     # Return unknown if package not in whitelist
     if not utils._is_package_in_whitelist([package_name]):
@@ -49,7 +50,9 @@ def _get_result_from_cache(
             details={})
     # Get the result from cache, return None if not in cache
     else:
-        result = cache.get('{}_{}'.format(package_name, badge_type.value))
+        package_key = '{}_{}'.format(
+            package_name, commit_number) if commit_number else package_name
+        result = cache.get('{}_{}'.format(package_key, badge_type.value))
 
     if result is None:
         result = badge_utils._build_default_result(
@@ -109,7 +112,7 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-def _get_all_results_from_cache(package_name):
+def _get_all_results_from_cache(package_name, commit_number=None):
     """Get all the check results from cache.
 
     Rules:
@@ -118,13 +121,16 @@ def _get_all_results_from_cache(package_name):
     """
     self_compat_res = _get_result_from_cache(
         package_name=package_name,
-        badge_type=badge_utils.BadgeType.SELF_COMP_BADGE)
+        badge_type=badge_utils.BadgeType.SELF_COMP_BADGE,
+        commit_number=commit_number)
     google_compat_res = _get_result_from_cache(
         package_name=package_name,
-        badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE)
+        badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE,
+        commit_number=commit_number)
     dependency_res = _get_result_from_cache(
         package_name=package_name,
-        badge_type=badge_utils.BadgeType.DEP_BADGE)
+        badge_type=badge_utils.BadgeType.DEP_BADGE,
+        commit_number=commit_number)
 
     if self_compat_res['py3']['status'] == 'SUCCESS' and \
         google_compat_res['py3']['status'] == 'SUCCESS' and \
@@ -177,6 +183,8 @@ def one_badge_image():
         badge_name = badge_utils.GITHUB_HEAD_NAME
         is_github = True
 
+    commit_number = badge_utils._calculate_commit_number(package_name)
+
     force_run_check = flask.request.args.get('force_run_check')
     # Remove the last '/' from the url root
     url_prefix = flask.request.url_root[:-1]
@@ -186,19 +194,23 @@ def one_badge_image():
     requests.get(url_prefix + flask.url_for(
         'self_compatibility_badge_image',
         package=package_name,
-        force_run_check=force_run_check))
+        force_run_check=force_run_check,
+        commit_number=commit_number))
     # Google compatibility badge
     requests.get(url_prefix + flask.url_for(
         'google_compatibility_badge_image',
         package=package_name,
-        force_run_check=force_run_check))
+        force_run_check=force_run_check,
+        commit_number=commit_number))
     # Self dependency badge
     requests.get(url_prefix + flask.url_for(
         'self_dependency_badge_image',
         package=package_name,
-        force_run_check=force_run_check))
+        force_run_check=force_run_check,
+        commit_number=commit_number))
 
-    status, timestamp, _, _, _ = _get_all_results_from_cache(package_name)
+    status, timestamp, _, _, _ = _get_all_results_from_cache(
+        package_name, commit_number=commit_number)
     color = badge_utils.STATUS_COLOR_MAPPING[status]
 
     details_link = url_prefix + flask.url_for('one_badge_target',
@@ -224,15 +236,18 @@ def one_badge_image():
 @app.route('/one_badge_target')
 def one_badge_target():
     package_name = flask.request.args.get('package')
+    commit_number = badge_utils._calculate_commit_number(package_name)
+
     status, _, self_compat_res, google_compat_res, dependency_res = \
-        _get_all_results_from_cache(package_name)
+        _get_all_results_from_cache(package_name, commit_number)
 
     return flask.render_template(
         'one-badge.html',
         package_name=package_name,
         self_compat_res=self_compat_res,
         google_compat_res=google_compat_res,
-        dependency_res=dependency_res)
+        dependency_res=dependency_res,
+        commit_number=commit_number)
 
 
 @app.route('/self_compatibility_badge_image')
@@ -240,8 +255,11 @@ def self_compatibility_badge_image():
     """Badge showing whether a package is compatible with itself."""
     package_name = flask.request.args.get('package')
     force_run_check = flask.request.args.get('force_run_check')
+    commit_number = flask.request.args.get('commit_number')
 
     badge_name = flask.request.args.get('badge_name')
+    package_key = '{}_{}'.format(
+        package_name, commit_number) if commit_number else package_name
 
     if badge_name is None:
         badge_name = 'self compatibility'
@@ -285,8 +303,7 @@ def self_compatibility_badge_image():
             badge_utils.TIMESTAMP_FORMAT)
 
         # Write the result to Cloud Datastore
-        cache.set(
-            '{}_self_comp_badge'.format(package_name), version_and_res)
+        cache.set('{}_self_comp_badge'.format(package_key), version_and_res)
 
     if not utils._is_package_in_whitelist([package_name]):
         self_comp_res = badge_utils._build_default_result(
@@ -294,7 +311,7 @@ def self_compatibility_badge_image():
             status='UNKNOWN',
             details=badge_utils.PACKAGE_NOT_SUPPORTED)
     else:
-        self_comp_res = cache.get('{}_self_comp_badge'.format(package_name))
+        self_comp_res = cache.get('{}_self_comp_badge'.format(package_key))
 
     if self_comp_res is None:
         details = version_and_res
@@ -347,7 +364,11 @@ def self_dependency_badge_image():
 
     package_name = flask.request.args.get('package')
     force_run_check = flask.request.args.get('force_run_check')
+    commit_number = flask.request.args.get('commit_number')
+
     badge_name = flask.request.args.get('badge_name')
+    package_key = '{}_{}'.format(
+        package_name, commit_number) if commit_number else package_name
 
     if badge_name is None:
         badge_name = 'dependency status'
@@ -382,8 +403,7 @@ def self_dependency_badge_image():
             badge_utils.TIMESTAMP_FORMAT)
 
         # Write the result to Cloud Datastore
-        cache.set(
-            '{}_dependency_badge'.format(package_name), res)
+        cache.set('{}_dependency_badge'.format(package_key), res)
 
     if not utils._is_package_in_whitelist([package_name]):
         dependency_res = badge_utils._build_default_result(
@@ -391,8 +411,7 @@ def self_dependency_badge_image():
             status='UNKNOWN',
             details={})
     else:
-        dependency_res = cache.get(
-            '{}_dependency_badge'.format(package_name))
+        dependency_res = cache.get('{}_dependency_badge'.format(package_key))
 
     if dependency_res is None:
         details = badge_utils.DEFAULT_DEPENDENCY_RESULT
@@ -433,7 +452,11 @@ def google_compatibility_badge_image():
     to one of the failure types, details can be found at the target link."""
     package_name = flask.request.args.get('package')
     force_run_check = flask.request.args.get('force_run_check')
+    commit_number = flask.request.args.get('commit_number')
+
     badge_name = flask.request.args.get('badge_name')
+    package_key = '{}_{}'.format(
+        package_name, commit_number) if commit_number else package_name
 
     if badge_name is None:
         badge_name = 'google compatibility'
@@ -492,11 +515,9 @@ def google_compatibility_badge_image():
             result = version_and_res
 
         # Write the result to Cloud Datastore
-        cache.set(
-            '{}_google_comp_badge'.format(package_name), result)
+        cache.set('{}_google_comp_badge'.format(package_key), result)
 
-    google_comp_res = cache.get(
-        '{}_google_comp_badge'.format(package_name))
+    google_comp_res = cache.get('{}_google_comp_badge'.format(package_key))
 
     if not utils._is_package_in_whitelist([package_name]):
         google_comp_res = badge_utils._build_default_result(
