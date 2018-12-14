@@ -1453,6 +1453,10 @@ a {
     background: #fa4251;
 }
 
+.statistic__item--yellow {
+    background: #f1c40f;
+}
+
 /* ----- Statistic 2 ----- */
 .statistic2 {
     padding-top: 50px;

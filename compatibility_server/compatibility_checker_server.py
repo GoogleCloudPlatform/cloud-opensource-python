@@ -43,6 +43,7 @@ import configs
 import json
 import logging
 import pprint
+import sys
 import urllib.parse
 import wsgiref.simple_server
 
@@ -162,8 +163,16 @@ class CompatibilityServer:
         return self._check(start_response, python_version, packages)
 
     def serve(self):
-        with wsgiref.simple_server.make_server(self._host, self._port,
-                                               self._wsgi_app) as self._httpd:
+        class Handler(wsgiref.simple_server.WSGIRequestHandler):
+            def log_message(self, format, *args):
+                # Override the default log_message method to avoid logging
+                # remote addresses.
+                sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(),
+                                                format % args))
+        with wsgiref.simple_server.make_server(
+                self._host, self._port,
+                self._wsgi_app,
+                handler_class=Handler) as self._httpd:
             self._httpd.serve_forever()
 
 
