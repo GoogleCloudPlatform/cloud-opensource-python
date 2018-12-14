@@ -246,7 +246,8 @@ def one_badge_target():
         package_name=package_name,
         self_compat_res=self_compat_res,
         google_compat_res=google_compat_res,
-        dependency_res=dependency_res)
+        dependency_res=dependency_res,
+        commit_number=commit_number)
 
 
 @app.route('/self_compatibility_badge_image')

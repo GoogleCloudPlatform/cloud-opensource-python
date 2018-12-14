@@ -30,6 +30,10 @@
                         <div class="col-md-12">
                             <h1 class="title-4">Package name: {{ package_name }}
                             </h1>
+                            {% if commit_number | length > 0 %}
+                                <h1 class="title-4">Commit number: {{ commit_number }}
+                                </h1>
+                            {% endif %}
                             <hr class="line-seprate">
                         </div>
                     </div>
