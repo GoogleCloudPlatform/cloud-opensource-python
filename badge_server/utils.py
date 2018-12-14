@@ -49,8 +49,6 @@ SVG_CONTENT_TYPE = 'image/svg+xml'
 EMPTY_DETAILS = 'NO DETAILS'
 PACKAGE_NOT_SUPPORTED = "The package is not supported by checker server."
 
-
-
 PY_VER_MAPPING = {
     2: 'py2',
     3: 'py3',

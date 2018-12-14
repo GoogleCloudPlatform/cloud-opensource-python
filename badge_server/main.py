@@ -40,7 +40,7 @@ cache = badge_utils.initialize_cache()
 def _get_result_from_cache(
         package_name: str,
         badge_type: badge_utils.BadgeType,
-        commit_number: str=None) -> dict:
+        commit_number: str = None) -> dict:
     """Get check result from cache."""
     # Return unknown if package not in whitelist
     if not utils._is_package_in_whitelist([package_name]):
@@ -112,7 +112,7 @@ def _get_pair_status_for_packages(pkg_sets):
     return version_and_res
 
 
-def _get_all_results_from_cache(package_name, commit_number):
+def _get_all_results_from_cache(package_name, commit_number=None):
     """Get all the check results from cache.
 
     Rules:
