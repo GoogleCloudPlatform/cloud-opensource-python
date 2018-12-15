@@ -76,7 +76,7 @@ class _ResultHolder(object):
             self.get_dependencies_needed_to_update()
 
     def _is_py_version_incompatible(self, result):
-        if result.status == compatibility_store.Status.INSTALL_ERROR:
+        if result.status != compatibility_store.Status.SUCCESS:
             for version in [2, 3]:
                 for pkg in result.packages:
                     major_version = result.python_major_version
