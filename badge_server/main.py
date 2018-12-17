@@ -318,9 +318,14 @@ def self_compatibility_badge_image():
     else:
         details = self_comp_res
 
-    # Run the check if details is None or forced to populate the cache.
+    # Run the check if details is None or forced to populate the cache or
+    # the cache is outdated.
     if self_comp_res is None or force_run_check is not None:
         threading.Thread(target=run_check).start()
+    elif self_comp_res is not None:
+        timestamp = self_comp_res.get('timestamp')
+        if not badge_utils._is_github_cache_valid(timestamp):
+            threading.Thread(target=run_check).start()
 
     badge = badge_utils._get_badge(details, badge_name)
     response = flask.make_response(badge)
@@ -418,9 +423,14 @@ def self_dependency_badge_image():
     else:
         details = dependency_res
 
-    # Run the check if dependency_res is None or forced to populate the cache.
+    # Run the check if dependency_res is None or forced to populate the cache
+    # or the cache is outdated.
     if dependency_res is None or force_run_check is not None:
         threading.Thread(target=run_check).start()
+    elif dependency_res is not None:
+        timestamp = dependency_res.get('timestamp')
+        if not badge_utils._is_github_cache_valid(timestamp):
+            threading.Thread(target=run_check).start()
 
     badge = badge_utils._get_badge(details, badge_name)
     response = flask.make_response(badge)
@@ -533,9 +543,14 @@ def google_compatibility_badge_image():
     else:
         details = google_comp_res
 
-    # Run the check if google_comp_res is None or forced to populate the cache.
+    # Run the check if google_comp_res is None or forced to populate the cache
+    # or the cache is outdated.
     if google_comp_res is None or force_run_check is not None:
         threading.Thread(target=run_check).start()
+    elif google_comp_res is not None:
+        timestamp = google_comp_res.get('timestamp')
+        if not badge_utils._is_github_cache_valid(timestamp):
+            threading.Thread(target=run_check).start()
 
     badge = badge_utils._get_badge(details, badge_name)
     response = flask.make_response(badge)

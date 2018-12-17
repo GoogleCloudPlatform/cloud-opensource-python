@@ -14,6 +14,7 @@
 
 """Common utils methods for badge server."""
 
+import datetime
 import enum
 import json
 import logging
@@ -45,6 +46,7 @@ TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 URL_PREFIX = 'https://img.shields.io/badge/'
 GITHUB_HEAD_NAME = 'github head'
 GITHUB_API = 'https://api.github.com/repos'
+GITHUB_CACHE_TIME = 1800  # seconds
 SVG_CONTENT_TYPE = 'image/svg+xml'
 EMPTY_DETAILS = 'NO DETAILS'
 PACKAGE_NOT_SUPPORTED = "The package is not supported by checker server."
@@ -170,3 +172,16 @@ def _calculate_commit_number(package: str) -> Optional[str]:
                 return None
 
     return None
+
+
+def _is_github_cache_valid(cache_timestamp_str):
+    """Return True if the cached result if calculated within last 30 mins."""
+    cache_timestamp = datetime.datetime.strptime(
+        cache_timestamp_str, TIMESTAMP_FORMAT)
+    current_timestamp = datetime.datetime.now()
+    seconds_diff = (current_timestamp - cache_timestamp).seconds
+
+    if seconds_diff > GITHUB_CACHE_TIME:
+        return False
+    else:
+        return True
