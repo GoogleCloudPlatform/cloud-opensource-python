@@ -244,18 +244,21 @@ def _get_args(node):
         if i >= num_required_args:
             valnode = node.defaults[i-len(node.args)]
             if isinstance(valnode, ast.NameConstant):
-                # bools, nonetype
                 value = valnode.value
             elif isinstance(valnode, ast.Num):
-                # ints
                 value = valnode.n
             elif isinstance(valnode, ast.Str):
                 value = valnode.s
-            elif isinstance(valnode, ast.List):
+            elif isinstance(valnode, (ast.List, ast.Tuple)):
                 value = valnode.elts
+            elif isinstance(valnode, ast.Dict):
+                value = {}
+                for i, key in enumerate(valnode.keys):
+                    value[key] = valnode.values[i]
             else:
-                print(valnode)
-                from pdb import set_trace; set_trace()
+                # TODO: provide better error messaging
+                raise Exception('%s:%s: unsupported default arg type' %
+                                (valnode.lineno, valnode.col_offset))
             default_args[arg] = value
 
     if node.vararg:
