@@ -174,8 +174,12 @@ def _calculate_commit_number(package: str) -> Optional[str]:
     return None
 
 
-def _is_github_cache_valid(cache_timestamp_str):
+def _is_github_cache_valid(cache_timestamp_str=None):
     """Return True if the cached result if calculated within last 30 mins."""
+    # Return False if the timestamp str passed in is None
+    if cache_timestamp_str is None:
+        return False
+
     cache_timestamp = datetime.datetime.strptime(
         cache_timestamp_str, TIMESTAMP_FORMAT)
     current_timestamp = datetime.datetime.now()
