@@ -122,7 +122,8 @@ class TestSimplePackages(unittest.TestCase):
                     ('main.bar: default value was not preserved; '
                      'expecting "d=2", got "d=1"'),
                     'main.baz: bad arg name; expected "name", got "first_name"']
-        self.assertEqual(expected, res)
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
 
     def test_semver_check_on_converted_optional_args(self):
         old_dir = os.path.join(TEST_DIR, 'optional_args/converted/0.1.0')
