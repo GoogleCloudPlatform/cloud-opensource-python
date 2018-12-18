@@ -15,9 +15,9 @@
 
 class Foo(object):
 
-    def __init__(self, x, y=None):
+    def __init__(self, x, y):
         pass
 
 
-def bar(a, b, c=None, d=True):
+def bar(a, b, c):
     pass
