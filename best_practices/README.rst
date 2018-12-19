@@ -37,14 +37,6 @@ Tools
     packages, we provide a set of tooling to ensure we are compatible with
     ourselves. Our tools are as follows:
 
-Dependency Compatibility Dashboard
-----------------------------------
-
-The `dashboard`_ shows the compatibility status of a list of Google sponsored Open Source
-Python packages.
-
-.. _dashboard: https://googlecloudplatform.github.io/cloud-opensource-python/
-
 Badge Server
 ------------
 
