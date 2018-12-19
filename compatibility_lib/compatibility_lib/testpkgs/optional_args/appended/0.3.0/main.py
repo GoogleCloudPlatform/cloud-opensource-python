@@ -26,5 +26,10 @@ def bar(a, b, c=1, d=True, *e):
         return (a + b) * c
     return 0
 
+
+def baz(baz='baz'):
+    pass
+
+
 if __name__ == '__main__':
     print(bar(1, 2))

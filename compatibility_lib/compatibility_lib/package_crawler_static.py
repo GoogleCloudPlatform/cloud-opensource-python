@@ -161,7 +161,8 @@ def _get_class_info(classes):
 
         # assumption is that bases are user-defined within the same module
         init_func, subclasses, functions = _get_class_attrs(node, classes)
-        args = []
+        args = {'single_args': [], 'defaults': {},
+                'vararg': None, 'kwarg': None}
         if init_func is not None:
             args = _get_args(init_func.args)
 

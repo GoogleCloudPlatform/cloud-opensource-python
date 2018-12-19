@@ -23,5 +23,9 @@ def bar(a, b, c=1):
   return (a + b) * c
 
 
+def baz():
+    pass
+
+
 if __name__ == '__main__':
     print(bar(1, 2))

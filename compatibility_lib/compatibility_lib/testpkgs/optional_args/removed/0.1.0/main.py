@@ -21,3 +21,7 @@ class Foo(object):
 
 def bar(a, b, c=1, *d):
     pass
+
+
+def baz(baz='baz'):
+    pass
