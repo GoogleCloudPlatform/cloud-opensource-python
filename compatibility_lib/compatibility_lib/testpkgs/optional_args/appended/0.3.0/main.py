@@ -20,8 +20,8 @@ class Foo(object):
 
 
 def bar(a, b, c=1, d=True, *e):
-    if args:
-        return sum(args)
+    if e:
+        return sum(e)
     if d:
         return (a + b) * c
     return 0

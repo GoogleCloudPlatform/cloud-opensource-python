@@ -20,7 +20,7 @@ class Foo(object):
 
 
 def bar(a, b, c=1):
-  return (a + b) * c
+    return (a + b) * c
 
 
 def baz():
