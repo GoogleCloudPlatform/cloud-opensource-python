@@ -71,7 +71,8 @@ class TestSimplePackages(unittest.TestCase):
         res = check(old_dir, new_dir)
         expected = ['main.Foo: expected 2 required args, got 3',
                     'main.bar: expected 0 required args, got 1']
-        self.assertEqual(expected, res)
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
 
     def test_semver_check_on_removed_args(self):
         old_dir = os.path.join(TEST_DIR, 'removed_args/0.1.0')
@@ -80,7 +81,8 @@ class TestSimplePackages(unittest.TestCase):
         res = check(old_dir, new_dir)
         expected = ['main.Foo: expected 2 args, got 1',
                     'main.bar: expected 1 args, got 0']
-        self.assertEqual(expected, res)
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
 
     def test_semver_check_on_added_optional_args(self):
         ver1 = os.path.join(TEST_DIR, 'optional_args/appended/0.1.0')
@@ -103,7 +105,8 @@ class TestSimplePackages(unittest.TestCase):
         expected = ['main.Foo: expected 3 args, got 2',
                     'main.bar: missing arg "d"',
                     'main.baz: expected 1 args, got 0']
-        self.assertEqual(expected, res)
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
 
     def test_semver_check_on_inserted_optional_args(self):
         old_dir = os.path.join(TEST_DIR, 'optional_args/inserted/0.1.0')
