@@ -14,8 +14,14 @@
 
 """Common utils methods for badge server."""
 
+import datetime
 import enum
+import json
+import logging
 import os
+from urllib.parse import urlparse
+from urllib.request import urlopen
+
 from typing import Optional
 
 import pybadges
@@ -39,6 +45,8 @@ TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 URL_PREFIX = 'https://img.shields.io/badge/'
 GITHUB_HEAD_NAME = 'github head'
+GITHUB_API = 'https://api.github.com/repos'
+GITHUB_CACHE_TIME = 1800  # seconds
 SVG_CONTENT_TYPE = 'image/svg+xml'
 EMPTY_DETAILS = 'NO DETAILS'
 PACKAGE_NOT_SUPPORTED = "The package is not supported by checker server."
@@ -141,3 +149,43 @@ def _get_badge(res: dict, badge_name: str) -> str:
         left_text=badge_name,
         right_text=status,
         right_color=color)
+
+
+def _calculate_commit_number(package: str) -> Optional[str]:
+    """Calculate the github head version commit number."""
+    url_parsed = urlparse(package)
+    if url_parsed.scheme and url_parsed.netloc == 'github.com':
+        try:
+            owner, repo, *_ = url_parsed.path[1:].split('/')
+            repo = repo.split('.git')[0]
+        except ValueError:
+            return None
+        else:
+            url = '{0}/{1}/{2}/commits'.format(GITHUB_API, owner, repo)
+            try:
+                with urlopen(url) as f:
+                    commits = json.loads(f.read())
+                return commits[0]['sha']
+            except Exception as e:
+                logging.warning(
+                    'Unable to generate caching key for "%s": %s', package, e)
+                return None
+
+    return None
+
+
+def _is_github_cache_valid(cache_timestamp_str=None):
+    """Return True if the cached result if calculated within last 30 mins."""
+    # Return False if the timestamp str passed in is None
+    if cache_timestamp_str is None:
+        return False
+
+    cache_timestamp = datetime.datetime.strptime(
+        cache_timestamp_str, TIMESTAMP_FORMAT)
+    current_timestamp = datetime.datetime.now()
+    seconds_diff = (current_timestamp - cache_timestamp).seconds
+
+    if seconds_diff > GITHUB_CACHE_TIME:
+        return False
+    else:
+        return True
