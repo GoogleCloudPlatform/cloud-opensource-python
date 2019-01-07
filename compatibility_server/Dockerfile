@@ -21,10 +21,15 @@ RUN mkdir /compatibility_checker
 ADD compatibility_checker_server.py /compatibility_checker
 ADD pip_checker.py /compatibility_checker
 ADD configs.py /compatibility_checker
+ADD requirements.txt /compatibility_checker
 
-RUN pip3 install docker requests
+RUN pip3 install -r /compatibility_checker/requirements.txt
+RUN pip3 install gunicorn
 
 EXPOSE 8888
 
-CMD python ./compatibility_checker/compatibility_checker_server.py \
-     --host=0.0.0.0 --port=8888
+# Restart each worker periodically so that `auto_remove`
+# (https://docker-py.readthedocs.io/en/stable/containers.html) has a chance to work.
+CMD cd compatibility_checker && \
+  gunicorn -b 0.0.0.0:8888 -w 4 --max-requests 20 --max-requests-jitter 10 --timeout 120 \
+           compatibility_checker_server:app
