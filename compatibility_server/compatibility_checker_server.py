@@ -125,7 +125,6 @@ def main():
             sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(),
                                             format % args))
 
-
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument(
         '--host',
@@ -150,7 +149,6 @@ def main():
             app,
             handler_class=Handler) as httpd:
         httpd.serve_forever()
-
 
 
 if __name__ == '__main__':
