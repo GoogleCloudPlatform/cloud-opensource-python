@@ -69,7 +69,12 @@ class MockContainer(object):
     def remove(self):
         pass
 
-    def run(self, base_image, command, detach=True):
+    def run(self,
+            base_image,
+            command,
+            detach=True,
+            remove=False,
+            auto_remove=False):
         from datetime import datetime
 
         self.start_time = timestamp_to_seconds(
