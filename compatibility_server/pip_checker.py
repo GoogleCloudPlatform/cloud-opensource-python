@@ -230,7 +230,7 @@ class _OneshotPipCheck():
                 # used for virtual file systems (because each check creates a
                 # new container). Run `docker system prune -a -f` to manually
                 # remove old containers.
-                auto_remove=True, # Remove the container if this process exists.
+                auto_remove=True,  # Remove the container if this process ends.
                 remove=True,  # Remove the container when it finishes.
                 detach=True)
         except docker.errors.APIError as e:
