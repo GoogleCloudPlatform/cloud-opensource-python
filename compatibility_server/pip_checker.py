@@ -44,8 +44,7 @@ class PipCheckerError(Exception):
 
     def __init__(self, error_msg: str):
         super(PipCheckerError, self).__init__(
-            'Pip Checker failed, '
-            'logs are: {error_msg}'.format(error_msg=error_msg))
+            'Pip Checker failed: {error_msg}'.format(error_msg=error_msg))
 
         self.error_msg = error_msg
 
@@ -57,18 +56,16 @@ class PipError(PipCheckerError):
                  error_msg: str,
                  command: List[str],
                  returncode: int):
+        command_string = ' '.join(shlex.quote(c) for c in command)
         super(PipError, self).__init__(
-            'Pip command ({command}) failed with error [{returncode}]: '
+            'Pip command ({command_string}) failed with error [{returncode}]: '
             '{error_msg}'.format(
-                command=command, returncode=returncode,
+                command_string=command_string, returncode=returncode,
                 error_msg=error_msg))
 
         self.command = command
         self.returncode = returncode
-
-    @property
-    def command_string(self) -> str:
-        return ' '.join(shlex.quote(c) for c in self.command)
+        self.command_string = command_string
 
 
 @enum.unique
@@ -348,7 +345,7 @@ class _OneshotPipCheck():
             command,
             stdout=True,
             stderr=False,
-            raise_on_failure=False)
+            raise_on_failure=True)
 
         pip_list_result = json.loads(list_all)
 
@@ -358,7 +355,7 @@ class _OneshotPipCheck():
             command,
             stdout=True,
             stderr=False,
-            raise_on_failure=False)
+            raise_on_failure=True)
 
         pip_list_latest_result = json.loads(list_outdated)
 
