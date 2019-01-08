@@ -63,11 +63,8 @@ class MockContainer(object):
     def start(self):
         self.is_running = True
 
-    def stop(self):
+    def stop(self, timeout=10):
         self.is_running = False
-
-    def remove(self):
-        pass
 
     def run(self,
             base_image,
