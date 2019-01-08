@@ -35,16 +35,20 @@ $ curl 'http://0.0.0.0:8888/?package=six&python-version=3' \
 
 For complete usage information:
 $ python3 compatibility_checker_server.py --help
+
+For production uses, this module exports a WSGI application called `app`.
+For example:
+
+$ gunicorn -w 4 --timeout 120 compatibility_checker_server:app
+
 """
 
 import argparse
-import collections.abc
 import configs
-import json
+import flask
 import logging
 import pprint
 import sys
-import urllib.parse
 import wsgiref.simple_server
 
 import pip_checker
@@ -55,125 +59,7 @@ PYTHON_VERSION_TO_COMMAND = {
 }
 
 
-def _parse_python_version_to_interpreter_mapping(s):
-    version_to_interpreter = {}
-    for version_mapping in s.split(','):
-        try:
-            version, command = version_mapping.split(':')
-        except ValueError:
-            raise argparse.ArgumentTypeError(
-                ('{0} is not in the format of <version>:<command>,' +
-                 '<version>:<command>').format(s))
-        version_to_interpreter[version] = command
-    return version_to_interpreter
-
-
-class CompatibilityServer:
-
-    def __init__(self, host: str, port: int):
-        """Initialize an HTTP server that checks for pip package compatibility.
-
-        Args:
-            host: The host name to listen on e.g. "localhost".
-            port: The port number to listen on e.g. 80.
-        """
-        self._host = host
-        self._port = port
-
-    def _check(self, start_response, python_version, packages):
-        if not packages:
-            start_response('400 Bad Request',
-                           [('Content-Type', 'text/plain; charset=utf-8')])
-            return [b'Request must specify at least one package']
-
-        sanitized_packages = _sanitize_packages(packages)
-
-        if sanitized_packages != packages:
-            start_response('400 Bad Request',
-                           [('Content-Type', 'text/plain; charset=utf-8')])
-            return [b'Request contains third party github head packages.']
-
-        if not python_version:
-            start_response('400 Bad Request',
-                           [('Content-Type', 'text/plain; charset=utf-8')])
-            return [b'Request must specify the Python version to use']
-
-        if python_version not in PYTHON_VERSION_TO_COMMAND:
-            start_response('400 Bad Request',
-                           [('Content-Type', 'text/plain; charset=utf-8')])
-            return [
-                b'Invalid Python version specified. Must be one of: %s' % (
-                    ', '.join(
-                        PYTHON_VERSION_TO_COMMAND).encode('utf-8'))
-            ]
-        python_command = PYTHON_VERSION_TO_COMMAND[python_version]
-
-        try:
-            pip_result = pip_checker.check(
-                python_command, packages)
-        except pip_checker.PipCheckerError as pip_error:
-            start_response('500 Internal Server Error',
-                           [('Content-Type', 'text/plain; charset=utf-8')])
-            logging.error('Command failed with:\n%s\n',
-                          pip_error.error_msg)
-            return [
-                b'pip command failed with:\n',
-                pip_error.error_msg, b'\n'
-            ]
-        results = dict(
-            result=pip_result.result_type.name,
-            packages=pip_result.packages,
-            description=pip_result.result_text,
-            dependency_info=pip_result.dependency_info)
-
-        start_response('200 OK', [('Content-Type', 'application/json')])
-        return [json.dumps(results).encode('utf-8')]
-
-    def _wsgi_app(self, environ, start_response):
-        if environ.get('REQUEST_METHOD') == 'GET':
-            parameters = urllib.parse.parse_qs(environ.get('QUERY_STRING', ''))
-            packages = parameters.get('package', [])
-            python_version = parameters.get('python-version', [None])[0]
-        elif environ.get('REQUEST_METHOD') == 'POST':
-            content_length = int(environ.get('CONTENT_LENGTH', 0))
-            try:
-                request = json.loads(
-                    environ['wsgi.input'].read(content_length))
-            except json.JSONDecodeError as e:
-                start_response('400 Bad Request',
-                               [('Content-Type', 'text/plain; charset=utf-8')])
-                return [b'Invalid JSON payload: ', str(e).encode('utf-8')]
-
-            if not isinstance(request, collections.abc.Mapping):
-                start_response('400 Bad Request',
-                               [('Content-Type', 'text/plain; charset=utf-8')])
-                return [b'Request must contain a JSON object.']
-
-            packages = request.get('packages', [])
-            python_version = request.get('python-version', None)
-        else:
-            start_response('405 Method Not Allowed',
-                           [('Content-Type', 'text/plain; charset=utf-8'),
-                            ('Allow', 'GET, POST')])
-            return [
-                b'Method %s not supported' %
-                environ.get('REQUEST_METHOD').encode('utf-8')
-            ]
-
-        return self._check(start_response, python_version, packages)
-
-    def serve(self):
-        class Handler(wsgiref.simple_server.WSGIRequestHandler):
-            def log_message(self, format, *args):
-                # Override the default log_message method to avoid logging
-                # remote addresses.
-                sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(),
-                                                format % args))
-        with wsgiref.simple_server.make_server(
-                self._host, self._port,
-                self._wsgi_app,
-                handler_class=Handler) as self._httpd:
-            self._httpd.serve_forever()
+app = flask.Flask(__name__)
 
 
 def _sanitize_packages(packages):
@@ -191,11 +77,53 @@ def _sanitize_packages(packages):
     return sanitized_packages
 
 
+@app.route('/')
+def check():
+    packages = flask.request.args.getlist('package')
+    if not packages:
+        return flask.make_response(
+            "Request must specify at least one 'package' parameter", 400)
+
+    sanitized_packages = _sanitize_packages(packages)
+    unsupported_packages = frozenset(packages) - frozenset(sanitized_packages)
+    if unsupported_packages:
+        return flask.make_response(
+            'Request contains unrecognized packages: {}'.format(
+                ', '.join(unsupported_packages)),
+            400)
+
+    python_version = flask.request.args.get('python-version')
+    if not python_version:
+        return flask.make_response(
+            "Request must specify 'python-version' parameter", 400)
+    if python_version not in PYTHON_VERSION_TO_COMMAND:
+        return flask.make_response(
+            'Invalid Python version specified. Must be one of: {}'.format(
+                    ', '.join(PYTHON_VERSION_TO_COMMAND), 400))
+
+    python_command = PYTHON_VERSION_TO_COMMAND[python_version]
+
+    try:
+        pip_result = pip_checker.check(
+            python_command, packages)
+    except pip_checker.PipCheckerError as pip_error:
+        return flask.make_response(pip_error.error_msg, 500)
+
+    return flask.jsonify(
+        result=pip_result.result_type.name,
+        packages=pip_result.packages,
+        description=pip_result.result_text,
+        dependency_info=pip_result.dependency_info)
+
+
 def main():
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(levelname)-8s %(asctime)s ' +
-               '%(filename)s:%(lineno)s] %(message)s')
+
+    class Handler(wsgiref.simple_server.WSGIRequestHandler):
+        def log_message(self, format, *args):
+            # Override the default log_message method to avoid logging
+            # remote addresses.
+            sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(),
+                                            format % args))
 
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument(
@@ -209,7 +137,18 @@ def main():
         help='port to which the server should bind')
     args = parser.parse_args()
     logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
-    CompatibilityServer(args.host, args.port).serve()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(levelname)-8s %(asctime)s ' +
+               '%(filename)s:%(lineno)s] %(message)s')
+
+    with wsgiref.simple_server.make_server(
+            args.host,
+            args.port,
+            app,
+            handler_class=Handler) as httpd:
+        httpd.serve_forever()
 
 
 if __name__ == '__main__':

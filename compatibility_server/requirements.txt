@@ -1,0 +1,4 @@
+certifi
+docker
+flask
+requests
