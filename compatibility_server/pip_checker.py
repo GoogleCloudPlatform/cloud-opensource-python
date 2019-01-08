@@ -222,6 +222,13 @@ class _OneshotPipCheck():
             container = docker_client.containers.run(
                 base_image,
                 command="sleep {}".format(TIME_OUT),
+                # Remove the container when this process stops or the container
+                # stops running. Needed to prevent unbounded growth in storage
+                # used for virtual file systems (because each check creates a
+                # new container). Run `docker system prune -a -f` to manually
+                # remove old containers.
+                auto_remove=True,  # Remove the container if this process ends.
+                remove=True,  # Remove the container when it finishes.
                 detach=True)
         except docker.errors.APIError as e:
             raise PipCheckerError(
@@ -232,10 +239,9 @@ class _OneshotPipCheck():
 
     def _cleanup_container(self,
                            container: docker.models.containers.Container):
-        """Remove the container."""
+        """Stop the container and remove it's associated storage."""
         try:
-            container.stop()
-            container.remove()
+            container.stop(timeout=0)
         except (docker.errors.APIError, docker.errors.NotFound):
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
@@ -419,19 +425,20 @@ class _OneshotPipCheck():
         docker_client = docker.from_env()
         container = self._build_container(docker_client)
 
-        install_result = self._install(container)
+        try:
+            install_result = self._install(container)
 
-        dependency_info = None
-        if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
-            dependency_info = self._list(container)
+            dependency_info = None
+            if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
+                dependency_info = self._list(container)
 
-        if install_result.result_type == PipCheckResultType.SUCCESS:
-            install_result = self._check(container)
+            if install_result.result_type == PipCheckResultType.SUCCESS:
+                install_result = self._check(container)
 
-        self._cleanup_container(container)
-
-        return install_result.with_extra_attrs(
-            dependency_info=dependency_info)
+            return install_result.with_extra_attrs(
+                dependency_info=dependency_info)
+        finally:
+            self._cleanup_container(container)
 
 
 def check(pip_command: List[str],

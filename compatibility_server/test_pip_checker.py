@@ -63,13 +63,15 @@ class MockContainer(object):
     def start(self):
         self.is_running = True
 
-    def stop(self):
+    def stop(self, timeout=10):
         self.is_running = False
 
-    def remove(self):
-        pass
-
-    def run(self, base_image, command, detach=True):
+    def run(self,
+            base_image,
+            command,
+            detach=True,
+            remove=False,
+            auto_remove=False):
         from datetime import datetime
 
         self.start_time = timestamp_to_seconds(
