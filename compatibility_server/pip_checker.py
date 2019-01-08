@@ -428,19 +428,20 @@ class _OneshotPipCheck():
         docker_client = docker.from_env()
         container = self._build_container(docker_client)
 
-        install_result = self._install(container)
+        try:
+            install_result = self._install(container)
 
-        dependency_info = None
-        if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
-            dependency_info = self._list(container)
+            dependency_info = None
+            if install_result.result_type != PipCheckResultType.INSTALL_ERROR:
+                dependency_info = self._list(container)
 
-        if install_result.result_type == PipCheckResultType.SUCCESS:
-            install_result = self._check(container)
+            if install_result.result_type == PipCheckResultType.SUCCESS:
+                install_result = self._check(container)
 
-        self._cleanup_container(container)
-
-        return install_result.with_extra_attrs(
-            dependency_info=dependency_info)
+            return install_result.with_extra_attrs(
+                dependency_info=dependency_info)
+        finally:
+            self._cleanup_container(container)
 
 
 def check(pip_command: List[str],
