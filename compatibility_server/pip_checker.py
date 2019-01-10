@@ -242,8 +242,15 @@ class _OneshotPipCheck():
                 detach=True)
         except docker.errors.APIError as e:
             raise PipCheckerError(
-                error_msg="An error occurred while starting a docker"
+                error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e.explanation))
+        except IOError as e:
+            # TODO: Log the exception and monitor it after trying to decode
+            # this into a requests.exception.* e.g. ReadTimeout. See:
+            # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            raise PipCheckerError(
+                error_msg="An error occurred while starting a docker "
+                          "container. Error message: {}".format(e))
 
         return container
 
@@ -256,6 +263,13 @@ class _OneshotPipCheck():
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
                           "Container does not exist.")
+        except IOError as e:
+            # TODO: Log the exception and monitor it after trying to decode
+            # this into a requests.exception.* e.g. ReadTimeout. See:
+            # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            raise PipCheckerError(
+                error_msg="An error occurred while stopping a docker"
+                          "container. Error message: {}".format(e))
 
     def _run_command(self,
                      container: docker.models.containers.Container,
@@ -288,6 +302,13 @@ class _OneshotPipCheck():
                                             "commands in container."
                                             "Error message: "
                                             "{}".format(e.explanation))
+        except IOError as e:
+            # TODO: Log the exception and monitor it after trying to decode
+            # this into a requests.exception.* e.g. ReadTimeout. See:
+            # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            raise PipCheckerError(
+                error_msg="An error occurred while running the command {} in"
+                          "container. Error message: {}".format(command, e))
 
         if returncode and raise_on_failure:
             raise PipError(error_msg=output,
