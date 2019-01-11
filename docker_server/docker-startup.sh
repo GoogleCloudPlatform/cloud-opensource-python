@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set -e
+
 sudo apt-get update
 sudo apt-get install -y \
     apt-transport-https \
