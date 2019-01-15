@@ -15,10 +15,11 @@
 # limitations under the License.
 
 set -e
+set -x
 
 gcloud beta compute instance-groups managed create docker-group \
   --base-instance-name=docker-group \
-  --template=docker-instance-template-20190110-120124 \
+  --template=docker-instance-template-20190114-151227 \
   --size=1 \
   --zone=us-central1-f \
   --initial-delay=300
@@ -30,13 +31,8 @@ gcloud compute instance-groups managed set-autoscaling "docker-group" \
   --min-num-replicas "3" \
   --target-cpu-utilization "0.1"
 
-# gcloud compute instance-groups set-named-ports docker-group \
-#   --named-ports docker-port:2375 \
-#  --zone=us-central1-f
-
 gcloud compute health-checks create tcp docker-health-check \
    --port=2375
-#  --port-name=docker-port
 
 
 gcloud compute backend-services create docker-service \
@@ -51,5 +47,14 @@ gcloud compute backend-services add-backend docker-service \
   --instance-group-zone=us-central1-f \
   --region=us-central1
 
-gcloud compute forwarding-rules create docker-service \
+gcloud compute forwarding-rules create docker-fe \
   --backend-service=docker-service \
+  --load-balancing-scheme INTERNAL \
+  --region=us-central1 \
+  --ports=2375
+
+gcloud compute firewall-rules create fw-allow-health-checks \
+    --action ALLOW \
+    --direction INGRESS \
+    --source-ranges 35.191.0.0/16,130.211.0.0/22 \
+    --rules tcp
