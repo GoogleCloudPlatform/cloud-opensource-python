@@ -52,7 +52,6 @@ PKG_LIST = [
     'google-cloud-language',
     'google-cloud-logging',
     'google-cloud-monitoring',
-    'google-cloud-ndb',
     'google-cloud-pubsub',
     'google-cloud-redis',
     'google-cloud-resource-manager',
