@@ -14,17 +14,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Setup a DNS entry "docker.gcp.pycompatibility.dev" to make the docker
+# group addressable.
+
 set -e
 set -x
 
-timestamp=$(date "+%Y%m%d-%H%M%S")
-gcloud compute instance-templates create docker-instance-template-${timestamp} \
-  --machine-type=n1-standard-4 \
-  --maintenance-policy=MIGRATE \
-  --image=ubuntu-1804-lts-drawfork-shielded-v20181106 \
-  --image-project=eip-images \
-  --boot-disk-size=4000GB \
-  --boot-disk-type=pd-standard \
-  --boot-disk-device-name=docker-disk \
-  --metadata-from-file startup-script=docker-startup.sh
+gcloud beta dns managed-zones create gcp-zone \
+  --dns-name=gcp.pycompatibility.dev \
+  --description="An internal zone used by communication only within GCP." \
+  --visibility=private \
+  --networks=default
 
+gcloud dns record-sets transaction start -z=gcp-zone
+
+gcloud dns record-sets transaction add \
+  -z=gcp-zone \
+  --name=docker.gcp.pycompatibility.dev \
+  --type=A \
+  --ttl=300 \
+  "10.128.15.195"
+
+gcloud dns record-sets transaction execute -z=gcp-zone
