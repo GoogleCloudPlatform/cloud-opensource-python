@@ -31,6 +31,7 @@ IGNORED_DEPENDENCIES = [
 ]
 
 PKG_LIST = [
+    'google-api-core',
     'google-api-python-client',
     'google-auth',
     'google-cloud-asset',
