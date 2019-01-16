@@ -93,7 +93,8 @@ Dependencies
 
 **3. Version range upper bound should be updated when there is a newer version available as soon as possible.**
 
-- We allow a 30 day grace period for package owners to migrate to support new major version bump of the dependencies.
+- We allow a 30 day grace period for package owners to support new releases of their dependencies.
+  Only major version releases of 1st party dependencies should require an update.
 
 **4. Minimize dependencies**
 
