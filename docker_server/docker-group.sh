@@ -34,7 +34,6 @@ gcloud compute instance-groups managed set-autoscaling "docker-group" \
 gcloud compute health-checks create tcp docker-health-check \
    --port=2375
 
-
 gcloud compute backend-services create docker-service \
   --health-checks=docker-health-check \
   --protocol=TCP \
