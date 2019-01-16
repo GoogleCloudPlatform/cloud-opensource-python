@@ -41,17 +41,20 @@ PYTHON3_PACKAGES = [
     'tensorflow',
 ]
 
+
 class CompatibilityCheck(locust.TaskSet):
     @locust.task
     def single_python2(self):
         query = urllib.parse.urlencode(
-            {'python-version': '2', 'package': random.choice(PYTHON2_PACKAGES)})
+            {'python-version': '2',
+             'package': random.choice(PYTHON2_PACKAGES)})
         self.client.get('/?%s' % query)
 
     @locust.task
     def single_python3(self):
         query = urllib.parse.urlencode(
-            {'python-version': '3', 'package': random.choice(PYTHON3_PACKAGES)})
+            {'python-version': '3',
+             'package': random.choice(PYTHON3_PACKAGES)})
         self.client.get('/?%s' % query)
 
     @locust.task
