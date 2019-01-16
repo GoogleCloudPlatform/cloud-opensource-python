@@ -27,6 +27,7 @@ import datetime
 import enum
 import json
 import logging
+import re
 import shlex
 import urllib.request
 
@@ -37,6 +38,12 @@ import docker
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
 TIME_OUT = 300  # seconds
+
+# Pattern for pip installation errors not related to the package being
+# installed. See:
+# https://github.com/pypa/pip/blob/3a77bd667cc68935040563e1351604c461ce5333/src/pip/_internal/commands/install.py#L533
+PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
+    r'not install packages due to an EnvironmentError: (?P<error>.*)')
 
 
 class PipCheckerError(Exception):
@@ -232,8 +239,15 @@ class _OneshotPipCheck():
                 detach=True)
         except docker.errors.APIError as e:
             raise PipCheckerError(
-                error_msg="An error occurred while starting a docker"
+                error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e.explanation))
+        except IOError as e:
+            # TODO: Log the exception and monitor it after trying to decode
+            # this into a requests.exception.* e.g. ReadTimeout. See:
+            # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            raise PipCheckerError(
+                error_msg="An error occurred while starting a docker "
+                          "container. Error message: {}".format(e))
 
         return container
 
@@ -246,6 +260,13 @@ class _OneshotPipCheck():
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
                           "Container does not exist.")
+        except IOError as e:
+            # TODO: Log the exception and monitor it after trying to decode
+            # this into a requests.exception.* e.g. ReadTimeout. See:
+            # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            raise PipCheckerError(
+                error_msg="An error occurred while stopping a docker"
+                          "container. Error message: {}".format(e))
 
     def _run_command(self,
                      container: docker.models.containers.Container,
@@ -278,6 +299,13 @@ class _OneshotPipCheck():
                                             "commands in container."
                                             "Error message: "
                                             "{}".format(e.explanation))
+        except IOError as e:
+            # TODO: Log the exception and monitor it after trying to decode
+            # this into a requests.exception.* e.g. ReadTimeout. See:
+            # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            raise PipCheckerError(
+                error_msg="An error occurred while running the command {} in"
+                          "container. Error message: {}".format(command, e))
 
         if returncode and raise_on_failure:
             raise PipError(error_msg=output,
@@ -316,6 +344,12 @@ class _OneshotPipCheck():
             stderr=True,
             raise_on_failure=False)
         if returncode:
+            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(output)
+            if environment_error:
+                raise PipError(error_msg=environment_error.group('error'),
+                               command=command,
+                               returncode=returncode)
+
             return PipCheckResult(self._packages,
                                   PipCheckResultType.INSTALL_ERROR,
                                   output)
