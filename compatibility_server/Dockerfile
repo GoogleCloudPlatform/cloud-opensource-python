@@ -30,6 +30,8 @@ EXPOSE 8888
 
 # Restart each worker periodically so that `auto_remove`
 # (https://docker-py.readthedocs.io/en/stable/containers.html) has a chance to work.
+# One server per vm, each server has 120 workers which allows 120 docker images
+# created at most in the vm.
 CMD cd compatibility_checker && \
-  gunicorn -b 0.0.0.0:8888 -w 4 --max-requests 20 --max-requests-jitter 10 --timeout 120 \
-           compatibility_checker_server:app
+  gunicorn -b 0.0.0.0:8888 -w 120 --max-requests 20 --max-requests-jitter 10 \
+            --timeout 200 compatibility_checker_server:app
