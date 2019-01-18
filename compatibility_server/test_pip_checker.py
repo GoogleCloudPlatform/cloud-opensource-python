@@ -110,7 +110,7 @@ class TestPipChecker(unittest.TestCase):
     def test__run_command_success(self):
         checker = pip_checker._OneshotPipCheck(
             ['python3', '-m', 'pip'], packages=['six'])
-        container = checker._build_container(MockDockerClient())
+        container = checker._run_container(MockDockerClient())
 
         returncode, output = checker._run_command(
             container,
@@ -129,7 +129,7 @@ class TestPipChecker(unittest.TestCase):
         patch_timeout = mock.patch('pip_checker.TIME_OUT', TIME_OUT)
 
         with patch_timeout, self.assertRaises(pip_checker.PipCheckerError):
-            container = checker._build_container(MockDockerClient())
+            container = checker._run_container(MockDockerClient())
             checker._run_command(
                 container,
                 ["sleep", "1"],
