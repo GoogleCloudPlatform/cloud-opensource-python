@@ -219,7 +219,7 @@ class _OneshotPipCheck():
 
         return base_image
 
-    def _build_container(self, docker_client):
+    def _run_container(self, docker_client):
         """Build the container which contains a Python interpreter."""
         base_image = self._get_base_image()
 
@@ -457,7 +457,7 @@ class _OneshotPipCheck():
         """Run the version compatibility check."""
         # Create docker client and start running the container
         docker_client = docker.from_env()
-        container = self._build_container(docker_client)
+        container = self._run_container(docker_client)
 
         try:
             install_result = self._install(container)
