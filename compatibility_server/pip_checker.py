@@ -35,6 +35,13 @@ from typing import Any, List, Mapping, Optional, Tuple
 
 import docker
 
+from opencensus.stats import aggregation as aggregation_module
+from opencensus.stats import measure as measure_module
+from opencensus.stats import stats as stats_module
+from opencensus.stats import view as view_module
+from opencensus.stats.exporters import stackdriver_exporter
+from opencensus.tags import tag_map as tag_map_module
+
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
 TIME_OUT = 300  # seconds
@@ -51,6 +58,11 @@ PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
 # Pattern for pip check results of version conflicts
 PIP_CHECK_CONFLICTS_PATTERN = re.compile(
     r'(.*)has requirement(.*)but you have(.*)')
+
+
+# create metrics
+import google.auth
+m_docker_error = measure_module.MeasureInt('docker_error', '')
 
 
 class PipCheckerError(Exception):
