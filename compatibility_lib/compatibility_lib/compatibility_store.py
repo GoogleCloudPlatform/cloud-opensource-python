@@ -179,7 +179,7 @@ class CompatibilityStore:
         return row
 
     @staticmethod
-    def _compatibility_status_to_release_time_row(
+    def _compatibility_status_to_release_time_rows(
             cs: CompatibilityResult) -> List[Mapping[str, Any]]:
         """Converts a CompatibilityResult into a dict which is a row for
         release time table."""
@@ -403,7 +403,7 @@ class CompatibilityStore:
                 self._pairwise_table,
                 pair_rows)
 
-        release_time_rows = {}
+        release_time_rows = []
         for cs in compatibility_statuses:
             if len(cs.packages) == 1:
                 install_name = cs.packages[0].install_name
@@ -413,14 +413,13 @@ class CompatibilityStore:
                 if not self._should_update_dep_info(
                         cs, release_time_rows.get(install_name)):
                     continue
-                row = self._compatibility_status_to_release_time_row(cs)
-                if row:
-                    release_time_rows[install_name] = row
+                rows = self._compatibility_status_to_release_time_rows(cs)
+                release_time_rows.extend(rows)
 
-        for row in release_time_rows.values():
+        if release_time_rows:
             self._client.insert_rows(
                 self._release_time_table,
-                row)
+                release_time_rows)
 
     def _should_update_dep_info(self, cs, dep_info_stored):
         """Return True if the stored version is behind latest version."""
