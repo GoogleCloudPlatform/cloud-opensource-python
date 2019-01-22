@@ -270,12 +270,12 @@ class _OneshotPipCheck():
                           "container. Error message: {}".format(e))
 
     def _run_command(
-        self,
-        container: docker.models.containers.Container,
-        command: List[str],
-        stdout: bool,
-        stderr: bool,
-        raise_on_failure: Optional[bool] = True) -> Tuple[int, str]:
+            self,
+            container: docker.models.containers.Container,
+            command: List[str],
+            stdout: bool,
+            stderr: bool,
+            raise_on_failure: Optional[bool] = True) -> Tuple[int, str]:
         """Run docker commands using docker python sdk.
 
         Args:
