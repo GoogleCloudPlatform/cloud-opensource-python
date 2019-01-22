@@ -18,19 +18,49 @@ Requires Python 3.6 or later.
 
 Example usage:
 
-$ python3 compatibility_checker_server.py \
-     --host=0.0.0.0 --port=8888 \
-     --python-version \
-     2:python2,3:python3
-$ curl 'http://0.0.0.0:8888/?package=six&python-version=3' \
+$ python3 compatibility_checker_server.py
+$ curl "http://127.0.0.1:8888/?python-version=3&package=compatibility-lib" \
     | python3 -m json.tool
 {
     "result": "SUCCESS",
     "packages": [
-        "six"
+        "compatibility-lib"
     ],
     "description": null,
-    "requirements": "absl-py==0.2.2\napparmor==2.11.1\n..."
+    "dependency_info": {
+        "compatibility-lib": {
+            "installed_version": "0.0.18",
+            "installed_version_time": "2019-01-16T18:35:09",
+            "latest_version": "0.0.18",
+            "current_time": "2019-01-18T21:09:15.172255",
+            "latest_version_time": "2019-01-16T18:35:09",
+            "is_latest": true
+        },
+        "pip": {
+            "installed_version": "18.1",
+            "installed_version_time": "2018-10-05T11:20:31",
+            "latest_version": "18.1",
+            "current_time": "2019-01-18T21:09:15.166074",
+            "latest_version_time": "2018-10-05T11:20:31",
+            "is_latest": true
+        },
+        "setuptools": {
+            "installed_version": "40.6.3",
+            "installed_version_time": "2018-12-11T19:51:02",
+            "latest_version": "40.6.3",
+            "current_time": "2019-01-18T21:09:15.187775",
+            "latest_version_time": "2018-12-11T19:51:02",
+            "is_latest": true
+        },
+        "wheel": {
+            "installed_version": "0.32.3",
+            "installed_version_time": "2018-11-19T00:25:58",
+            "latest_version": "0.32.3",
+            "current_time": "2019-01-18T21:09:15.170863",
+            "latest_version_time": "2018-11-19T00:25:58",
+            "is_latest": true
+        }
+    }
 }
 
 For complete usage information:

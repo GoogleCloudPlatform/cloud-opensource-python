@@ -31,7 +31,7 @@ import re
 import shlex
 import urllib.request
 
-from typing import Any, List, Mapping, Optional
+from typing import Any, List, Mapping, Optional, Tuple
 
 import docker
 
@@ -219,7 +219,8 @@ class _OneshotPipCheck():
 
         return base_image
 
-    def _run_container(self, docker_client):
+    def _run_container(self,
+                       docker_client) -> docker.models.containers.Container:
         """Build the container which contains a Python interpreter."""
         base_image = self._get_base_image()
 
@@ -268,12 +269,13 @@ class _OneshotPipCheck():
                 error_msg="An error occurred while stopping a docker"
                           "container. Error message: {}".format(e))
 
-    def _run_command(self,
-                     container: docker.models.containers.Container,
-                     command: List[str],
-                     stdout: bool,
-                     stderr: bool,
-                     raise_on_failure: Optional[bool] = True) -> (int, str):
+    def _run_command(
+            self,
+            container: docker.models.containers.Container,
+            command: List[str],
+            stdout: bool,
+            stderr: bool,
+            raise_on_failure: Optional[bool] = True) -> Tuple[int, str]:
         """Run docker commands using docker python sdk.
 
         Args:
@@ -334,7 +336,7 @@ class _OneshotPipCheck():
         """Build pip commands."""
         return self._pip_command + subcommands
 
-    def _install(self, container):
+    def _install(self, container: docker.models.containers.Container):
         """Run pip install in the container."""
         command = self._build_command(['install', '-U'] + self._packages)
         returncode, output = self._run_command(
@@ -355,7 +357,7 @@ class _OneshotPipCheck():
                                   output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
-    def _check(self, container):
+    def _check(self, container: docker.models.containers.Container):
         """Run pip check to detect if there are any version conflicts."""
         command = self._build_command(['check'])
 
@@ -373,8 +375,55 @@ class _OneshotPipCheck():
                                   output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
-    def _list(self, container):
-        """Run pip list to get the outdated packages and dependency info."""
+    def _list(self, container: docker.models.containers.Container):
+        """Return dependency information.
+
+        Args:
+            container: The docker container to run the check in.
+
+        Returns:
+            A mapping between packages names, returned by `pip list`, to
+            information about that package. The package information is
+            represented by a dictionary with the following format:
+
+            {
+                "installed_version": The installed version of the package
+                    e.g. "1.2.3".
+                "installed_version_time": The release date of the package that
+                    is installed as a ISO 8601 string
+                    e.g. "2018-12-11T19:51:02".
+                "latest_version": The latest version of the package
+                    e.g. "2.1.1".
+                "latest_version_time": The release time of the latest version
+                    of the package as an ISO 8601 string
+                    e.g. "2018-12-11T19:51:02".
+                "current_time": The current time as a ISO 8601 strings
+                    e.g. "2018-12-11T19:51:02".
+                "is_latest": A boolean indicating whether the installed package
+                    version is the latest version.
+            }
+
+            For example:
+            {
+                "setuptools": {
+                    "installed_version": "40.6.3",
+                    "installed_version_time": "2018-12-11T19:51:02",
+                    "latest_version": "40.6.3",
+                    "current_time": "2019-01-18T21:09:15.187775",
+                    "latest_version_time": "2018-12-11T19:51:02",
+                    "is_latest": True
+                },
+                "wheel": {
+                    "installed_version": "0.32.3",
+                    "installed_version_time": "2018-11-19T00:25:58",
+                    "latest_version": "0.32.3",
+                    "current_time": "2019-01-18T21:09:15.170863",
+                    "latest_version_time": "2018-11-19T00:25:58",
+                    "is_latest": True
+                }
+            }
+        """
+
         """Use pypi json api to get the release date of the latest version."""
         pkg_version_date = {}
 
@@ -453,8 +502,9 @@ class _OneshotPipCheck():
 
         return pkg_version_date
 
-    def run(self):
+    def run(self) -> PipCheckResult:
         """Run the version compatibility check."""
+
         # Create docker client and start running the container
         docker_client = docker.from_env()
         container = self._run_container(docker_client)
@@ -476,14 +526,13 @@ class _OneshotPipCheck():
 
 
 def check(pip_command: List[str],
-          packages: List[str]) -> PipCheckResultType:
+          packages: List[str]) -> PipCheckResult:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
-      $ pip install <packages> 2>out.txt && \\
-        (pip check >out.txt; \\
-         pip freeze >requirements.txt)
-    and returns the contents of "out.txt" and "requirements.txt".
+    $ pip install <packages> 2>out.txt
+    $ pip list --format=json >deps.txt
+    $ pip check >out.txt
 
     See https://pip.pypa.io/en/stable/user_guide/.
 
@@ -492,5 +541,8 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
+
+    Returns:
+        A PipCheckResult representing the result of the compatibility check.
     """
     return _OneshotPipCheck(pip_command, packages).run()
