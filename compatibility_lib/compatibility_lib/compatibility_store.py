@@ -21,7 +21,6 @@ import itertools
 import retrying
 from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
 
-
 from google.cloud import bigquery
 from google.cloud.bigquery import table
 
