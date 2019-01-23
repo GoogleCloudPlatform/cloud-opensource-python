@@ -436,6 +436,8 @@ class CompatibilityStore:
                     old_version = self._get_package_version(
                         install_name_to_compatibility_result[install_name])
                     new_version = self._get_package_version(cs)
+                    # TODO: Do not compare versions lexicographically.
+                    # Lexicographically, '10' < '9'.
                     if new_version > old_version:
                         install_name_to_compatibility_result[install_name] = cs
 
