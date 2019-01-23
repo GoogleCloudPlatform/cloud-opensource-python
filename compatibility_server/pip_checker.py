@@ -61,8 +61,28 @@ PIP_CHECK_CONFLICTS_PATTERN = re.compile(
 
 
 # create metrics
-import google.auth
-m_docker_error = measure_module.MeasureInt('docker_error', '')
+PROJECT_ID = 'python-compatibility-tools'
+m_docker_error = measure_module.MeasureInt(
+    'docker_error', 'The number of docker errors.')
+stats = stats_module.Stats()
+view_manager = stats.view_manager
+stats_recorder = stats.stats_recorder
+
+# TODO: fix
+latency_view = view_module.View(
+    "docker_error_distribution",
+    "The distribution of the docker errors",
+    [],
+    m_docker_error,
+    aggregation_module.BaseAggregation())
+
+exporter = stackdriver_exporter.new_stats_exporter(
+    stackdriver_exporter.Options(project_id=PROJECT_ID))
+view_manager.register_exporter(exporter)
+
+view_manager.register_view(latency_view)
+mmap = stats_recorder.new_measurement_map()
+tmap = tag_map_module.TagMap()
 
 
 class PipCheckerError(Exception):
