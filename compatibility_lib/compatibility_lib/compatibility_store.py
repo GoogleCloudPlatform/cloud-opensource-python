@@ -15,10 +15,12 @@
 """Storage for package compatibility information."""
 
 import datetime
+from distutils import version
 import enum
 import itertools
 import retrying
 from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
+
 
 from google.cloud import bigquery
 from google.cloud.bigquery import table
@@ -433,11 +435,12 @@ class CompatibilityStore:
                 if install_name not in install_name_to_compatibility_result:
                     install_name_to_compatibility_result[install_name] = cs
                 else:
-                    old_version = self._get_package_version(
+                    old_version_string = self._get_package_version(
                         install_name_to_compatibility_result[install_name])
-                    new_version = self._get_package_version(cs)
-                    # TODO: Do not compare versions lexicographically.
-                    # Lexicographically, '10' < '9'.
+                    new_version_string = self._get_package_version(cs)
+
+                    old_version = version.StrictVersion(old_version_string)
+                    new_version = version.StrictVersion(new_version_string)
                     if new_version > old_version:
                         install_name_to_compatibility_result[install_name] = cs
 

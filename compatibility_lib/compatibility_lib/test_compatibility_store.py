@@ -425,9 +425,9 @@ class TestCompatibilityStore(unittest.TestCase):
             status=status,
             details=None,
             dependency_info={'package4': {
-                'installed_version': '2.7.0',
+                'installed_version': '12.7.0',
                 'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.7.0',
+                'latest_version': '12.7.0',
                 'current_time': '2018-07-13T17:11:29.140608',
                 'latest_version_time': '2018-05-12T16:26:31',
                 'is_latest': True,
@@ -450,9 +450,9 @@ class TestCompatibilityStore(unittest.TestCase):
         row_release_time = {
             'install_name': 'package4[gcp]',
             'dep_name': 'package4',
-            'installed_version': '2.7.0',
+            'installed_version': '12.7.0',
             'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '2.7.0',
+            'latest_version': '12.7.0',
             'timestamp': '2018-07-13T17:11:29.140608',
             'latest_version_time': '2018-05-12T16:26:31',
             'is_latest': True,
