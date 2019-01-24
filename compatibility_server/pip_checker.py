@@ -60,29 +60,32 @@ PIP_CHECK_CONFLICTS_PATTERN = re.compile(
     r'(.*)has requirement(.*)but you have(.*)')
 
 
-# create metrics
 PROJECT_ID = 'python-compatibility-tools'
-m_docker_error = measure_module.MeasureInt(
-    'docker_error', 'The number of docker errors.')
-stats = stats_module.Stats()
-view_manager = stats.view_manager
-stats_recorder = stats.stats_recorder
 
-# TODO: fix
-latency_view = view_module.View(
-    "docker_error_distribution",
+# docker error
+DOCKER_ERROR_MEASURE = measure_module.MeasureInt(
+    'docker_error', 'The number of docker errors.', 'Errors')
+DOCKER_ERROR_VIEW = view_module.View(
+    "docker_error_count",
     "The distribution of the docker errors",
     [],
-    m_docker_error,
-    aggregation_module.BaseAggregation())
+    DOCKER_ERROR_MEASURE,
+    aggregation_module.CountAggregation())
 
-exporter = stackdriver_exporter.new_stats_exporter(
-    stackdriver_exporter.Options(project_id=PROJECT_ID))
-view_manager.register_exporter(exporter)
 
-view_manager.register_view(latency_view)
-mmap = stats_recorder.new_measurement_map()
-tmap = tag_map_module.TagMap()
+def _enable_metrics(stats, view, export_to_stackdriver=True):
+    view_manager = stats.view_manager
+    if export_to_stackdriver:
+        exporter = stackdriver_exporter.new_stats_exporter(
+           stackdriver_exporter.Options(project_id=PROJECT_ID))
+        view_manager.register_exporter(exporter)
+    view_manager.register_view(view)
+
+
+stats = stats_module.Stats()
+_enable_metrics(stats, DOCKER_ERROR_VIEW, False)
+MMAP = stats.stats_recorder.new_measurement_map()
+TMAP = tag_map_module.TagMap()
 
 
 class PipCheckerError(Exception):
@@ -278,6 +281,8 @@ class _OneshotPipCheck():
                 remove=True,  # Remove the container when it finishes.
                 detach=True)
         except docker.errors.APIError as e:
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e.explanation))
@@ -285,6 +290,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e))
@@ -297,6 +304,8 @@ class _OneshotPipCheck():
         try:
             container.stop(timeout=0)
         except (docker.errors.APIError, docker.errors.NotFound):
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
                           "Container does not exist.")
@@ -304,6 +313,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(
                 error_msg="An error occurred while stopping a docker"
                           "container. Error message: {}".format(e))
@@ -336,6 +347,8 @@ class _OneshotPipCheck():
         except docker.errors.APIError as e:
             # Clean up the container if command fails
             self._cleanup_container(container)
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(error_msg="Error occurs when executing "
                                             "commands in container."
                                             "Error message: "
@@ -344,6 +357,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(
                 error_msg="An error occurred while running the command {} in"
                           "container. Error message: {}".format(command, e))
@@ -360,6 +375,8 @@ class _OneshotPipCheck():
                           "out. Error msg: {}".format(
                             command, returncode - 128, output))
         elif returncode and raise_on_failure:
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipError(error_msg=output,
                            command=command,
                            returncode=returncode)
@@ -420,6 +437,8 @@ class _OneshotPipCheck():
                 environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
                     output)
                 if environment_error:
+                    MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+                    MMAP.record(TMAP)
                     raise PipError(error_msg=environment_error.group('error'),
                                    command=command,
                                    returncode=returncode)
