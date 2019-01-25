@@ -262,7 +262,7 @@ class TestPipChecker(unittest.TestCase):
                 pip_command=[
                     self._fake_pip_path,
                     '--check-returncode=1',
-                    '--check-output=bad-check',
+                    '--check-output=package has requirement A, but you have B',
                     '--freeze-output=six==1.2.3\n',
                     '--list-output={}'.format(
                         json.dumps(expected_list_output))
@@ -271,7 +271,7 @@ class TestPipChecker(unittest.TestCase):
         expected_check_result = pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.CHECK_WARNING,
-                result_text='bad-check',
+                result_text='package has requirement A, but you have B',
                 dependency_info=expected_dependency_info)
 
         self.assertEqual(
