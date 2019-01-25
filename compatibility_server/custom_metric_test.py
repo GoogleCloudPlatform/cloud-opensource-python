@@ -1,4 +1,6 @@
+import random
 import time
+from pprint import pprint
 
 from opencensus.stats import aggregation as aggregation_module
 from opencensus.stats import measure as measure_module
@@ -55,47 +57,42 @@ def _enable_metrics(stats, view, export_to_stackdriver=True):
     view_manager.register_view(view)
 
 
-COUNT_STATS = stats_module.Stats()
-_enable_metrics(COUNT_STATS, COUNT_VIEW, False)
-COUNT_MMAP = COUNT_STATS.stats_recorder.new_measurement_map()
+stats = stats_module.Stats()
+_enable_metrics(stats, COUNT_VIEW)
+COUNT_MMAP = stats.stats_recorder.new_measurement_map()
 
-DISTRIBUTION_STATS = stats_module.Stats()
-_enable_metrics(DISTRIBUTION_STATS, DISTRIBUTION_VIEW, False)
-DISTRIBUTION_MMAP = DISTRIBUTION_STATS.stats_recorder.new_measurement_map()
+_enable_metrics(stats, DISTRIBUTION_VIEW)
+DISTRIBUTION_MMAP = stats.stats_recorder.new_measurement_map()
 
-LAST_VALUE_STATS = stats_module.Stats()
-_enable_metrics(LAST_VALUE_STATS, LAST_VALUE_VIEW, False)
-LAST_VALUE_MMAP = LAST_VALUE_STATS.stats_recorder.new_measurement_map()
+_enable_metrics(stats, LAST_VALUE_VIEW)
+LAST_VALUE_MMAP = stats.stats_recorder.new_measurement_map()
 
-SUM_STATS = stats_module.Stats()
-_enable_metrics(SUM_STATS, SUM_VIEW, False)
-SUM_MMAP = SUM_STATS.stats_recorder.new_measurement_map()
+_enable_metrics(stats, SUM_VIEW)
+SUM_MMAP = stats.stats_recorder.new_measurement_map()
 
-# TMAP = tag_map_module.TagMap()
+TMAP = tag_map_module.TagMap()
 
-import random
-results = ['pass', 'pass', 'error', 'pass', 'error']
-for res in range(1000):
-    if random.randint(0, 1) == 1:
+for _ in range(1000):
+    res = random.randint(0, 1)
+    if res == 1:
         COUNT_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        COUNT_MMAP.record(tag_map_module.TagMap())
+        COUNT_MMAP.record(TMAP)
 
         DISTRIBUTION_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        DISTRIBUTION_MMAP.record(tag_map_module.TagMap())
+        DISTRIBUTION_MMAP.record(TMAP)
 
         LAST_VALUE_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        LAST_VALUE_MMAP.record(tag_map_module.TagMap())
+        LAST_VALUE_MMAP.record(TMAP)
 
         SUM_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        SUM_MMAP.record(tag_map_module.TagMap())
+        SUM_MMAP.record(TMAP)
 
-from pprint import pprint
-stats_list = [(COUNT_STATS, 'docker_error_count'),
-              (DISTRIBUTION_STATS, 'docker_error_distribution'),
-              (LAST_VALUE_STATS, 'docker_error_last_value'),
-              (SUM_STATS, 'docker_error_sum')
+stats_list = ['docker_error_count',
+              'docker_error_distribution',
+              'docker_error_last_value',
+              'docker_error_sum'
              ]
-for stats, view_name in stats_list:
+for view_name in stats_list:
     view_data = stats.view_manager.get_view(view_name)
     pprint(vars(view_data))
     for k, v in view_data._tag_value_aggregation_data_map.items():
