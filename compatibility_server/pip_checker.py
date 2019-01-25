@@ -375,10 +375,15 @@ class _OneshotPipCheck():
             raise_on_failure=False)
 
         has_version_conflicts = PIP_CHECK_CONFLICTS_PATTERN.search(output)
-        if returncode and has_version_conflicts:
-            return PipCheckResult(self._packages,
-                                  PipCheckResultType.CHECK_WARNING,
-                                  output)
+        if returncode:
+            if not has_version_conflicts:
+                raise PipCheckerError(
+                    error_msg="The docker container timed out before executing"
+                              "pip command. Error msg: {}".format(output))
+            else:
+                return PipCheckResult(self._packages,
+                                      PipCheckResultType.CHECK_WARNING,
+                                      output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _list(self, container: docker.models.containers.Container):

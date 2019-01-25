@@ -28,6 +28,7 @@ IGNORED_DEPENDENCIES = [
     'pip',
     'setuptools',
     'wheel',
+    'virtualenv',
 ]
 
 PKG_LIST = [
