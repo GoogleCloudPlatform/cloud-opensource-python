@@ -45,6 +45,10 @@ TIME_OUT = 300  # seconds
 PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
     r'not install packages due to an EnvironmentError: (?P<error>.*)')
 
+# Pattern for pip check results of version conflicts
+PIP_CHECK_CONFLICTS_PATTERN = re.compile(
+    r'(.*)has requirement(.*)but you have(.*)')
+
 
 class PipCheckerError(Exception):
     """Pip checker failed in an unexpected way."""
@@ -369,10 +373,17 @@ class _OneshotPipCheck():
             stdout=True,
             stderr=True,
             raise_on_failure=False)
+
+        has_version_conflicts = PIP_CHECK_CONFLICTS_PATTERN.search(output)
         if returncode:
-            return PipCheckResult(self._packages,
-                                  PipCheckResultType.CHECK_WARNING,
-                                  output)
+            if not has_version_conflicts:
+                raise PipCheckerError(
+                    error_msg="The docker container timed out before executing"
+                              "pip command. Error msg: {}".format(output))
+            else:
+                return PipCheckResult(self._packages,
+                                      PipCheckResultType.CHECK_WARNING,
+                                      output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _list(self, container: docker.models.containers.Container):
