@@ -45,6 +45,10 @@ TIME_OUT = 300  # seconds
 PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
     r'not install packages due to an EnvironmentError: (?P<error>.*)')
 
+# Pattern for pip check results of version conflicts
+PIP_CHECK_CONFLICTS_PATTERN = re.compile(
+    r'(.*)has requirement(.*)but you have(.*)')
+
 
 class PipCheckerError(Exception):
     """Pip checker failed in an unexpected way."""
@@ -369,7 +373,9 @@ class _OneshotPipCheck():
             stdout=True,
             stderr=True,
             raise_on_failure=False)
-        if returncode:
+
+        has_version_conflicts = PIP_CHECK_CONFLICTS_PATTERN.search(output)
+        if returncode and has_version_conflicts:
             return PipCheckResult(self._packages,
                                   PipCheckResultType.CHECK_WARNING,
                                   output)
