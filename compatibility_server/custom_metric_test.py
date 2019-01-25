@@ -87,12 +87,12 @@ for _ in range(1000):
         SUM_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
         SUM_MMAP.record(TMAP)
 
-stats_list = ['docker_error_count',
+view_names = ['docker_error_count',
               'docker_error_distribution',
               'docker_error_last_value',
               'docker_error_sum'
              ]
-for view_name in stats_list:
+for view_name in view_names:
     view_data = stats.view_manager.get_view(view_name)
     pprint(vars(view_data))
     for k, v in view_data._tag_value_aggregation_data_map.items():
