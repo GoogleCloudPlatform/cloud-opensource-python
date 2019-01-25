@@ -24,7 +24,7 @@ ADD configs.py /compatibility_checker
 ADD requirements.txt /compatibility_checker
 
 RUN pip3 install -r /compatibility_checker/requirements.txt
-RUN pip3 install gunicorn
+RUN pip3 install gunicorn[gevent]
 
 EXPOSE 8888
 
@@ -33,5 +33,5 @@ EXPOSE 8888
 # One server per vm, each server has 120 workers which allows 120 docker images
 # created at most in the vm.
 CMD cd compatibility_checker && \
-  gunicorn -b 0.0.0.0:8888 -w 120 --max-requests 20 --max-requests-jitter 10 \
-            --timeout 200 compatibility_checker_server:app
+  gunicorn -b 0.0.0.0:8888 -w 4 --max-requests 20 --max-requests-jitter 10 --timeout 120 \
+           compatibility_checker_server:app
