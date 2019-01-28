@@ -204,7 +204,8 @@ class TestPipChecker(unittest.TestCase):
         check_result = pip_checker.check(
             pip_command=[
                 self._fake_pip_path, '--expected-install-args=-U,six',
-                '--install-returncode=1', '--install-output=bad-install'
+                '--install-returncode=1', '--install-output=Could not '
+                    'find a version that satisfies the requirement'
             ],
             packages=['six'])
         self.assertEqual(
@@ -212,7 +213,8 @@ class TestPipChecker(unittest.TestCase):
             pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.INSTALL_ERROR,
-                result_text='bad-install',
+                result_text='Could not find a version that '
+                            'satisfies the requirement',
                 dependency_info=None))
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
