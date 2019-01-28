@@ -39,11 +39,10 @@ PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
 TIME_OUT = 300  # seconds
 
-# Pattern for pip installation errors not related to the package being
-# installed. See:
-# https://github.com/pypa/pip/blob/3a77bd667cc68935040563e1351604c461ce5333/src/pip/_internal/commands/install.py#L533
-PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
-    r'not install packages due to an EnvironmentError: (?P<error>.*)')
+# Pattern for pip installation error related to the package being
+# installed.
+PIP_INSTALL_ERROR_PATTERN = re.compile(
+    r'(.*)Could not find a version that satisfies the requirement(.*)')
 
 # Pattern for pip check results of version conflicts
 PIP_CHECK_CONFLICTS_PATTERN = re.compile(
@@ -350,15 +349,14 @@ class _OneshotPipCheck():
             stderr=True,
             raise_on_failure=False)
         if returncode:
-            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(output)
-            if environment_error:
-                raise PipError(error_msg=environment_error.group('error'),
-                               command=command,
-                               returncode=returncode)
-
-            return PipCheckResult(self._packages,
-                                  PipCheckResultType.INSTALL_ERROR,
-                                  output)
+            pip_install_error = PIP_INSTALL_ERROR_PATTERN.search(output)
+            if pip_install_error:
+                return PipCheckResult(self._packages,
+                                      PipCheckResultType.INSTALL_ERROR,
+                                      output)
+            raise PipError(error_msg=output,
+                           command=command,
+                           returncode=returncode)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _check(self, container: docker.models.containers.Container):
