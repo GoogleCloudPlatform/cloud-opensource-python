@@ -45,16 +45,19 @@ Commands for deployment and maintenance
 1. Set the current context to compatibility-server
 
     ::
+
       gcloud container clusters get-credentials compatibility-checker-cluster --zone us-central1-b --project python-compatibility-tools
 
 2. Resizing the cluster (adding more instances)
 
     ::
+
       gcloud container clusters resize compatibility-server --size [SIZE]
 
 3. Build, push, and deploy a new image
 
     ::
+
       docker build -t gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME] .
       gcloud docker -- push gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME]
       kubectl set image deployment/compatibility-server compatibility-server=gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME]
@@ -62,11 +65,13 @@ Commands for deployment and maintenance
 4. Change the number of replicas
 
     ::
+
       kubectl scale deployment/compatibility-server --replicas [NUMBER_OF_REPLICAS]
 
 5. Run the docker image locally for test
 
     ::
+
       sudo docker run -v /var/run/docker.sock:/var/run/docker.sock -p 8888:8888 [IMAGE_NAME]
 
 Disclaimer
