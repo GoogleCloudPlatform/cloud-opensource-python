@@ -13,7 +13,7 @@ from opencensus.tags import tag_map as tag_map_module
 PROJECT_ID = 'python-compatibility-tools'
 
 DOCKER_ERROR_MEASURE = measure_module.MeasureInt(
-    'count_docker_error', 'The number of docker errors.', 'Errors')
+    'docker_error', 'The number of docker errors.', 'Errors')
 
 # count aggregation
 COUNT_VIEW = view_module.View(
@@ -24,29 +24,29 @@ COUNT_VIEW = view_module.View(
     aggregation_module.CountAggregation())
 
 # distribution aggregation
-DISTRIBUTION_VIEW = view_module.View(
-    "docker_error_distribution",
-    "The distribution of the docker errors",
-    [],
-    DOCKER_ERROR_MEASURE,
-    aggregation_module.DistributionAggregation(
-        [0.0, 100.0]))
+# DISTRIBUTION_VIEW = view_module.View(
+#     "docker_error_distribution",
+#     "The distribution of the docker errors",
+#     [],
+#     DOCKER_ERROR_MEASURE,
+#     aggregation_module.DistributionAggregation(
+#         [0.0, 100.0]))
 
 # LastValue Aggregation
-LAST_VALUE_VIEW = view_module.View(
-    "docker_error_last_value",
-    "The last value of the docker errors",
-    [],
-    DOCKER_ERROR_MEASURE,
-    aggregation_module.LastValueAggregation())
+# LAST_VALUE_VIEW = view_module.View(
+#     "docker_error_last_value",
+#     "The last value of the docker errors",
+#     [],
+#     DOCKER_ERROR_MEASURE,
+#     aggregation_module.LastValueAggregation())
 
 # sum aggregation
-SUM_VIEW = view_module.View(
-    "docker_error_sum",
-    "The total number of docker errors",
-    [],
-    DOCKER_ERROR_MEASURE,
-    aggregation_module.SumAggregation())
+# SUM_VIEW = view_module.View(
+#     "docker_error_sum",
+#     "The total number of docker errors",
+#     [],
+#     DOCKER_ERROR_MEASURE,
+#     aggregation_module.SumAggregation())
 
 def _enable_metrics(stats, view, export_to_stackdriver=True):
     view_manager = stats.view_manager
@@ -61,36 +61,30 @@ stats = stats_module.Stats()
 _enable_metrics(stats, COUNT_VIEW)
 COUNT_MMAP = stats.stats_recorder.new_measurement_map()
 
-_enable_metrics(stats, DISTRIBUTION_VIEW)
-DISTRIBUTION_MMAP = stats.stats_recorder.new_measurement_map()
+# _enable_metrics(stats, DISTRIBUTION_VIEW)
+# DISTRIBUTION_MMAP = stats.stats_recorder.new_measurement_map()
 
-_enable_metrics(stats, LAST_VALUE_VIEW)
-LAST_VALUE_MMAP = stats.stats_recorder.new_measurement_map()
+# _enable_metrics(stats, LAST_VALUE_VIEW)
+# LAST_VALUE_MMAP = stats.stats_recorder.new_measurement_map()
 
-_enable_metrics(stats, SUM_VIEW)
-SUM_MMAP = stats.stats_recorder.new_measurement_map()
+# _enable_metrics(stats, SUM_VIEW)
+# SUM_MMAP = stats.stats_recorder.new_measurement_map()
 
 TMAP = tag_map_module.TagMap()
 
-for _ in range(1000):
-    res = random.randint(0, 1)
+results = [random.randint(0, 1) for _ in range(100)]
+for res in results:
     if res == 1:
         COUNT_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
         COUNT_MMAP.record(TMAP)
-
-        DISTRIBUTION_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        DISTRIBUTION_MMAP.record(TMAP)
-
-        LAST_VALUE_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        LAST_VALUE_MMAP.record(TMAP)
-
-        SUM_MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-        SUM_MMAP.record(TMAP)
+        # DISTRIBUTION_MMAP.record(TMAP)
+        # LAST_VALUE_MMAP.record(TMAP)
+        # SUM_MMAP.record(TMAP)
 
 view_names = ['docker_error_count',
-              'docker_error_distribution',
-              'docker_error_last_value',
-              'docker_error_sum'
+              # 'docker_error_distribution',
+              # 'docker_error_last_value',
+              # 'docker_error_sum'
              ]
 for view_name in view_names:
     view_data = stats.view_manager.get_view(view_name)
