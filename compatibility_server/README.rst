@@ -64,7 +64,7 @@ Alternatively, we can use the deploy.yaml to push a new deployment.
 
     ::
 
-      kubectl apply -f deployment/deploy.yamlkubectl get deployment compatibility-server -o yaml > deployment/deploy.yaml
+      kubectl apply -f deployment/deploy.yaml
 
 If asked to sync up the current deploy.yaml with the latest one,
 
