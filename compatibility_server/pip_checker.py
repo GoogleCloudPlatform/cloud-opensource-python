@@ -37,7 +37,7 @@ import docker
 
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
-TIME_OUT = 1  # seconds
+TIME_OUT = 300  # seconds
 
 # Pattern for pip installation errors not related to the package being
 # installed. See:
@@ -357,8 +357,8 @@ class _OneshotPipCheck():
                                command=command,
                                returncode=returncode)
 
-            # Checking for error caused by sigkill
-            if returncode == 137:
+            # Checking for error caused by sigkill (128+9)
+            if returncode >= 128 and returncode <= 137:
                 raise PipCheckerError(
                     error_msg="The docker container timed out before executing"
                               " pip command. Error msg: {}".format(output))
