@@ -313,7 +313,18 @@ class _OneshotPipCheck():
                 error_msg="An error occurred while running the command {} in"
                           "container. Error message: {}".format(command, e))
 
-        if returncode and raise_on_failure:
+        # Checking for cases where the command was killed by a signal.
+        # If a process was killed by a signal, then it's exit code will be
+        # 128 + <signal number>.
+        # If a docker container exits with a running command then it will be
+        # killed with SIGKILL => 128 + 9 = 137
+        if returncode > 128 and returncode <= 137:
+            raise PipCheckerError(
+                error_msg="The command {} was killed by the signal {}."
+                          "This likely means that the Docker container timed"
+                          "out. Error msg: {}".format(
+                    command, returncode - 128, output))
+        elif returncode and raise_on_failure:
             raise PipError(error_msg=output,
                            command=command,
                            returncode=returncode)
@@ -356,12 +367,6 @@ class _OneshotPipCheck():
                 raise PipError(error_msg=environment_error.group('error'),
                                command=command,
                                returncode=returncode)
-
-            # Checking for error caused by sigkill (128+9)
-            if returncode >= 128 and returncode <= 137:
-                raise PipCheckerError(
-                    error_msg="The docker container timed out before executing"
-                              " pip command. Error msg: {}".format(output))
 
             return PipCheckResult(self._packages,
                                   PipCheckResultType.INSTALL_ERROR,
