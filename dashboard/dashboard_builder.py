@@ -306,7 +306,7 @@ class _ResultHolder(object):
                         'self': False,
                     }
                 )
-                if status_type is 'self-success':
+                if status_type == 'self-success':
                     status_type = 'pairwise-success'
 
         result = {
