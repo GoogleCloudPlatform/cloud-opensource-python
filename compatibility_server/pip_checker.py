@@ -321,7 +321,7 @@ class _OneshotPipCheck():
         if returncode > 128 and returncode <= 137:
             raise PipCheckerError(
                 error_msg="The command {} was killed by signal {}. "
-                          "This likely means that the Docker container timed"
+                          "This likely means that the Docker container timed "
                           "out. Error msg: {}".format(
                             command, returncode - 128, output))
         elif returncode and raise_on_failure:
