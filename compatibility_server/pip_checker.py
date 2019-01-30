@@ -35,6 +35,7 @@ from typing import Any, List, Mapping, Optional, Tuple
 
 import docker
 
+from google import auth as google_auth
 from opencensus.stats import aggregation as aggregation_module
 from opencensus.stats import measure as measure_module
 from opencensus.stats import stats as stats_module
@@ -59,8 +60,7 @@ PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
 PIP_CHECK_CONFLICTS_PATTERN = re.compile(
     r'(.*)has requirement(.*)but you have(.*)')
 
-
-PROJECT_ID = 'python-compatibility-tools'
+_, PROJECT_ID = google_auth.default()
 
 # docker error
 DOCKER_ERROR_MEASURE = measure_module.MeasureInt(
@@ -369,14 +369,14 @@ class _OneshotPipCheck():
         # If a docker container exits with a running command then it will be
         # killed with SIGKILL => 128 + 9 = 137
         if returncode > 128 and returncode <= 137:
+            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            MMAP.record(TMAP)
             raise PipCheckerError(
                 error_msg="The command {} was killed by signal {}. "
                           "This likely means that the Docker container timed "
                           "out. Error msg: {}".format(
                             command, returncode - 128, output))
         elif returncode and raise_on_failure:
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
             raise PipError(error_msg=output,
                            command=command,
                            returncode=returncode)
