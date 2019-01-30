@@ -323,7 +323,7 @@ class _OneshotPipCheck():
                 error_msg="The command {} was killed by the signal {}."
                           "This likely means that the Docker container timed"
                           "out. Error msg: {}".format(
-                    command, returncode - 128, output))
+                            command, returncode - 128, output))
         elif returncode and raise_on_failure:
             raise PipError(error_msg=output,
                            command=command,
