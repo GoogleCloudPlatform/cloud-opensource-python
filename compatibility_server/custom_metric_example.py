@@ -17,8 +17,8 @@
 Note: This script relies on having authentication via Google Cloud SDK
 See https://googleapis.github.io/google-cloud-python/latest/core/auth.html
 
-After running this script, the metrics can be viewed on stackdriver
-See https://app.google.stackdriver.com/metrics-explorer?project=python-compatibility-tools
+After running this script, the metrics can be viewed on stackdriver:
+https://app.google.stackdriver.com/metrics-explorer?project=python-compatibility-tools
 """
 
 import random
