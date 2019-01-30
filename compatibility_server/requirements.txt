@@ -2,3 +2,4 @@ certifi
 docker
 flask
 requests
+opencensus
