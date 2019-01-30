@@ -72,6 +72,7 @@ COUNT_VIEW = view_module.View(
 #     ERROR_MEASURE,
 #     aggregation_module.SumAggregation())
 
+
 def _enable_metrics(stats, view, export_to_stackdriver=True):
     view_manager = stats.view_manager
     if export_to_stackdriver:
@@ -80,11 +81,13 @@ def _enable_metrics(stats, view, export_to_stackdriver=True):
         view_manager.register_exporter(exporter)
     view_manager.register_view(view)
 
+
 def _remove_from_stackdriver(project_id, view_name):
     client = monitoring_v3.MetricServiceClient()
     metric_url = 'custom.googleapis.com/opencensus/%s' % view_name
     name = 'projects/%s/metricDescriptors/%s' % (project_id, metric_url)
     client.delete_metric_descriptor(name)
+
 
 stats = stats_module.Stats()
 _enable_metrics(stats, COUNT_VIEW)
@@ -110,11 +113,12 @@ for res in results:
         # LAST_VALUE_MMAP.record(TMAP)
         # SUM_MMAP.record(TMAP)
 
-view_names = ['testing_count_aggregation',
-              # 'testing_distribution_aggregation',
-              # 'testing_last_value_aggregation',
-              # 'testing_sum_aggregation'
-             ]
+view_names = [
+    'testing_count_aggregation',
+    # 'testing_distribution_aggregation',
+    # 'testing_last_value_aggregation',
+    # 'testing_sum_aggregation'
+]
 
 # Print the metrics
 for view_name in view_names:
