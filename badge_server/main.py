@@ -135,7 +135,7 @@ def _get_all_results_from_cache(package_name, commit_number=None):
     if self_compat_res['py3']['status'] == 'SUCCESS' and \
         google_compat_res['py3']['status'] == 'SUCCESS' and \
             dependency_res['status'] == 'UP_TO_DATE':
-            status = 'SUCCESS'
+        status = 'SUCCESS'
     elif 'CALCULATING' in (
         self_compat_res['py3']['status'],
         google_compat_res['py3']['status'],
