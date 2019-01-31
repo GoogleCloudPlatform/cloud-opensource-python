@@ -79,7 +79,6 @@ class MockContainer(object):
         return self
 
     def exec_run(self, cmd, stdout=True, stderr=True):
-        import docker
         from datetime import datetime
 
         _stdout = subprocess.PIPE if stdout else None
@@ -95,8 +94,8 @@ class MockContainer(object):
         duration = current_time - self.start_time
 
         if duration > pip_checker.TIME_OUT:
-            raise docker.errors.APIError(message="time out",
-                                         explanation="Request time out.")
+            result.returncode = 137
+            output = b''
 
         return result.returncode, output
 
@@ -128,7 +127,8 @@ class TestPipChecker(unittest.TestCase):
         TIME_OUT = 0.1
         patch_timeout = mock.patch('pip_checker.TIME_OUT', TIME_OUT)
 
-        with patch_timeout, self.assertRaises(pip_checker.PipCheckerError):
+        with patch_timeout, self.assertRaisesRegex(
+                pip_checker.PipCheckerError, 'killed by signal 9'):
             container = checker._run_container(MockDockerClient())
             checker._run_command(
                 container,
