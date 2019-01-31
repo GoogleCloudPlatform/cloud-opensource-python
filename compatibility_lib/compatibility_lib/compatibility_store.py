@@ -15,6 +15,7 @@
 """Storage for package compatibility information."""
 
 import datetime
+from distutils import version
 import enum
 import itertools
 import retrying
@@ -179,7 +180,7 @@ class CompatibilityStore:
         return row
 
     @staticmethod
-    def _compatibility_status_to_release_time_row(
+    def _compatibility_status_to_release_time_rows(
             cs: CompatibilityResult) -> List[Mapping[str, Any]]:
         """Converts a CompatibilityResult into a dict which is a row for
         release time table."""
@@ -403,43 +404,87 @@ class CompatibilityStore:
                 self._pairwise_table,
                 pair_rows)
 
-        release_time_rows = {}
+        # Dependencies are not stored per Python version. This is not
+        # theoretically sound but is probably good enough in practice.
+        #
+        # If there are multiple compatibility results for the same package,
+        # use the dependencies with the highest version for that package.
+        # For example, if the following CompatibilityResults were passed to
+        # `save_compatibility_statuses`:
+        #
+        # cr1 = CompatibilityResult(
+        #     packages=[Package('package1')],
+        #     dependency_info={'package1': {'installed_version': '1.2.3' ...})
+        # cr2 = CompatibilityResult(
+        #     packages=[Package('package1')],
+        #     dependency_info={'package1': {'installed_version': '1.2.4' ...})
+        #
+        # then the dependency information for `cr2` would be saved because it
+        # is the newest version ('1.2.4' vs '1.2.3'). If the versions are the
+        # same then choose one arbitrarily.
+        #
+        # This check is done to prevent an old versions of apache-beam, which
+        # was accidentally released for Python 3, from having it's dependencies
+        # stored. It will also make sure that the Python 3 version of package
+        # dependencies are stored when Python 2 releases stop happening.
+        install_name_to_compatibility_result = {}
         for cs in compatibility_statuses:
             if len(cs.packages) == 1:
                 install_name = cs.packages[0].install_name
-                # Only store the dep info for latest version of the package
-                # being checked. e.g. pip install apache-beam will have
-                # different version installed in py2/3.
-                if not self._should_update_dep_info(
-                        cs, release_time_rows.get(install_name)):
-                    continue
-                row = self._compatibility_status_to_release_time_row(cs)
-                if row:
-                    release_time_rows[install_name] = row
+                if install_name not in install_name_to_compatibility_result:
+                    install_name_to_compatibility_result[install_name] = cs
+                else:
+                    old_version_string = self._get_package_version(
+                        install_name_to_compatibility_result[install_name])
+                    new_version_string = self._get_package_version(cs)
 
-        for row in release_time_rows.values():
+                    old_version = version.StrictVersion(old_version_string)
+                    new_version = version.StrictVersion(new_version_string)
+                    if new_version > old_version:
+                        install_name_to_compatibility_result[install_name] = cs
+
+        dependency_rows = itertools.chain(
+            *[self._compatibility_status_to_release_time_rows(cs)
+              for cs in install_name_to_compatibility_result.values()])
+
+        # Insert the dependency rows in a stable order to make testing more
+        # convenient.
+        dependency_rows = sorted(
+            dependency_rows,
+            key=lambda row: (row['install_name'], row['dep_name']))
+
+        if dependency_rows:
             self._client.insert_rows(
                 self._release_time_table,
-                row)
+                dependency_rows)
 
-    def _should_update_dep_info(self, cs, dep_info_stored):
-        """Return True if the stored version is behind latest version."""
-        if dep_info_stored is None:
-            return True
+    def _get_package_version(self, result: CompatibilityResult) -> str:
+        """Returns the version of the single package in a CompatibilityResult.
 
-        install_name = cs.packages[0].install_name
+        Args:
+            result: The compatibility result. This result must contain exactly
+                one package.
+
+        Returns:
+            A string containing the version of the single package found in the
+            CompatibilityResult `packages` attribute. For example:
+
+            cr1 = CompatibilityResult(
+                packages=[Package('package1')],
+                dependency_info={'package1': {'installed_version': '1.2.3' ..})
+            _get_package_version(cr1) => '1.2.3'
+        """
+        if len(result.packages) != 1:
+            raise ValueError('multiple packages found in CompatibilityResult')
+
+        install_name = result.packages[0].install_name
         install_name_sanitized = install_name.split('[')[0]
-        installed_version = cs.dependency_info[
-            install_name_sanitized]['installed_version']
 
-        installed_version_stored = '0'
-        for row in dep_info_stored:
-            if row['install_name'] == install_name \
-                    and row['dep_name'] == install_name_sanitized:
-                installed_version_stored = row['installed_version']
-                break
-
-        return True if installed_version > installed_version_stored else False
+        for pkg, version_info in result.dependency_info.items():
+            if pkg == install_name_sanitized:
+                return version_info['installed_version']
+        raise ValueError('missing version information for {}'.format(
+            install_name_sanitized))
 
     @retrying.retry(stop_max_attempt_number=7,
                     wait_fixed=2000)

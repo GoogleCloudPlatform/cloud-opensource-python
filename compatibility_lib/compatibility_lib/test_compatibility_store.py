@@ -425,9 +425,9 @@ class TestCompatibilityStore(unittest.TestCase):
             status=status,
             details=None,
             dependency_info={'package4': {
-                'installed_version': '2.7.0',
+                'installed_version': '12.7.0',
                 'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.7.0',
+                'latest_version': '12.7.0',
                 'current_time': '2018-07-13T17:11:29.140608',
                 'latest_version_time': '2018-05-12T16:26:31',
                 'is_latest': True,
@@ -450,9 +450,9 @@ class TestCompatibilityStore(unittest.TestCase):
         row_release_time = {
             'install_name': 'package4[gcp]',
             'dep_name': 'package4',
-            'installed_version': '2.7.0',
+            'installed_version': '12.7.0',
             'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '2.7.0',
+            'latest_version': '12.7.0',
             'timestamp': '2018-07-13T17:11:29.140608',
             'latest_version_time': '2018-05-12T16:26:31',
             'is_latest': True,
@@ -473,6 +473,129 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_client.insert_rows.assert_called_with(
             store._release_time_table, [row_release_time])
 
+    def test_save_compatibility_statuses_release_time_for_latest_many_packages(
+            self):
+        mock_client = mock.Mock()
+        timestamp = '2018-07-17 03:01:06.11693 UTC'
+        status = compatibility_store.Status.SUCCESS
+        apache_beam_py2 = mock.Mock(
+            packages=[package.Package('apache-beam[gcp]')],
+            python_major_version='2',
+            status=status,
+            details=None,
+            dependency_info={
+                'six': {
+                    'installed_version': '9.9.9',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': False,
+                }        ,
+                'apache-beam': {
+                'installed_version': '2.7.0',
+                'installed_version_time': '2018-05-12T16:26:31',
+                'latest_version': '2.7.0',
+                'current_time': '2018-07-13T17:11:29.140608',
+                'latest_version_time': '2018-05-12T16:26:31',
+                'is_latest': True,
+            }},
+            timestamp=timestamp)
+        apache_beam_py3 = mock.Mock(
+            packages=[package.Package('apache-beam[gcp]')],
+            python_major_version='3',
+            status=status,
+            details=None,
+            dependency_info={'apache-beam': {
+                'installed_version': '2.2.0',
+                'installed_version_time': '2018-05-12T16:26:31',
+                'latest_version': '2.7.0',
+                'current_time': '2018-07-13T17:11:29.140608',
+                'latest_version_time': '2018-05-12T16:26:31',
+                'is_latest': False,
+            }},
+            timestamp=timestamp)
+        google_api_core_py2 = mock.Mock(
+            packages=[package.Package('google-api-core')],
+            python_major_version='2',
+            status=status,
+            details=None,
+            dependency_info={
+                'google-api-core': {
+                    'installed_version': '3.7.0',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': True,
+                }},
+            timestamp=timestamp)
+        google_api_core_py3 = mock.Mock(
+            packages=[package.Package('google-api-core')],
+            python_major_version='3',
+            status=status,
+            details=None,
+            dependency_info={'google-api-core': {
+                'installed_version': '3.7.1',
+                'installed_version_time': '2018-05-12T16:26:31',
+                'latest_version': '2.7.0',
+                'current_time': '2018-07-13T17:11:29.140608',
+                'latest_version_time': '2018-05-12T16:26:31',
+                'is_latest': False,
+            }},
+            timestamp=timestamp)
+
+        apache_beam_row = {
+            'install_name': 'apache-beam[gcp]',
+            'dep_name': 'apache-beam',
+            'installed_version': '2.7.0',
+            'installed_version_time': '2018-05-12T16:26:31',
+            'latest_version': '2.7.0',
+            'latest_version_time': '2018-05-12T16:26:31',
+            'is_latest': True,
+            'timestamp': '2018-07-13T17:11:29.140608',
+        }
+
+        six_row = {
+            'install_name': 'apache-beam[gcp]',
+            'dep_name': 'six',
+            'installed_version': '9.9.9',
+            'installed_version_time': '2018-05-12T16:26:31',
+            'latest_version': '2.7.0',
+            'latest_version_time': '2018-05-12T16:26:31',
+            'is_latest': False,
+            'timestamp': '2018-07-13T17:11:29.140608',
+        }
+
+        google_api_core_row = {
+            'install_name': 'google-api-core',
+            'dep_name': 'google-api-core',
+            'installed_version': '3.7.1',
+            'installed_version_time': '2018-05-12T16:26:31',
+            'latest_version': '2.7.0',
+            'latest_version_time': '2018-05-12T16:26:31',
+            'is_latest': False,
+            'timestamp': '2018-07-13T17:11:29.140608',
+        }
+
+        def MockClient(project=None):
+            return mock_client
+
+        patch_client = mock.patch(
+            'compatibility_lib.compatibility_store.bigquery.Client',
+            MockClient)
+
+        with patch_client:
+            store = compatibility_store.CompatibilityStore()
+            store.save_compatibility_statuses(
+                [apache_beam_py2,
+                 apache_beam_py3,
+                 google_api_core_py2,
+                 google_api_core_py3])
+
+        mock_client.insert_rows.assert_called_with(
+            store._release_time_table,
+            [apache_beam_row, six_row, google_api_core_row])
 
 class MockClient(object):
 
