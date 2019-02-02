@@ -53,6 +53,10 @@ class CompatibilityChecker(object):
 
         return json.loads(content)
 
+    def filter_packages(self, packages, python_version):
+        return [pkg for pkg in packages if pkg not in \
+                    configs.PKG_PY_VERSION_NOT_SUPPORTED[int(python_version)]]
+
     @retrying.retry(wait_exponential_multiplier=5000,
                     wait_exponential_max=20000)
     def retrying_check(self, args):
@@ -65,6 +69,8 @@ class CompatibilityChecker(object):
         """Get the self compatibility data for each package."""
         if packages is None:
             packages = configs.PKG_LIST
+            # Remove the package not supported in the python_version
+            packages = self.filter_packages(packages, python_version)
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             pkg_set_results = p.map(
@@ -77,7 +83,8 @@ class CompatibilityChecker(object):
     def get_pairwise_compatibility(self, python_version, pkg_sets=None):
         """Get pairwise compatibility data for each pair of packages."""
         if pkg_sets is None:
-            pkg_sets = itertools.combinations(configs.PKG_LIST, 2)
+            packages = self.filter_packages(configs.PKG_LIST, python_version)
+            pkg_sets = itertools.combinations(packages, 2)
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             pkg_set_results = p.map(
