@@ -58,10 +58,15 @@ class TestCompatibilityChecker(unittest.TestCase):
         checker = compatibility_checker.CompatibilityChecker()
 
         pkg_list = ['pkg1', 'pkg2']
+        pkg_py_version_not_supported = {
+            2: ['tensorflow', ],
+            3: ['apache-beam[gcp]', 'gsutil', ],
+        }
         python_version = 3
 
         mock_config = mock.Mock()
         mock_config.PKG_LIST = pkg_list
+        mock_config.PKG_PY_VERSION_NOT_SUPPORTED = pkg_py_version_not_supported
         patch_config = mock.patch(
             'compatibility_lib.compatibility_checker.configs', mock_config)
 
@@ -86,10 +91,16 @@ class TestCompatibilityChecker(unittest.TestCase):
 
     def test_get_pairwise_compatibility(self):
         pkg_list = ['pkg1', 'pkg2', 'pkg3']
+        pkg_py_version_not_supported = {
+            2: ['tensorflow', ],
+            3: ['apache-beam[gcp]', 'gsutil', ],
+        }
+
         python_version = 3
 
         mock_config = mock.Mock()
         mock_config.PKG_LIST = pkg_list
+        mock_config.PKG_PY_VERSION_NOT_SUPPORTED = pkg_py_version_not_supported
         patch_config = mock.patch(
             'compatibility_lib.compatibility_checker.configs', mock_config)
 
