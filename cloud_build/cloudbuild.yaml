@@ -1,0 +1,10 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'dashboard_builder', '.']
+  id: build_dashboard
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['run', '--name', 'dashboard_builder', '-h', 'dashboard_container', '-v', '/workspace/static:/export', 'dashboard_builder', '/bin/bash', '-c', 'cp /compatibility_dashboard/dashboard/*.html /export/']
+  id: gen_htmls
+- name: "gcr.io/cloud-builders/gcloud"
+  args: ["app", "deploy", "--project", "google.com:python-compatibility-dashboard"]
+timeout: "1600s"

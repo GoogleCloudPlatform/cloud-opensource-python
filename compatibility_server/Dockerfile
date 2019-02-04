@@ -24,12 +24,14 @@ ADD configs.py /compatibility_checker
 ADD requirements.txt /compatibility_checker
 
 RUN pip3 install -r /compatibility_checker/requirements.txt
-RUN pip3 install gunicorn
+RUN pip3 install gunicorn[gevent]
 
 EXPOSE 8888
 
 # Restart each worker periodically so that `auto_remove`
 # (https://docker-py.readthedocs.io/en/stable/containers.html) has a chance to work.
+# 5 replicas per vm, each replica has 10 workers which allows 50 docker images
+# created at most in the vm.
 CMD cd compatibility_checker && \
-  gunicorn -b 0.0.0.0:8888 -w 4 --max-requests 20 --max-requests-jitter 10 --timeout 120 \
+  gunicorn -b 0.0.0.0:8888 -w 10 --worker-class gevent --max-requests 20 --max-requests-jitter 10 --timeout 300 \
            compatibility_checker_server:app
