@@ -54,8 +54,8 @@ class CompatibilityChecker(object):
         return json.loads(content)
 
     def filter_packages(self, packages, python_version):
-        return [pkg for pkg in packages if pkg not in \
-                    configs.PKG_PY_VERSION_NOT_SUPPORTED[int(python_version)]]
+        return [pkg for pkg in packages if pkg not in
+                configs.PKG_PY_VERSION_NOT_SUPPORTED[int(python_version)]]
 
     @retrying.retry(wait_exponential_multiplier=5000,
                     wait_exponential_max=20000)
