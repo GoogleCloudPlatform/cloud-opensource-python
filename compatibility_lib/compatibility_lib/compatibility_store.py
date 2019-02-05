@@ -24,6 +24,7 @@ from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
 from google.cloud import bigquery
 from google.cloud.bigquery import table
 
+from compatibility_lib import configs
 from compatibility_lib import package
 
 _DATASET_NAME = 'compatibility_checker'
@@ -478,6 +479,8 @@ class CompatibilityStore:
             raise ValueError('multiple packages found in CompatibilityResult')
 
         install_name = result.packages[0].install_name
+        if 'github.com' in install_name:
+            install_name = configs.WHITELIST_URLS[install_name]
         install_name_sanitized = install_name.split('[')[0]
 
         for pkg, version_info in result.dependency_info.items():

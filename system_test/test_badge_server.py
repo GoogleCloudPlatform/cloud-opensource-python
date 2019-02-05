@@ -66,42 +66,6 @@ class TestBadgeServer(unittest.TestCase):
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
-    def test_self_compatibility_badge(self):
-        response = requests.get(
-            '{}self_compatibility_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
-        status_code = response.status_code
-        content = response.content
-
-        self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
-
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
-    def test_google_compatibility_badge(self):
-        response = requests.get(
-            '{}google_compatibility_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
-        status_code = response.status_code
-        content = response.content
-
-        self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
-
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
-    def test_self_dependency_badge(self):
-        response = requests.get(
-            '{}self_dependency_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
-        status_code = response.status_code
-        content = response.content
-
-        self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
-
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
     def test_one_badge(self):
         response = requests.get(
             '{}one_badge_image?package={}'.format(

@@ -14,14 +14,16 @@
 
 """Get self and pairwise compatibility data and write to bigquery."""
 
+import argparse
 import datetime
+import itertools
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import package
 
-checker = compatibility_checker.CompatibilityChecker()
+checker = compatibility_checker.CompatibilityChecker(max_workers=800)
 store = compatibility_store.CompatibilityStore()
 
 PY2 = '2'
@@ -53,15 +55,40 @@ def _result_dict_to_compatibility_result(results, python_version):
     return res_list
 
 
-def write_to_status_table():
+def get_package_pairs(check_pypi, check_github):
+    """Get package pairs for pypi and github head."""
+    self_packages = []
+    pair_packages = []
+    if check_pypi:
+        # Get pypi packages for single checks
+        self_packages.extend(configs.PKG_LIST)
+        # Get pypi packages for pairwise checks
+        pypi_pairs = list(itertools.combinations(configs.PKG_LIST, 2))
+        pair_packages.extend(pypi_pairs)
+    if check_github:
+        # Get github head packages for single checks
+        self_packages.extend(list(configs.WHITELIST_URLS.keys()))
+        # Get github head packages for pairwise checks
+        for gh_url in configs.WHITELIST_URLS:
+            pairs = []
+            gh_name = configs.WHITELIST_URLS[gh_url]
+            for pypi_pkg in configs.PKG_LIST:
+                if pypi_pkg != gh_name:
+                    pairs.append((gh_url, pypi_pkg))
+            pair_packages.extend(pairs)
+
+    return self_packages, pair_packages
+
+
+def write_to_status_table(check_pypi, check_github):
     """Get the compatibility status for PyPI versions."""
     # Write self compatibility status to BigQuery
+    self_packages, pair_packages = get_package_pairs(check_pypi, check_github)
     self_res_list = []
-    packages = configs.PKG_LIST
     for py_version in [PY2, PY3]:
         results = checker.get_self_compatibility(
             python_version=py_version,
-            packages=packages)
+            packages=self_packages)
         res_list = _result_dict_to_compatibility_result(results, py_version)
         self_res_list.extend(res_list)
 
@@ -69,11 +96,27 @@ def write_to_status_table():
 
     # Write pairwise compatibility status to BigQuery
     for py_version in [PY2, PY3]:
-        # For PyPI released versions
-        results = checker.get_pairwise_compatibility(py_version)
+        # For PyPI released versions and github head versions
+        results = checker.get_pairwise_compatibility(
+          python_version=py_version, pkg_sets=pair_packages)
         res_list = _result_dict_to_compatibility_result(results, py_version)
         store.save_compatibility_statuses(res_list)
 
 
 if __name__ == '__main__':
-    write_to_status_table()
+    parser = argparse.ArgumentParser(description='Determine what to check.')
+    parser.add_argument(
+        '--pypi',
+        type=bool,
+        default=False,
+        help='Check PyPI released packages or not.')
+    parser.add_argument(
+        '--github',
+        type=bool,
+        default=False,
+        help='Check GitHub head packages or not.')
+    args = parser.parse_args()
+
+    check_pypi = args.pypi
+    check_github = args.github
+    write_to_status_table(check_pypi, check_github)
