@@ -64,7 +64,7 @@ class CompatibilityChecker(object):
             else:
                 pkg_name = pkg
             if pkg_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED[
-                int(python_version)]:
+                    int(python_version)]:
                 filtered_packages.append(pkg)
         return filtered_packages
 

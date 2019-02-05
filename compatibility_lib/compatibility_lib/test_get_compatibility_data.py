@@ -92,7 +92,8 @@ class TestGetCompatibilityData(unittest.TestCase):
         with self.patch_checker, self.patch_store:
             from compatibility_lib import get_compatibility_data
 
-            get_compatibility_data.write_to_status_table()
+            get_compatibility_data.write_to_status_table(
+                check_pypi=True, check_github=False)
 
         self.assertTrue(self.mock_checker.get_self_compatibility.called)
         self.assertTrue(self.mock_checker.get_pairwise_compatibility.called)
