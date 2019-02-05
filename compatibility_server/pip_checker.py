@@ -235,7 +235,7 @@ class _OneshotPipCheck():
     def __init__(self,
                  pip_command: List[str],
                  packages: List[str],
-                 export_metrics = False):
+                 export_metrics=False):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -627,7 +627,7 @@ class _OneshotPipCheck():
 
 def check(pip_command: List[str],
           packages: List[str],
-          export_metrics = False) -> PipCheckResult:
+          export_metrics=False) -> PipCheckResult:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
