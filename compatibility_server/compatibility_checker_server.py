@@ -135,7 +135,7 @@ def check():
 
     try:
         pip_result = pip_checker.check(
-            python_command, packages)
+            python_command, packages, EXPORT_METRICS)
     except pip_checker.PipCheckerError as pip_error:
         return flask.make_response(pip_error.error_msg, 500)
 
@@ -165,8 +165,15 @@ def main():
         type=int,
         default=8888,
         help='port to which the server should bind')
+    parser.add_argument(
+        '--export_metrics',
+        action='store_true',
+        help='whether or not metrics should be exported to stackdriver')
     args = parser.parse_args()
     logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
+
+    global EXPORT_METRICS
+    EXPORT_METRICS = args.export_metrics
 
     logging.basicConfig(
         level=logging.INFO,

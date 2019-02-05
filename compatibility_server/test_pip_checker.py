@@ -31,7 +31,6 @@ import pip_checker
 
 def timestamp_to_seconds(timestamp: str) -> int:
     """Convert a timestamp string into a seconds value
-    
     Args:
         timestamp: An ISO 8601 format string returned by calling isoformat()
             on a `datetime.datetime` type timestamp.
@@ -120,6 +119,11 @@ class TestPipChecker(unittest.TestCase):
 
         self.assertEqual(output, 'testing\n')
 
+        docker_view_name = pip_checker.DOCKER_ERROR_VIEW.name
+        docker_view_data = checker._stats.view_manager.get_view(
+            docker_view_name)
+        self.assertEqual(docker_view_data._tag_value_aggregation_data_map, {})
+
     def test__run_command_timeout(self):
         checker = pip_checker._OneshotPipCheck(
             ['python3', '-m', 'pip'], packages=['six'])
@@ -136,6 +140,12 @@ class TestPipChecker(unittest.TestCase):
                 stdout=True,
                 stderr=True,
                 raise_on_failure=False)
+
+        docker_view_name = pip_checker.DOCKER_ERROR_VIEW.name
+        docker_view_data = checker._stats.view_manager.get_view(
+            docker_view_name)
+        docker_data_map = docker_view_data._tag_value_aggregation_data_map
+        self.assertEqual(len(docker_data_map), 1)
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     @mock.patch('pip_checker.docker.from_env')

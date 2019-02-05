@@ -60,8 +60,6 @@ PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
 PIP_CHECK_CONFLICTS_PATTERN = re.compile(
     r'(.*)has requirement(.*)but you have(.*)')
 
-_, PROJECT_ID = google_auth.default()
-
 # docker error
 DOCKER_ERROR_MEASURE = measure_module.MeasureInt(
     'docker_error', 'The number of docker errors.', 'Errors')
@@ -73,19 +71,17 @@ DOCKER_ERROR_VIEW = view_module.View(
     aggregation_module.CountAggregation())
 
 
-def _enable_metrics(stats, view, export_to_stackdriver=True):
-    view_manager = stats.view_manager
+def _enable_metrics(stats, view, export_to_stackdriver=False):
     if export_to_stackdriver:
+        try:
+            _, project_id = google_auth.default()
+        except google_auth.exceptions.DefaultCredentialsError:
+            raise ValueError("Couldn't find Google Cloud credentials, set the "
+                             "project ID with 'gcloud set project'")
         exporter = stackdriver_exporter.new_stats_exporter(
-           stackdriver_exporter.Options(project_id=PROJECT_ID))
-        view_manager.register_exporter(exporter)
-    view_manager.register_view(view)
-
-
-stats = stats_module.Stats()
-_enable_metrics(stats, DOCKER_ERROR_VIEW, False)
-MMAP = stats.stats_recorder.new_measurement_map()
-TMAP = tag_map_module.TagMap()
+           stackdriver_exporter.Options(project_id=project_id))
+        stats.view_manager.register_exporter(exporter)
+    stats.view_manager.register_view(view)
 
 
 class PipCheckerError(Exception):
@@ -238,7 +234,8 @@ class _OneshotPipCheck():
 
     def __init__(self,
                  pip_command: List[str],
-                 packages: List[str]):
+                 packages: List[str],
+                 export_metrics = False):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -249,6 +246,12 @@ class _OneshotPipCheck():
         """
         self._pip_command = pip_command
         self._packages = packages
+
+        self._stats = stats_module.Stats()
+        _enable_metrics(self._stats, DOCKER_ERROR_VIEW, export_metrics)
+        self._export_metrics = export_metrics
+        self._mmap = self._stats.stats_recorder.new_measurement_map()
+        self._tmap = tag_map_module.TagMap()
 
     def _get_base_image(self):
         """Get the base image name based on Python version."""
@@ -281,8 +284,8 @@ class _OneshotPipCheck():
                 remove=True,  # Remove the container when it finishes.
                 detach=True)
         except docker.errors.APIError as e:
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e.explanation))
@@ -290,8 +293,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e))
@@ -304,8 +307,8 @@ class _OneshotPipCheck():
         try:
             container.stop(timeout=0)
         except (docker.errors.APIError, docker.errors.NotFound):
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
                           "Container does not exist.")
@@ -313,8 +316,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while stopping a docker"
                           "container. Error message: {}".format(e))
@@ -347,8 +350,8 @@ class _OneshotPipCheck():
         except docker.errors.APIError as e:
             # Clean up the container if command fails
             self._cleanup_container(container)
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(error_msg="Error occurs when executing "
                                             "commands in container."
                                             "Error message: "
@@ -357,8 +360,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while running the command {} in"
                           "container. Error message: {}".format(command, e))
@@ -369,8 +372,8 @@ class _OneshotPipCheck():
         # If a docker container exits with a running command then it will be
         # killed with SIGKILL => 128 + 9 = 137
         if returncode > 128 and returncode <= 137:
-            MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-            MMAP.record(TMAP)
+            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="The command {} was killed by signal {}. "
                           "This likely means that the Docker container timed "
@@ -623,7 +626,8 @@ class _OneshotPipCheck():
 
 
 def check(pip_command: List[str],
-          packages: List[str]) -> PipCheckResult:
+          packages: List[str],
+          export_metrics = False) -> PipCheckResult:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
@@ -642,4 +646,4 @@ def check(pip_command: List[str],
     Returns:
         A PipCheckResult representing the result of the compatibility check.
     """
-    return _OneshotPipCheck(pip_command, packages).run()
+    return _OneshotPipCheck(pip_command, packages, export_metrics).run()

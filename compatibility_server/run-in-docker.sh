@@ -18,5 +18,5 @@
 
 set -e
 
-docker build -t compatibility-image .
-docker run -p 8888:8888 compatibility-image
+docker build -t compatibility-image . --export_metrics
+docker run -p 8888:8888 compatibility-image --export_metrics
