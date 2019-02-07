@@ -439,8 +439,8 @@ class CompatibilityStore:
                         install_name_to_compatibility_result[install_name])
                     new_version_string = self._get_package_version(cs)
 
-                    old_version = version.StrictVersion(old_version_string)
-                    new_version = version.StrictVersion(new_version_string)
+                    old_version = version.LooseVersion(old_version_string)
+                    new_version = version.LooseVersion(new_version_string)
                     if new_version > old_version:
                         install_name_to_compatibility_result[install_name] = cs
 

@@ -30,17 +30,18 @@ PY2 = '2'
 PY3 = '3'
 
 
-def _result_dict_to_compatibility_result(results, python_version):
+def _result_dict_to_compatibility_result(results):
     res_list = []
 
     for item in results:
         res_dict = item[0]
-        check_result = res_dict.get('result')
+        result_content, python_version = res_dict
+        check_result = result_content.get('result')
         packages_list = [package.Package(pkg)
-                         for pkg in res_dict.get('packages')]
-        details = res_dict.get('description')
+                         for pkg in result_content.get('packages')]
+        details = result_content.get('description')
         timestamp = datetime.datetime.now().isoformat()
-        dependency_info = res_dict.get('dependency_info')
+        dependency_info = result_content.get('dependency_info')
 
         compatibility_result = compatibility_store.CompatibilityResult(
             packages=packages_list,
@@ -84,23 +85,11 @@ def write_to_status_table(check_pypi, check_github):
     """Get the compatibility status for PyPI versions."""
     # Write self compatibility status to BigQuery
     self_packages, pair_packages = get_package_pairs(check_pypi, check_github)
-    self_res_list = []
-    for py_version in [PY2, PY3]:
-        results = checker.get_self_compatibility(
-            python_version=py_version,
-            packages=self_packages)
-        res_list = _result_dict_to_compatibility_result(results, py_version)
-        self_res_list.extend(res_list)
+    results = checker.get_compatibility(
+        packages=self_packages, pkg_sets=pair_packages)
+    res_list = _result_dict_to_compatibility_result(results)
 
-    store.save_compatibility_statuses(self_res_list)
-
-    # Write pairwise compatibility status to BigQuery
-    for py_version in [PY2, PY3]:
-        # For PyPI released versions and github head versions
-        results = checker.get_pairwise_compatibility(
-          python_version=py_version, pkg_sets=pair_packages)
-        res_list = _result_dict_to_compatibility_result(results, py_version)
-        store.save_compatibility_statuses(res_list)
+    store.save_compatibility_statuses(res_list)
 
 
 if __name__ == '__main__':
