@@ -72,15 +72,19 @@ DOCKER_ERROR_VIEW = view_module.View(
 
 
 def _enable_metrics(stats, view, export_to_stackdriver=False):
+    """enables a given 'view' (ie custom metric)"""
     if export_to_stackdriver:
+        # get project id from default setting
         try:
             _, project_id = google_auth.default()
         except google_auth.exceptions.DefaultCredentialsError:
             raise ValueError("Couldn't find Google Cloud credentials, set the "
                              "project ID with 'gcloud set project'")
+        # create and register the stackdriver exporter
         exporter = stackdriver_exporter.new_stats_exporter(
            stackdriver_exporter.Options(project_id=project_id))
         stats.view_manager.register_exporter(exporter)
+    # register the 'view' (ie custom metric)
     stats.view_manager.register_view(view)
 
 
@@ -243,6 +247,7 @@ class _OneshotPipCheck():
                 ['python3', '-m', 'pip'].
             packages: The packages to check for compatibility e.g.
                 ['numpy', 'tensorflow'].
+            export_metrics: Whether to export custom metrics to stackdriver
         """
         self._pip_command = pip_command
         self._packages = packages
@@ -642,6 +647,7 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
+        export_metrics: Whether to export custom metrics to stackdriver.
 
     Returns:
         A PipCheckResult representing the result of the compatibility check.
