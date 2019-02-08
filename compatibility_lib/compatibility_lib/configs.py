@@ -171,18 +171,16 @@ WHITELIST_URLS = {
     _format_url('google/apitools'): 'google-apitools',
     _format_url('GoogleCloudPlatform/gsutil'): 'gsutil',
     _format_url('census-instrumentation/opencensus-python'): 'opencensus',
-    _format_url('protocolbuffers/protobuf', 'python'): 'protobuf',
     _format_url('google/protorpc'): 'protorpc',
     _format_url('tensorflow/tensorflow', 'tensorflow/tools/pip_package'):
         'tensorflow',
-    _format_url('tensorflow/tensorflow',
-                'tensorflow/contrib/tpu/profiler/pip_package'): 'tensorflow',
     _format_url('GoogleCloudPlatform/cloud-opensource-python',
                 'compatibility_lib'): 'compatibility-lib',
     # TODO: The following projects do not use setup.py
     # googleapis-common-protos
     # grpc-google-iam-v1
     # grpcio
+    # protobuf
     # tensorboard - not sure what the build process is
     # _format_url('tensorflow/tensorboard', 'tensorboard/pip_package'):
     #     'tensorboard',

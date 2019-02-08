@@ -51,45 +51,85 @@ class CompatibilityChecker(object):
         result = requests.get(SERVER_URL, params=data)
         content = result.content.decode('utf-8')
 
-        return json.loads(content)
+        return json.loads(content), python_version
 
     def filter_packages(self, packages, python_version):
-        return [pkg for pkg in packages if pkg not in
-                configs.PKG_PY_VERSION_NOT_SUPPORTED[int(python_version)]]
+        """Filter out the packages not supported by the given py version."""
+        filtered_packages = []
+        for pkg in packages:
+            if 'github.com' in pkg:
+                pkg_name = configs.WHITELIST_URLS[pkg]
+            else:
+                pkg_name = pkg
+            if pkg_name not in configs.PKG_PY_VERSION_NOT_SUPPORTED[
+                    int(python_version)]:
+                filtered_packages.append(pkg)
+        return filtered_packages
 
-    @retrying.retry(wait_exponential_multiplier=5000,
-                    wait_exponential_max=20000)
+    @retrying.retry(wait_random_min=1000,
+                    wait_random_max=2000)
     def retrying_check(self, args):
         """Retrying logic for sending requests to checker server."""
         packages = args[0]
         python_version = args[1]
         return self.check(packages, python_version)
 
-    def get_self_compatibility(self, python_version, packages=None):
-        """Get the self compatibility data for each package."""
+    def collect_check_packages(
+            self, python_version=None, packages=None, pkg_sets=None):
+        # Generating single packages
         if packages is None:
             packages = configs.PKG_LIST
-            # Remove the package not supported in the python_version
+
+        check_singles = []
+        if python_version is None:
+            for py_ver in ['2', '3']:
+                # Remove the package not supported in the python_version
+                packages = self.filter_packages(packages, py_ver)
+                for pkg in packages:
+                    check_singles.append(([pkg], py_ver))
+        else:
             packages = self.filter_packages(packages, python_version)
-        with concurrent.futures.ThreadPoolExecutor(
-                max_workers=self.max_workers) as p:
-            pkg_set_results = p.map(
-                self.retrying_check,
-                (([pkg], python_version) for pkg in packages))
+            check_singles = [([pkg], python_version) for pkg in packages]
 
-            for result in zip(pkg_set_results):
-                yield result
-
-    def get_pairwise_compatibility(self, python_version, pkg_sets=None):
-        """Get pairwise compatibility data for each pair of packages."""
+        # Generating pairs
         if pkg_sets is None:
-            packages = self.filter_packages(configs.PKG_LIST, python_version)
-            pkg_sets = itertools.combinations(packages, 2)
+            pkg_sets = itertools.combinations(configs.PKG_LIST, 2)
+
+        check_pairs = []
+        if python_version is None:
+            for py_ver in ['2', '3']:
+                filtered_pkgs = []
+                for pkgs in pkg_sets:
+                    if list(pkgs) != self.filter_packages(pkgs,
+                                                          py_ver):
+                        continue
+                    filtered_pkgs.append(pkgs)
+                for pkg_set in filtered_pkgs:
+                    check_pairs.append((list(pkg_set), py_ver))
+        else:
+            filtered_pkgs = []
+            for pkgs in pkg_sets:
+                if list(pkgs) != self.filter_packages(pkgs,
+                                                      python_version):
+                    continue
+                filtered_pkgs.append(pkgs)
+            check_pairs = [(list(pkg_set), python_version) \
+                           for pkg_set in pkg_sets]
+
+        res = tuple(check_singles) + tuple(check_pairs)
+        return res
+
+    def get_compatibility(
+            self, python_version=None, packages=None, pkg_sets=None):
+        """Get the compatibility data for each package and package pairs."""
+        check_packages = self.collect_check_packages(
+            python_version, packages, pkg_sets)
+
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
             pkg_set_results = p.map(
                 self.retrying_check,
-                ((list(pkg_set), python_version) for pkg_set in pkg_sets))
+                tuple(check_packages))
 
             for result in zip(pkg_set_results):
                 yield result
