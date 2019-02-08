@@ -1,0 +1,10 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/python-compatibility-tools/python36:${_TAG_PY36}', '.']
+  id: build_py36
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/python-compatibility-tools/python36:${_TAG_PY36}']
+  id: push_py36
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['container', 'images', 'add-tag', 'gcr.io/python-compatibility-tools/python36:${_TAG_PY36}', 'gcr.io/python-compatibility-tools/python36:latest']
+  id: tag_py36
