@@ -366,20 +366,15 @@ class _OneshotPipCheck():
                 command = self._build_command(
                     ['install', '-e',
                      'google-cloud-python-master/{}'.format(gh_clientlib)])
-                returncode, output = self._run_command(
-                    container,
-                    command,
-                    stdout=False,
-                    stderr=True,
-                    raise_on_failure=False)
             else:
                 command = self._build_command(['install', '-U'] + [pkg])
-                returncode, output = self._run_command(
-                    container,
-                    command,
-                    stdout=False,
-                    stderr=True,
-                    raise_on_failure=False)
+
+            returncode, output = self._run_command(
+                container,
+                command,
+                stdout=False,
+                stderr=True,
+                raise_on_failure=False)
 
             if returncode:
                 # Checking for environment error
