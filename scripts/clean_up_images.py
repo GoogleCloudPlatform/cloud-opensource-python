@@ -1,7 +1,7 @@
 import logging
 import subprocess
 
-LIST_IMAGES_COMMAND = 'gcloud container images list-tags'
+LIST_IMAGES_COMMAND_PREFIX = 'gcloud container images list-tags'
 DELETE_IMAGES_COMMAND_PREFIX = 'gcloud container images delete'
 
 # Allow at most 3 versions of images stored at container registry
@@ -9,7 +9,7 @@ ALLOWED_SIZE = 3
 
 
 def delete_old_images(image_name):
-    list_command = LIST_IMAGES_COMMAND + \
+    list_command = LIST_IMAGES_COMMAND_PREFIX + \
         ' gcr.io/python-compatibility-tools/{}'.format(image_name) + ' --format=get(digest)'
     digests = subprocess.check_output(list_command.split(' '))
     digests_list = digests.decode('utf-8').strip('\n').split('\n')
