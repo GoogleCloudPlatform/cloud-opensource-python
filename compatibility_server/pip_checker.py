@@ -72,7 +72,17 @@ DOCKER_ERROR_VIEW = view_module.View(
 
 
 def _enable_metrics(stats, view, export_to_stackdriver=False):
-    """enables a given 'view' (ie custom metric)"""
+    """enables a given 'view' (ie custom metric).
+
+    In order for data to be collected for the given view, the view needs to be
+    registered with a view manager. Once a view is registered, it reports data
+    to any registered exporters.
+
+    For any data to be exported to stackdriver, an exporter needs to be created
+    and registered with the view manager. Collected data will be reported via
+    all the registered exporters. By not creating and registering an exporter,
+    all collected data will stay local and will not appear on stackdriver.
+    """
     if export_to_stackdriver:
         # get project id from default setting
         try:
@@ -247,7 +257,7 @@ class _OneshotPipCheck():
                 ['python3', '-m', 'pip'].
             packages: The packages to check for compatibility e.g.
                 ['numpy', 'tensorflow'].
-            export_metrics: Whether to export custom metrics to stackdriver
+            export_metrics: Whether to export custom metrics to stackdriver.
         """
         self._pip_command = pip_command
         self._packages = packages
