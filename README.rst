@@ -23,23 +23,6 @@ Dependency Management Toolkit for Google Cloud Python Projects
 .. |github_head| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib&force_run_check=1
    :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=git%2Bgit://github.com/GoogleCloudPlatform/cloud-opensource-python.git%23subdirectory=compatibility_lib
 
--  Compatibility check results
-
-.. csv-table::
-   :header: "CHECK_TYPE", "RESULT"
-   :widths: 20, 30
-
-   "Self Compatibility", |self_compatibility|
-   "Google Compatibility", |google_compatibility|
-   "Dependency Version Status", |dependency_version_status|
-
-.. |self_compatibility| image:: https://python-compatibility-tools.appspot.com/self_compatibility_badge_image?package=compatibility-lib
-   :target: https://python-compatibility-tools.appspot.com/self_compatibility_badge_target?package=compatibility-lib
-.. |google_compatibility| image:: https://python-compatibility-tools.appspot.com/google_compatibility_badge_image?package=compatibility-lib
-   :target: https://python-compatibility-tools.appspot.com/google_compatibility_badge_target?package=compatibility-lib
-.. |dependency_version_status| image:: https://python-compatibility-tools.appspot.com/self_dependency_badge_image?package=compatibility-lib
-   :target: https://python-compatibility-tools.appspot.com/self_dependency_badge_target?package=compatibility-lib
-
 -----------------
 Compatibility Lib
 -----------------
