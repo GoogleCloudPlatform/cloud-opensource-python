@@ -56,7 +56,7 @@ def _result_dict_to_compatibility_result(results):
     return res_list
 
 
-def get_package_pairs(check_pypi, check_github):
+def get_package_pairs(check_pypi=False, check_github=False):
     """Get package pairs for pypi and github head."""
     self_packages = []
     pair_packages = []
@@ -81,7 +81,7 @@ def get_package_pairs(check_pypi, check_github):
     return self_packages, pair_packages
 
 
-def write_to_status_table(check_pypi, check_github):
+def write_to_status_table(check_pypi=False, check_github=False):
     """Get the compatibility status for PyPI versions."""
     # Write self compatibility status to BigQuery
     self_packages, pair_packages = get_package_pairs(check_pypi, check_github)

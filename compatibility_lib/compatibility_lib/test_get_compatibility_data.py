@@ -38,14 +38,15 @@ class TestGetCompatibilityData(unittest.TestCase):
         }
     }
     results = (
-        [
+        ((
             {
                 'result': 'SUCCESS',
                 'packages': ['google-api-core'],
                 'description': None,
                 'dependency_info': dependency_info,
-            }
-        ],
+            },
+            '3',
+        ),),
     )
 
     packages = [package.Package('google-api-core')]
@@ -53,8 +54,7 @@ class TestGetCompatibilityData(unittest.TestCase):
 
     def setUp(self):
         self.mock_checker = mock.Mock()
-        self.mock_checker.get_self_compatibility.return_value = self.results
-        self.mock_checker.get_pairwise_compatibility.return_value = self.results
+        self.mock_checker.get_compatibility.return_value = self.results
 
         self.fake_store = fake_compatibility_store.CompatibilityStore()
 
@@ -72,14 +72,74 @@ class TestGetCompatibilityData(unittest.TestCase):
             'compatibility_lib.get_compatibility_data.store',
             self.fake_store)
 
+    def test_get_package_pairs_pypi(self):
+        mock_config = mock.Mock()
+        PKG_LIST = ['package1', 'package2', 'package3']
+        mock_config.PKG_LIST = PKG_LIST
+        WHITELIST_URLS = {
+            'github.com/pkg1.git': 'package1',
+            'github.com/pkg2.git': 'package2',
+            'github.com/pkg3.git': 'package3'
+        }
+        mock_config.WHITELIST_URLS = WHITELIST_URLS
+        patch_config = mock.patch(
+            'compatibility_lib.get_compatibility_data.configs',
+            mock_config)
+
+        with patch_config, self.patch_constructor, self.patch_checker, self.patch_store:
+            from compatibility_lib import get_compatibility_data
+
+            self_packages, pair_packages = get_compatibility_data.get_package_pairs(
+                check_pypi=True, check_github=False)
+
+        self.assertEqual(self_packages, ['package1', 'package2', 'package3'])
+        self.assertEqual(
+            pair_packages,
+            [('package1', 'package2'),
+             ('package1', 'package3'),
+             ('package2', 'package3')])
+
+    def test_get_package_pairs_github(self):
+        mock_config = mock.Mock()
+        PKG_LIST = ['package1', 'package2', 'package3']
+        mock_config.PKG_LIST = PKG_LIST
+        WHITELIST_URLS = {
+            'github.com/pkg1.git': 'package1',
+            'github.com/pkg2.git': 'package2',
+            'github.com/pkg3.git': 'package3'
+        }
+        mock_config.WHITELIST_URLS = WHITELIST_URLS
+        patch_config = mock.patch(
+            'compatibility_lib.get_compatibility_data.configs',
+            mock_config)
+
+        with patch_config, self.patch_constructor, self.patch_checker, self.patch_store:
+            from compatibility_lib import get_compatibility_data
+
+            self_packages, pair_packages = get_compatibility_data.get_package_pairs(
+                check_pypi=False, check_github=True)
+
+        self.assertEqual(
+            self_packages,
+            ['github.com/pkg1.git',
+             'github.com/pkg2.git',
+             'github.com/pkg3.git'])
+        self.assertEqual(
+            pair_packages,
+            [('github.com/pkg1.git', 'package2'),
+             ('github.com/pkg1.git', 'package3'),
+             ('github.com/pkg2.git', 'package1'),
+             ('github.com/pkg2.git', 'package3'),
+             ('github.com/pkg3.git', 'package1'),
+             ('github.com/pkg3.git', 'package2')])
+
     def test__result_dict_to_compatibility_result(self):
         with self.patch_constructor, self.patch_checker, self.patch_store:
             from compatibility_lib import compatibility_store
             from compatibility_lib import get_compatibility_data
 
-            python_version = 3
             res_list = get_compatibility_data._result_dict_to_compatibility_result(
-                self.results, python_version)
+                self.results)
 
         self.assertTrue(isinstance(
             res_list[0], compatibility_store.CompatibilityResult))
@@ -94,12 +154,11 @@ class TestGetCompatibilityData(unittest.TestCase):
 
             get_compatibility_data.write_to_status_table()
 
-        self.assertTrue(self.mock_checker.get_self_compatibility.called)
-        self.assertTrue(self.mock_checker.get_pairwise_compatibility.called)
+        self.assertTrue(self.mock_checker.get_compatibility.called)
         saved_results = self.fake_store._packages_to_compatibility_result.get(
             frozenset({self.packages[0]}))
         self.assertIsNotNone(saved_results)
-        self.assertEqual(len(saved_results), 4)
+        self.assertEqual(len(saved_results), 1)
         saved_item = saved_results[0]
         self.assertEqual(saved_item.packages, self.packages)
         self.assertEqual(saved_item.dependency_info, self.dependency_info)

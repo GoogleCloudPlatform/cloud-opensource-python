@@ -54,50 +54,15 @@ class TestCompatibilityChecker(unittest.TestCase):
         python_version = args[0][1]
         return (packages, python_version, 'SUCCESS')
 
-    def test_get_self_compatibility(self):
+    def test_get_compatibility(self):
         checker = compatibility_checker.CompatibilityChecker()
 
-        pkg_list = ['pkg1', 'pkg2']
-        pkg_py_version_not_supported = {
-            2: ['tensorflow', ],
-            3: ['apache-beam[gcp]', 'gsutil', ],
-        }
-        python_version = 3
-
-        mock_config = mock.Mock()
-        mock_config.PKG_LIST = pkg_list
-        mock_config.PKG_PY_VERSION_NOT_SUPPORTED = pkg_py_version_not_supported
-        patch_config = mock.patch(
-            'compatibility_lib.compatibility_checker.configs', mock_config)
-
-        patch_executor = mock.patch(
-            'compatibility_lib.compatibility_checker.concurrent.futures.ThreadPoolExecutor',
-            FakeExecutor)
-        patch_retrying_check = mock.patch.object(
-            compatibility_checker.CompatibilityChecker,
-            'retrying_check',
-            self._mock_retrying_check)
-
-        res = []
-        with patch_config, patch_executor, patch_retrying_check:
-            result = checker.get_self_compatibility(python_version)
-
-            for item in result:
-                res.append(item)
-
-        self.assertEqual(res,
-                         [((['pkg1'], 3, 'SUCCESS'),),
-                          ((['pkg2'], 3, 'SUCCESS'),)])
-
-    def test_get_pairwise_compatibility(self):
         pkg_list = ['pkg1', 'pkg2', 'pkg3']
         pkg_py_version_not_supported = {
             2: ['tensorflow', ],
             3: ['apache-beam[gcp]', 'gsutil', ],
         }
 
-        python_version = 3
-
         mock_config = mock.Mock()
         mock_config.PKG_LIST = pkg_list
         mock_config.PKG_PY_VERSION_NOT_SUPPORTED = pkg_py_version_not_supported
@@ -114,16 +79,25 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         res = []
         with patch_config, patch_executor, patch_retrying_check:
-            checker = compatibility_checker.CompatibilityChecker()
-            result = checker.get_pairwise_compatibility(python_version)
+            result = checker.get_compatibility()
 
             for item in result:
                 res.append(item)
 
-        self.assertEqual(res,
-                         [((['pkg1', 'pkg2'], 3, 'SUCCESS'),),
-                          ((['pkg1', 'pkg3'], 3, 'SUCCESS'),),
-                          ((['pkg2', 'pkg3'], 3, 'SUCCESS'),)])
+        expected = [((['pkg1'], '2', 'SUCCESS'),),
+                    ((['pkg2'], '2', 'SUCCESS'),),
+                    ((['pkg3'], '2', 'SUCCESS'),),
+                    ((['pkg1'], '3', 'SUCCESS'),),
+                    ((['pkg2'], '3', 'SUCCESS'),),
+                    ((['pkg3'], '3', 'SUCCESS'),),
+                    ((['pkg1', 'pkg2'], '2', 'SUCCESS'),),
+                    ((['pkg1', 'pkg3'], '2', 'SUCCESS'),),
+                    ((['pkg2', 'pkg3'], '2', 'SUCCESS'),),
+                    ((['pkg1', 'pkg2'], '3', 'SUCCESS'),),
+                    ((['pkg1', 'pkg3'], '3', 'SUCCESS'),),
+                    ((['pkg2', 'pkg3'], '3', 'SUCCESS'),)]
+
+        self.assertEqual(res, expected)
 
 
 class FakeExecutor(object):
