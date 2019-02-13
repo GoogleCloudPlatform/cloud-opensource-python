@@ -84,20 +84,21 @@ class TestCompatibilityChecker(unittest.TestCase):
             for item in result:
                 res.append(item)
 
-        expected = [((['pkg1'], '2', 'SUCCESS'),),
-                    ((['pkg2'], '2', 'SUCCESS'),),
-                    ((['pkg3'], '2', 'SUCCESS'),),
-                    ((['pkg1'], '3', 'SUCCESS'),),
-                    ((['pkg2'], '3', 'SUCCESS'),),
-                    ((['pkg3'], '3', 'SUCCESS'),),
-                    ((['pkg1', 'pkg2'], '2', 'SUCCESS'),),
-                    ((['pkg1', 'pkg3'], '2', 'SUCCESS'),),
-                    ((['pkg2', 'pkg3'], '2', 'SUCCESS'),),
-                    ((['pkg1', 'pkg2'], '3', 'SUCCESS'),),
-                    ((['pkg1', 'pkg3'], '3', 'SUCCESS'),),
-                    ((['pkg2', 'pkg3'], '3', 'SUCCESS'),)]
+        expected = sorted([
+            ((['pkg1'], '2', 'SUCCESS'),),
+            ((['pkg2'], '2', 'SUCCESS'),),
+            ((['pkg3'], '2', 'SUCCESS'),),
+            ((['pkg1'], '3', 'SUCCESS'),),
+            ((['pkg2'], '3', 'SUCCESS'),),
+            ((['pkg3'], '3', 'SUCCESS'),),
+            ((['pkg1', 'pkg2'], '2', 'SUCCESS'),),
+            ((['pkg1', 'pkg3'], '2', 'SUCCESS'),),
+            ((['pkg2', 'pkg3'], '2', 'SUCCESS'),),
+            ((['pkg1', 'pkg2'], '3', 'SUCCESS'),),
+            ((['pkg1', 'pkg3'], '3', 'SUCCESS'),),
+            ((['pkg2', 'pkg3'], '3', 'SUCCESS'),)])
 
-        self.assertEqual(res, expected)
+        self.assertEqual(sorted(res), expected)
 
 
 class FakeExecutor(object):

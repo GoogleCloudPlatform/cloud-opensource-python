@@ -92,12 +92,16 @@ class TestGetCompatibilityData(unittest.TestCase):
             self_packages, pair_packages = get_compatibility_data.get_package_pairs(
                 check_pypi=True, check_github=False)
 
-        self.assertEqual(self_packages, ['package1', 'package2', 'package3'])
-        self.assertEqual(
-            pair_packages,
+        expected_self_packages = sorted(['package1', 'package2', 'package3'])
+        self.assertEqual(sorted(self_packages), expected_self_packages)
+
+        expected_pair_packages = sorted(
             [('package1', 'package2'),
              ('package1', 'package3'),
              ('package2', 'package3')])
+        self.assertEqual(
+            sorted(pair_packages),
+            expected_pair_packages)
 
     def test_get_package_pairs_github(self):
         mock_config = mock.Mock()
@@ -119,19 +123,22 @@ class TestGetCompatibilityData(unittest.TestCase):
             self_packages, pair_packages = get_compatibility_data.get_package_pairs(
                 check_pypi=False, check_github=True)
 
-        self.assertEqual(
-            self_packages,
+        expected_self_packages = sorted(
             ['github.com/pkg1.git',
              'github.com/pkg2.git',
              'github.com/pkg3.git'])
         self.assertEqual(
-            pair_packages,
+            sorted(self_packages), expected_self_packages)
+
+        expected_pair_packages = sorted(
             [('github.com/pkg1.git', 'package2'),
              ('github.com/pkg1.git', 'package3'),
              ('github.com/pkg2.git', 'package1'),
              ('github.com/pkg2.git', 'package3'),
              ('github.com/pkg3.git', 'package1'),
              ('github.com/pkg3.git', 'package2')])
+        self.assertEqual(
+            sorted(pair_packages), expected_pair_packages)
 
     def test__result_dict_to_compatibility_result(self):
         with self.patch_constructor, self.patch_checker, self.patch_store:

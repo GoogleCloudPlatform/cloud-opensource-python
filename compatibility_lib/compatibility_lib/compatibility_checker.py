@@ -113,7 +113,7 @@ class CompatibilityChecker(object):
                                                       python_version):
                     continue
                 filtered_pkgs.append(pkgs)
-            check_pairs = [(list(pkg_set), python_version) \
+            check_pairs = [(list(pkg_set), python_version)
                            for pkg_set in pkg_sets]
 
         res = tuple(check_singles) + tuple(check_pairs)
