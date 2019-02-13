@@ -19,7 +19,6 @@ import concurrent.futures
 import json
 import requests
 import retrying
-import time
 
 from compatibility_lib import configs
 from compatibility_lib import utils
@@ -38,7 +37,6 @@ class CompatibilityChecker(object):
 
     def check(self, packages, python_version):
         """Call the checker server to get back status results."""
-        start = time.time()
         if not utils._is_package_in_whitelist(packages):
 
             UNKNOWN_STATUS_RESULT['packages'] = packages
