@@ -18,16 +18,16 @@ import datetime
 from distutils import version
 import enum
 import itertools
+import os
 import retrying
-from typing import Any, FrozenSet, Iterable, List, Mapping, Optional
+from typing import Any, FrozenSet, Iterable, List, Mapping, Optional, Tuple
 
-from google.cloud import bigquery
-from google.cloud.bigquery import table
+import pymysql
 
 from compatibility_lib import configs
 from compatibility_lib import package
 
-_DATASET_NAME = 'compatibility_checker'
+_DATABASE_NAME = 'compatibility_data'
 _SELF_COMPATIBILITY_STATUS_TABLE_NAME = 'self_compatibility_status'
 _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME = 'pairwise_compatibility_status'
 _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME = 'release_time_for_dependencies'
@@ -126,63 +126,65 @@ class CompatibilityResult:
 class CompatibilityStore:
     """Storage for package compatibility information."""
 
-    def __init__(self, project_id=None):
-        self._client = bigquery.Client(project=project_id)
-        dataset_ref = self._client.dataset(_DATASET_NAME)
+    def __init__(self, mysql_user=None, mysql_password=None):
+        if mysql_user is None:
+            mysql_user = os.environ.get('MYSQL_USER')
+        if mysql_password is None:
+            mysql_password = os.environ.get('MYSQL_PASSWORD')
 
-        self._self_table_id = (
-            '{}.{}'.format(
-                _DATASET_NAME, _SELF_COMPATIBILITY_STATUS_TABLE_NAME))
-        self._self_table = self._client.get_table(dataset_ref.table(
-            _SELF_COMPATIBILITY_STATUS_TABLE_NAME))
+        self.mysql_user = mysql_user
+        self.mysql_password = mysql_password
 
-        self._pairwise_table_id = (
-            '{}.{}'.format(
-                _DATASET_NAME, _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME))
-        self._pairwise_table = self._client.get_table(dataset_ref.table(
-            _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME))
+    def connect(self):
+        conn = pymysql.connect(
+            host='127.0.0.1',
+            user=self.mysql_user,
+            password=self.mysql_password,
+            db=_DATABASE_NAME,
+            charset='utf8mb4')
+        return conn
 
-        self._release_time_table_id = (
-            '{}.{}'.format(
-                _DATASET_NAME, _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME))
-        self._release_time_table = self._client.get_table(dataset_ref.table(
-            _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME))
+    def close(self, conn, cursor):
+        cursor.close()
+        conn.close()
 
     @staticmethod
     def _row_to_compatibility_status(packages: Iterable[package.Package],
-                                     row: table.Row) -> \
+                                     row: tuple) -> \
             CompatibilityResult:
         """Converts a BigQuery row into a CompatibilityResult."""
+        if len(packages) == 1:
+            _, status, py_version, timestamp, details = row
+        else:
+            _, _, status, py_version, timestamp, details = row
         return CompatibilityResult(
             packages,
-            python_major_version=int(row.py_version[0]),
-            status=Status(row.status),
-            timestamp=row.timestamp,
-            details=row.details,
+            python_major_version=int(py_version),
+            status=Status(status),
+            timestamp=timestamp,
+            details=details,
         )
 
     @staticmethod
     def _compatibility_status_to_row(
-            cs: CompatibilityResult) -> Mapping[str, Any]:
-        """Converts a CompatibilityResult into a dict whose keys are columns.
-        """
-        row = {
-            'status': cs.status.value,
-            'py_version': str(cs.python_major_version),
-            'timestamp': cs.timestamp,
-            'details': cs.details,
-        }
+            cs: CompatibilityResult) -> Tuple:
+        """Converts a CompatibilityResult into a tuple."""
+        status = cs.status.value
+        py_version = str(cs.python_major_version)
+        details = cs.details
         if len(cs.packages) == 1:
-            row['install_name'] = cs.packages[0].install_name
+            install_name = cs.packages[0].install_name
+            return (install_name, status, py_version, None, details)
         else:
             names = sorted([cs.packages[0].install_name,
                             cs.packages[1].install_name])
-            row['install_name_lower'], row['install_name_higher'] = names
-        return row
+            install_name_lower, install_name_higher = names
+            return (install_name_lower, install_name_higher,
+                    status, py_version, None, details)
 
     @staticmethod
     def _compatibility_status_to_release_time_rows(
-            cs: CompatibilityResult) -> List[Mapping[str, Any]]:
+            cs: CompatibilityResult) -> List[Tuple]:
         """Converts a CompatibilityResult into a dict which is a row for
         release time table."""
         if len(cs.packages) != 1 or cs.dependency_info is None:
@@ -192,12 +194,14 @@ class CompatibilityStore:
         rows = []
 
         for pkg, version_info in dependency_info.items():
-            row = {
-                'install_name': install_name,
-                'dep_name': pkg,
-            }
-            row.update(version_info)
-            row['timestamp'] = row.pop('current_time')
+            row = (install_name,
+                         pkg,
+                         version_info['installed_version'],
+                         version_info['installed_version_time'],
+                         version_info['latest_version'],
+                         version_info['latest_version_time'],
+                         version_info['is_latest'],
+                         version_info['current_time'])
             rows.append(row)
 
         return rows
@@ -219,9 +223,13 @@ class CompatibilityStore:
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
         query = 'SELECT DISTINCT install_name FROM {}'.format(
-            self._self_table_id)
-        query_job = self._client.query(query)
-        for row in query_job:
+            _SELF_COMPATIBILITY_STATUS_TABLE_NAME)
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        self.close(conn=conn, cursor=cursor)
+        for row in results:
             yield package.Package(install_name=row[0])
 
     def get_self_compatibility(self,
@@ -255,28 +263,18 @@ class CompatibilityStore:
         install_name_to_package = {p.install_name: p for p in packages}
         package_to_result = {p: [] for p in packages}
 
-        query_params = [
-            bigquery.ArrayQueryParameter('install_names', 'STRING',
-                                         [package.install_name
-                                          for package in packages]),
-        ]
-        job_config = bigquery.QueryJobConfig()
-        job_config.query_parameters = query_params
+        query = 'SELECT * FROM {}'.format(
+            _SELF_COMPATIBILITY_STATUS_TABLE_NAME)
 
-        query = ('SELECT * '
-                 'FROM {} s1 '
-                 'WHERE s1.install_name IN UNNEST(@install_names) '
-                 '      AND timestamp = ( '
-                 '          SELECT MAX(timestamp) '
-                 '          FROM {} s2 '
-                 '          WHERE s1.install_name = s2.install_name '
-                 '            AND s1.py_version = s2.py_version)'.format(
-                    self._self_table_id, self._self_table_id))
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        self.close(conn, cursor)
 
-        query_job = self._client.query(query, job_config=job_config)
-
-        for row in query_job:
-            p = install_name_to_package[row.install_name]
+        for row in results:
+            install_name = row[0]
+            p = install_name_to_package[install_name]
             package_to_result[p].append(self._row_to_compatibility_status(
                 [p], row))
         return {p: self._filter_older_versions(crs)
@@ -299,30 +297,20 @@ class CompatibilityStore:
             raise ValueError(
                 'expected 2 packages, got {}'.format(len(packages)))
         packages = sorted(packages, key=lambda p: p.install_name)
-        query_params = [
-            bigquery.ScalarQueryParameter('install_name_lower', 'STRING',
-                                          packages[0].install_name),
-            bigquery.ScalarQueryParameter('install_name_higher', 'STRING',
-                                          packages[1].install_name),
-        ]
-        job_config = bigquery.QueryJobConfig()
-        job_config.query_parameters = query_params
 
-        query = ('SELECT * '
-                 'FROM {} s1 '
-                 'WHERE INSTALL_NAME_LOWER=@install_name_lower '
-                 '  AND INSTALL_NAME_HIGHER=@install_name_higher '
-                 '  AND timestamp = ( '
-                 '     SELECT MAX(timestamp) '
-                 '     FROM {} s2 '
-                 '     WHERE s1.install_name_lower = s2.install_name_lower '
-                 '       AND s1.install_name_higher = s2.install_name_higher '
-                 '       AND s1.py_version = s2.py_version)'.format(
-                    self._pairwise_table_id, self._pairwise_table_id))
-        query_job = self._client.query(query, job_config=job_config)
+        query = "SELECT * FROM {} WHERE install_name_lower=%s " \
+                "and install_name_higher='%s'".format(
+            _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(query % (
+            packages[0].install_name,
+            packages[1].install_name))
+        results = cursor.fetchall()
+        self.close(conn, cursor)
         return self._filter_older_versions(
             self._row_to_compatibility_status(packages, row)
-            for row in query_job)
+            for row in results)
 
     @retrying.retry(stop_max_attempt_number=7,
                     wait_fixed=2000)
@@ -350,30 +338,18 @@ class CompatibilityStore:
         for p1, p2 in itertools.combinations(packages, r=2):
             packages_to_results[frozenset([p1, p2])] = []
 
-        query_params = [
-            bigquery.ArrayQueryParameter('install_names', 'STRING',
-                                         [p.install_name for p in packages]),
-        ]
-        job_config = bigquery.QueryJobConfig()
-        job_config.query_parameters = query_params
+        query = 'SELECT * FROM {}'.format(
+            _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(query)
+        results = cursor.fetchall()
+        self.close(conn, cursor)
 
-        query = ('SELECT * '
-                 'FROM {} s1 '
-                 'WHERE s1.install_name_lower IN UNNEST(@install_names) '
-                 '  AND s1.install_name_higher IN UNNEST(@install_names) '
-                 '  AND timestamp = ( '
-                 '     SELECT MAX(timestamp) '
-                 '     FROM {} s2 '
-                 '     WHERE s1.install_name_lower = s2.install_name_lower '
-                 '       AND s1.install_name_higher = s2.install_name_higher '
-                 '       AND s1.py_version = s2.py_version)'.format(
-                    self._pairwise_table_id, self._pairwise_table_id))
-
-        query_job = self._client.query(query, job_config=job_config)
-
-        for row in query_job:
-            p_lower = install_name_to_package[row.install_name_lower]
-            p_higher = install_name_to_package[row.install_name_higher]
+        for row in results:
+            install_name_lower, install_name_higher, _, _, _, _ = row
+            p_lower = install_name_to_package[install_name_lower]
+            p_higher = install_name_to_package[install_name_higher]
             packages_to_results[frozenset([p_lower, p_higher])].append(
                 self._row_to_compatibility_status([p_lower, p_higher], row)
             )
@@ -394,16 +370,25 @@ class CompatibilityStore:
         rows = [self._compatibility_status_to_row(s) for s in
                 compatibility_statuses]
 
-        self_rows = [r for r in rows if 'install_name' in r]
-        pair_rows = [r for r in rows if 'install_name' not in r]
+        self_rows = [r for r in rows if len(r) == 5]
+        pair_rows = [r for r in rows if len(r) == 6]
+
+        conn = self.connect()
         if self_rows:
-            self._client.insert_rows(
-                self._self_table,
-                self_rows)
+            self_sql = 'REPLACE INTO self_compatibility_status values ' \
+                       '(%s, %s, %s, %s, %s)'
+            cursor = conn.cursor()
+            cursor.executemany(self_sql, self_rows)
+            conn.commit()
+            cursor.close()
+
         if pair_rows:
-            self._client.insert_rows(
-                self._pairwise_table,
-                pair_rows)
+            pair_sql = 'REPLACE INTO pairwise_compatibility_status values ' \
+                       '(%s, %s, %s, %s, %s, %s)'
+            cursor = conn.cursor()
+            cursor.executemany(pair_sql, pair_rows)
+            conn.commit()
+            cursor.close()
 
         # Dependencies are not stored per Python version. This is not
         # theoretically sound but is probably good enough in practice.
@@ -452,12 +437,15 @@ class CompatibilityStore:
         # convenient.
         dependency_rows = sorted(
             dependency_rows,
-            key=lambda row: (row['install_name'], row['dep_name']))
+            key=lambda row: (row[0], row[1]))  # install_name, dep_name
 
         if dependency_rows:
-            self._client.insert_rows(
-                self._release_time_table,
-                dependency_rows)
+            sql = 'REPLACE INTO release_time_for_dependencies values ' \
+                  '(%s, %s, %s, %s, %s, %s, %s, %s)'
+            cursor = conn.cursor()
+            cursor.executemany(sql, dependency_rows)
+            conn.commit()
+            self.close(conn, cursor)
 
     def _get_package_version(self, result: CompatibilityResult) -> str:
         """Returns the version of the single package in a CompatibilityResult.
@@ -489,8 +477,8 @@ class CompatibilityStore:
         raise ValueError('missing version information for {}'.format(
             install_name_sanitized))
 
-    @retrying.retry(stop_max_attempt_number=7,
-                    wait_fixed=2000)
+    @retrying.retry(stop_max_attempt_number=10,
+                    wait_fixed=1000)
     def get_dependency_info(self, package_name):
         """Returns dependency info for an indicated Google OSS package.
 
@@ -500,32 +488,28 @@ class CompatibilityStore:
         Returns:
             A mapping between the dependency names and the info (dict).
         """
-        job_config = bigquery.QueryJobConfig()
-        job_config.query_parameters = []
+        query = "SELECT * FROM {} WHERE install_name='%s'".format(
+            _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME)
 
-        tableid = self._release_time_table_id
-        query = ('SELECT * '
-                 'FROM {0} s1 '
-                 'WHERE s1.install_name = "{1}" '
-                 'AND timestamp = ( '
-                 'SELECT MAX(timestamp) '
-                 'FROM {0} s2 '
-                 'WHERE s1.install_name = s2.install_name '
-                 'AND s1.dep_name = s2.dep_name) '
-                 'ORDER BY s1.dep_name'.format(tableid, package_name))
-
-        query_job = self._client.query(query, job_config=job_config)
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(query % package_name)
+        results = cursor.fetchall()
+        self.close(conn, cursor)
 
         dependency_info = {}
-        for row in query_job:
-            key = row.get('dep_name')
+        for row in results:
+            install_name, dep_name, installed_version,\
+            installed_version_time, latest_version,\
+            latest_version_time, is_latest, timestamp = row
+            key = dep_name
             value = {
-                'installed_version': row.get('installed_version'),
-                'installed_version_time': row.get('installed_version_time'),
-                'latest_version': row.get('latest_version'),
-                'latest_version_time': row.get('latest_version_time'),
-                'is_latest': row.get('is_latest'),
-                'current_time': row.get('timestamp'),
+                'installed_version': installed_version,
+                'installed_version_time': installed_version_time,
+                'latest_version': latest_version,
+                'latest_version_time': latest_version_time,
+                'is_latest': is_latest,
+                'current_time': timestamp,
             }
             dependency_info[key] = value
 
