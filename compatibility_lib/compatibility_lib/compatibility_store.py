@@ -195,13 +195,13 @@ class CompatibilityStore:
 
         for pkg, version_info in dependency_info.items():
             row = (install_name,
-                         pkg,
-                         version_info['installed_version'],
-                         version_info['installed_version_time'],
-                         version_info['latest_version'],
-                         version_info['latest_version_time'],
-                         version_info['is_latest'],
-                         version_info['current_time'])
+                   pkg,
+                   version_info['installed_version'],
+                   version_info['installed_version_time'],
+                   version_info['latest_version'],
+                   version_info['latest_version_time'],
+                   version_info['is_latest'],
+                   version_info['current_time'])
             rows.append(row)
 
         return rows
@@ -300,7 +300,7 @@ class CompatibilityStore:
 
         query = "SELECT * FROM {} WHERE install_name_lower=%s " \
                 "and install_name_higher='%s'".format(
-            _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
+                    _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
         conn = self.connect()
         cursor = conn.cursor()
         cursor.execute(query % (
@@ -500,8 +500,8 @@ class CompatibilityStore:
         dependency_info = {}
         for row in results:
             install_name, dep_name, installed_version,\
-            installed_version_time, latest_version,\
-            latest_version_time, is_latest, timestamp = row
+                installed_version_time, latest_version,\
+                latest_version_time, is_latest, timestamp = row
             key = dep_name
             value = {
                 'installed_version': installed_version,

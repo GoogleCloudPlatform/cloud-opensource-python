@@ -45,7 +45,7 @@ class TestCompatibilityChecker(unittest.TestCase):
             checker.check(packages, python_version)
 
         mock_requests.get.assert_called_with(
-            compatibility_checker.SERVER_URL, params=data)
+            compatibility_checker.SERVER_URL, params=data, timeout=299)
         self.assertEqual(compatibility_checker.SERVER_URL,
                          expected_server_url)
 

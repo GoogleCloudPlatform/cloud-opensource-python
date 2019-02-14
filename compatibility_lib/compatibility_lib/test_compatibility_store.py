@@ -82,46 +82,20 @@ class TestCompatibilityResult(unittest.TestCase):
 
 class TestCompatibilityStore(unittest.TestCase):
 
-    def test_constructor(self):
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        expected__self_table_id = 'compatibility_checker.self_compatibility_status'
-        expected__pairwise_table_id = 'compatibility_checker.pairwise_compatibility_status'
-        expected__release_time_table_id = 'compatibility_checker.release_time_for_dependencies'
-
-        with patch_client:
-            store = compatibility_store.CompatibilityStore()
-
-        self.assertEqual(store._self_table_id, expected__self_table_id)
-        self.assertEqual(store._pairwise_table_id, expected__pairwise_table_id)
-        self.assertEqual(store._release_time_table_id, expected__release_time_table_id)
-
-        self.assertEqual(
-            store._self_table,
-            compatibility_store._SELF_COMPATIBILITY_STATUS_TABLE_NAME)
-        self.assertEqual(
-            store._pairwise_table,
-            compatibility_store._PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
-        self.assertEqual(
-            store._release_time_table,
-            compatibility_store._RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME)
-
     def test_get_packages(self):
-        mock_client = mock.Mock()
         pkgs = ['google-api-core', 'apache-beam']
-        mock_client.query.return_value = [
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = [
             [pkgs[0], 'SUCCESS'],
-            [pkgs[1], 'CHECK WARNING'],
-        ]
-        def MockClient(project=None):
-            return mock_client
+            [pkgs[1], 'CHECK WARNING']]
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-        with patch_client:
+        with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
             packages = list(store.get_packages())
 
@@ -133,66 +107,47 @@ class TestCompatibilityStore(unittest.TestCase):
             self.assertEqual(pkg.install_name, pkgs[i])
 
     def test_get_self_compatibility(self):
-        mock_client = mock.Mock()
-        def MockClient(project=None):
-            return mock_client
+        row = (PACKAGE_1.install_name, 'SUCCESS', '3',
+               '2018-07-17 01:07:08.936648 UTC', None)
 
-        row = mock.Mock(
-            install_name=PACKAGE_1.install_name,
-            status='SUCCESS',
-            py_version='3',
-            timestamp='2018-07-17 01:07:08.936648 UTC',
-            details=None)
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = [row]
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql',
+            mock_pymysql)
 
-        mock_client.query.return_value = [row]
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
-            store = compatibility_store.CompatibilityStore()
-
-        patch_bigquery = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery', MockBigquery)
-
-        with patch_bigquery:
+        store = compatibility_store.CompatibilityStore()
+        with patch_pymysql:
             res = store.get_self_compatibility(PACKAGE_1)
 
         self.assertEqual(len(res), 1)
         self.assertTrue(
             isinstance(res[0], compatibility_store.CompatibilityResult))
 
-
     def test_get_self_compatibilities(self):
-        mock_client = mock.Mock()
-
-        def MockClient(project=None):
-            return mock_client
-
         packages = [PACKAGE_1, PACKAGE_2, PACKAGE_3, PACKAGE_4]
         rows = []
         for pkg in packages:
-            row = mock.Mock(
-                install_name=pkg.install_name,
-                status='SUCCESS',
-                py_version='3',
-                timestamp='2018-07-17 01:07:08.936648 UTC',
-                details=None)
+            row = (pkg.install_name, 'SUCCESS', '3',
+                   '2018-07-17 01:07:08.936648 UTC', None)
             rows.append(row)
 
-        mock_client.query.return_value = rows
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = rows
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql',
+            mock_pymysql)
+        store = compatibility_store.CompatibilityStore()
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
-            store = compatibility_store.CompatibilityStore()
-
-        patch_bigquery = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery', MockBigquery)
-
-        with patch_bigquery:
+        with patch_pymysql:
             res = store.get_self_compatibilities(packages)
 
         self.assertEqual(len(res), 4)
@@ -201,47 +156,36 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_get_pair_compatibility_value_error(self):
         # get_pair_compatibility needs 2 packages to run the check, or it will
         # raise ValueError.
-        mock_client = mock.Mock()
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        store = compatibility_store.CompatibilityStore()
 
-        def MockClient(project=None):
-            return mock_client
-
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
-            store = compatibility_store.CompatibilityStore()
-
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql',
+            mock_pymysql)
         packages = [PACKAGE_1]
-        with self.assertRaises(ValueError):
+        with patch_pymysql, self.assertRaises(ValueError):
             store.get_pair_compatibility(packages)
 
     def test_get_pair_compatibility(self):
-        mock_client = mock.Mock()
-
-        def MockClient(project=None):
-            return mock_client
-
-        row = mock.Mock(
-            status='SUCCESS',
-            py_version='3',
-            timestamp='2018-07-17 02:14:27.15768 UTC',
-            details=None)
-        mock_client.query.return_value = [row]
-
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
-            store = compatibility_store.CompatibilityStore()
-
-        patch_bigquery = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery', MockBigquery)
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        row = ('pkg1', 'pkg2', 'SUCCESS', '3',
+               '2018-07-17 02:14:27.15768 UTC', None)
+        mock_cursor.fetchall.return_value = [row]
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql',
+            mock_pymysql)
+        store = compatibility_store.CompatibilityStore()
         packages = [PACKAGE_1, PACKAGE_2]
 
-        with patch_bigquery:
+        with patch_pymysql:
             res = store.get_pair_compatibility(packages)
 
         self.assertEqual(len(res), 1)
@@ -250,46 +194,26 @@ class TestCompatibilityStore(unittest.TestCase):
             isinstance(res[0], compatibility_store.CompatibilityResult))
 
     def test_compatibility_combinations(self):
-        mock_client = mock.Mock()
+        row1 = ('package1', 'package2', 'SUCCESS',
+                '3', '2018-07-17 02:14:27.15768 UTC', None)
+        row2 = ('package1', 'package3', 'SUCCESS',
+                '3', '2018-07-17 02:14:27.15768 UTC', None)
+        row3 = ('package2', 'package3', 'SUCCESS',
+                '3', '2018-07-17 02:14:27.15768 UTC', None)
+        store = compatibility_store.CompatibilityStore()
 
-        def MockClient(project=None):
-            return mock_client
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = [row1, row2, row3]
 
-        row1 = mock.Mock(
-            install_name_lower='package1',
-            install_name_higher='package2',
-            status='SUCCESS',
-            py_version='3',
-            timestamp='2018-07-17 02:14:27.15768 UTC',
-            details=None)
-        row2 = mock.Mock(
-            install_name_lower='package1',
-            install_name_higher='package3',
-            status='SUCCESS',
-            py_version='3',
-            timestamp='2018-07-17 02:14:27.15768 UTC',
-            details=None)
-        row3 = mock.Mock(
-            install_name_lower='package2',
-            install_name_higher='package3',
-            status='SUCCESS',
-            py_version='3',
-            timestamp='2018-07-17 02:14:27.15768 UTC',
-            details=None)
-        mock_client.query.return_value = [row1, row2, row3]
-
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
-            store = compatibility_store.CompatibilityStore()
-
-        patch_bigquery = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery', MockBigquery)
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
         packages = [PACKAGE_1, PACKAGE_2, PACKAGE_3]
 
-        with patch_bigquery:
+        with patch_pymysql:
             res = store.get_compatibility_combinations(packages)
 
         expected_pair_1 = frozenset({PACKAGE_1, PACKAGE_2})
@@ -302,9 +226,7 @@ class TestCompatibilityStore(unittest.TestCase):
             frozenset({expected_pair_1, expected_pair_2, expected_pair_3}))
 
     def test_save_compatibility_statuses_pair(self):
-        mock_client = mock.Mock()
         packages = [PACKAGE_1, PACKAGE_2]
-        timestamp = '2018-07-17 03:01:06.11693 UTC'
         status = compatibility_store.Status.SUCCESS
         comp_status = mock.Mock(
             packages=packages,
@@ -312,34 +234,31 @@ class TestCompatibilityStore(unittest.TestCase):
             status=status,
             details=None,
             dependency_info=None,
-            timestamp=timestamp)
-        row_pairwise = {
-            'install_name_lower': 'package1',
-            'install_name_higher': 'package2',
-            'status': 'SUCCESS',
-            'py_version': '3',
-            'timestamp': timestamp,
-            'details': None,
-        }
+            timestamp=None)
+        row_pairwise = ('package1', 'package2', 'SUCCESS',
+                        '3', None, None)
 
-        def MockClient(project=None):
-            return mock_client
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
 
-        with patch_client:
+        pair_sql = 'REPLACE INTO pairwise_compatibility_status values ' \
+                    '(%s, %s, %s, %s, %s, %s)'
+
+        with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
 
-        mock_client.insert_rows.assert_called_with(
-            store._pairwise_table, [row_pairwise])
+        mock_cursor.executemany.assert_called_with(
+            pair_sql, [row_pairwise])
 
     def test_save_compatibility_statuses_self(self):
-        mock_client = mock.Mock()
         packages = [PACKAGE_1]
-        timestamp = '2018-07-17 03:01:06.11693 UTC'
         status = compatibility_store.Status.SUCCESS
         comp_status = mock.Mock(
             packages=packages,
@@ -347,33 +266,29 @@ class TestCompatibilityStore(unittest.TestCase):
             status=status,
             details=None,
             dependency_info=None,
-            timestamp=timestamp)
-        row_self = {
-            'install_name': 'package1',
-            'status': 'SUCCESS',
-            'py_version': '3',
-            'timestamp': timestamp,
-            'details': None,
-        }
+            timestamp=None)
+        row_self = ('package1', 'SUCCESS', '3', None, None)
 
-        def MockClient(project=None):
-            return mock_client
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
+        self_sql = 'REPLACE INTO self_compatibility_status values ' \
+                    '(%s, %s, %s, %s, %s)'
 
-        with patch_client:
+        with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
 
-        mock_client.insert_rows.assert_called_with(
-            store._self_table, [row_self])
+        mock_cursor.executemany.assert_called_with(
+            self_sql, [row_self])
 
     def test_save_compatibility_statuses_release_time(self):
-        mock_client = mock.Mock()
         packages = [PACKAGE_1]
-        timestamp = '2018-07-17 03:01:06.11693 UTC'
         status = compatibility_store.Status.SUCCESS
         comp_status = mock.Mock(
             packages=packages,
@@ -388,34 +303,30 @@ class TestCompatibilityStore(unittest.TestCase):
                 'latest_version_time': '2018-05-12T16:26:31',
                 'is_latest': True,
             }},
-            timestamp=timestamp)
-        row_release_time = {
-            'install_name': 'package1',
-            'dep_name': 'dep1',
-            'installed_version': '2.1.0',
-            'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '2.1.0',
-            'timestamp': '2018-07-13T17:11:29.140608',
-            'latest_version_time': '2018-05-12T16:26:31',
-            'is_latest': True,
-        }
+            timestamp=None)
+        row_release_time = ('package1', 'dep1', '2.1.0', '2018-05-12T16:26:31',
+                            '2.1.0', '2018-05-12T16:26:31', True,
+                            '2018-07-13T17:11:29.140608')
 
-        def MockClient(project=None):
-            return mock_client
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
+        sql = 'REPLACE INTO release_time_for_dependencies values ' \
+              '(%s, %s, %s, %s, %s, %s, %s, %s)'
 
-        with patch_client:
+        with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
 
-        mock_client.insert_rows.assert_called_with(
-            store._release_time_table, [row_release_time])
+        mock_cursor.executemany.assert_called_with(
+            sql, [row_release_time])
 
     def test_save_compatibility_statuses_release_time_for_latest(self):
-        mock_client = mock.Mock()
         packages = [PACKAGE_4]
         timestamp = '2018-07-17 03:01:06.11693 UTC'
         status = compatibility_store.Status.SUCCESS
@@ -447,36 +358,31 @@ class TestCompatibilityStore(unittest.TestCase):
                 'is_latest': False,
             }},
             timestamp=timestamp)
-        row_release_time = {
-            'install_name': 'package4[gcp]',
-            'dep_name': 'package4',
-            'installed_version': '12.7.0',
-            'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '12.7.0',
-            'timestamp': '2018-07-13T17:11:29.140608',
-            'latest_version_time': '2018-05-12T16:26:31',
-            'is_latest': True,
-        }
+        row_release_time = ('package4[gcp]', 'package4', '12.7.0',
+                            '2018-05-12T16:26:31', '12.7.0',
+                            '2018-05-12T16:26:31', True,
+                            '2018-07-13T17:11:29.140608')
 
-        def MockClient(project=None):
-            return mock_client
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
+        sql = 'REPLACE INTO release_time_for_dependencies values ' \
+              '(%s, %s, %s, %s, %s, %s, %s, %s)'
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
+        with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses(
                 [comp_status_py2, comp_status_py3])
 
-        mock_client.insert_rows.assert_called_with(
-            store._release_time_table, [row_release_time])
+        mock_cursor.executemany.assert_called_with(
+            sql, [row_release_time])
 
     def test_save_compatibility_statuses_release_time_for_latest_many_packages(
             self):
-        mock_client = mock.Mock()
-        timestamp = '2018-07-17 03:01:06.11693 UTC'
         status = compatibility_store.Status.SUCCESS
         apache_beam_py2 = mock.Mock(
             packages=[package.Package('apache-beam[gcp]')],
@@ -500,7 +406,7 @@ class TestCompatibilityStore(unittest.TestCase):
                 'latest_version_time': '2018-05-12T16:26:31',
                 'is_latest': True,
             }},
-            timestamp=timestamp)
+            timestamp=None)
         apache_beam_py3 = mock.Mock(
             packages=[package.Package('apache-beam[gcp]')],
             python_major_version='3',
@@ -514,7 +420,7 @@ class TestCompatibilityStore(unittest.TestCase):
                 'latest_version_time': '2018-05-12T16:26:31',
                 'is_latest': False,
             }},
-            timestamp=timestamp)
+            timestamp=None)
         google_api_core_py2 = mock.Mock(
             packages=[package.Package('google-api-core')],
             python_major_version='2',
@@ -529,7 +435,7 @@ class TestCompatibilityStore(unittest.TestCase):
                     'latest_version_time': '2018-05-12T16:26:31',
                     'is_latest': True,
                 }},
-            timestamp=timestamp)
+            timestamp=None)
         google_api_core_py3 = mock.Mock(
             packages=[package.Package('google-api-core')],
             python_major_version='3',
@@ -543,49 +449,33 @@ class TestCompatibilityStore(unittest.TestCase):
                 'latest_version_time': '2018-05-12T16:26:31',
                 'is_latest': False,
             }},
-            timestamp=timestamp)
+            timestamp=None)
 
-        apache_beam_row = {
-            'install_name': 'apache-beam[gcp]',
-            'dep_name': 'apache-beam',
-            'installed_version': '2.7.0',
-            'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '2.7.0',
-            'latest_version_time': '2018-05-12T16:26:31',
-            'is_latest': True,
-            'timestamp': '2018-07-13T17:11:29.140608',
-        }
+        apache_beam_row = ('apache-beam[gcp]', 'apache-beam', '2.7.0',
+                           '2018-05-12T16:26:31', '2.7.0',
+                           '2018-05-12T16:26:31', True,
+                           '2018-07-13T17:11:29.140608')
 
-        six_row = {
-            'install_name': 'apache-beam[gcp]',
-            'dep_name': 'six',
-            'installed_version': '9.9.9',
-            'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '2.7.0',
-            'latest_version_time': '2018-05-12T16:26:31',
-            'is_latest': False,
-            'timestamp': '2018-07-13T17:11:29.140608',
-        }
+        six_row = ('apache-beam[gcp]', 'six', '9.9.9', '2018-05-12T16:26:31',
+                   '2.7.0', '2018-05-12T16:26:31', False,
+                   '2018-07-13T17:11:29.140608')
 
-        google_api_core_row = {
-            'install_name': 'google-api-core',
-            'dep_name': 'google-api-core',
-            'installed_version': '3.7.1',
-            'installed_version_time': '2018-05-12T16:26:31',
-            'latest_version': '2.7.0',
-            'latest_version_time': '2018-05-12T16:26:31',
-            'is_latest': False,
-            'timestamp': '2018-07-13T17:11:29.140608',
-        }
+        google_api_core_row = ('google-api-core', 'google-api-core', '3.7.1',
+                               '2018-05-12T16:26:31', '2.7.0',
+                               '2018-05-12T16:26:31', False,
+                               '2018-07-13T17:11:29.140608')
 
-        def MockClient(project=None):
-            return mock_client
+        mock_pymysql = mock.Mock()
+        mock_conn = mock.Mock()
+        mock_cursor = mock.Mock()
+        mock_pymysql.connect.return_value = mock_conn
+        mock_conn.cursor.return_value = mock_cursor
+        patch_pymysql = mock.patch(
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
+        sql = 'REPLACE INTO release_time_for_dependencies values ' \
+              '(%s, %s, %s, %s, %s, %s, %s, %s)'
 
-        patch_client = mock.patch(
-            'compatibility_lib.compatibility_store.bigquery.Client',
-            MockClient)
-
-        with patch_client:
+        with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses(
                 [apache_beam_py2,
@@ -593,9 +483,8 @@ class TestCompatibilityStore(unittest.TestCase):
                  google_api_core_py2,
                  google_api_core_py3])
 
-        mock_client.insert_rows.assert_called_with(
-            store._release_time_table,
-            [apache_beam_row, six_row, google_api_core_row])
+        mock_cursor.executemany.assert_called_with(
+            sql, [apache_beam_row, six_row, google_api_core_row])
 
 class MockClient(object):
 
@@ -614,17 +503,3 @@ class MockClient(object):
 
     def get_table(self, table_name):
         return table_name
-
-
-class MockBigquery(object):
-    @staticmethod
-    def ArrayQueryParameter(name, array_type, values):
-        return [name, array_type, values]
-
-    @staticmethod
-    def ScalarQueryParameter(name, array_type, values):
-        return [name, array_type, values]
-
-    @staticmethod
-    def QueryJobConfig():
-        return mock.Mock()
