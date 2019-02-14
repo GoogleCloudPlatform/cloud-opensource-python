@@ -34,13 +34,9 @@ import urllib.request
 from typing import Any, List, Mapping, Optional, Tuple
 
 import docker
+import views
 
-from google import auth as google_auth
-from opencensus.stats import aggregation as aggregation_module
-from opencensus.stats import measure as measure_module
 from opencensus.stats import stats as stats_module
-from opencensus.stats import view as view_module
-from opencensus.stats.exporters import stackdriver_exporter
 from opencensus.tags import tag_map as tag_map_module
 
 PYPI_URL = 'https://pypi.org/pypi/'
@@ -59,43 +55,6 @@ PIP_ENVIRONMENT_ERROR_PATTERN = re.compile(
 # Pattern for pip check results of version conflicts
 PIP_CHECK_CONFLICTS_PATTERN = re.compile(
     r'(.*)has requirement(.*)but you have(.*)')
-
-# docker error
-DOCKER_ERROR_MEASURE = measure_module.MeasureInt(
-    'docker_error', 'The number of docker errors.', 'Errors')
-DOCKER_ERROR_VIEW = view_module.View(
-    "docker_error_count",
-    "The number of the docker errors",
-    [],
-    DOCKER_ERROR_MEASURE,
-    aggregation_module.CountAggregation())
-
-
-def _enable_metrics(stats, view, export_to_stackdriver=False):
-    """enables a given 'view' (ie custom metric).
-
-    In order for data to be collected for the given view, the view needs to be
-    registered with a view manager. Once a view is registered, it reports data
-    to any registered exporters.
-
-    For any data to be exported to stackdriver, an exporter needs to be created
-    and registered with the view manager. Collected data will be reported via
-    all the registered exporters. By not creating and registering an exporter,
-    all collected data will stay local and will not appear on stackdriver.
-    """
-    if export_to_stackdriver:
-        # get project id from default setting
-        try:
-            _, project_id = google_auth.default()
-        except google_auth.exceptions.DefaultCredentialsError:
-            raise ValueError("Couldn't find Google Cloud credentials, set the "
-                             "project ID with 'gcloud set project'")
-        # create and register the stackdriver exporter
-        exporter = stackdriver_exporter.new_stats_exporter(
-           stackdriver_exporter.Options(project_id=project_id))
-        stats.view_manager.register_exporter(exporter)
-    # register the 'view' (ie custom metric)
-    stats.view_manager.register_view(view)
 
 
 class PipCheckerError(Exception):
@@ -249,7 +208,7 @@ class _OneshotPipCheck():
     def __init__(self,
                  pip_command: List[str],
                  packages: List[str],
-                 export_metrics=False):
+                 stats: stats_module.Stats):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -261,10 +220,7 @@ class _OneshotPipCheck():
         """
         self._pip_command = pip_command
         self._packages = packages
-
-        self._stats = stats_module.Stats()
-        _enable_metrics(self._stats, DOCKER_ERROR_VIEW, export_metrics)
-        self._export_metrics = export_metrics
+        self._stats = stats
         self._mmap = self._stats.stats_recorder.new_measurement_map()
         self._tmap = tag_map_module.TagMap()
 
@@ -299,7 +255,7 @@ class _OneshotPipCheck():
                 remove=True,  # Remove the container when it finishes.
                 detach=True)
         except docker.errors.APIError as e:
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
@@ -308,7 +264,7 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
@@ -322,7 +278,7 @@ class _OneshotPipCheck():
         try:
             container.stop(timeout=0)
         except (docker.errors.APIError, docker.errors.NotFound):
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
@@ -331,7 +287,7 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while stopping a docker"
@@ -365,7 +321,7 @@ class _OneshotPipCheck():
         except docker.errors.APIError as e:
             # Clean up the container if command fails
             self._cleanup_container(container)
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(error_msg="Error occurs when executing "
                                             "commands in container."
@@ -375,7 +331,7 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while running the command {} in"
@@ -387,7 +343,7 @@ class _OneshotPipCheck():
         # If a docker container exits with a running command then it will be
         # killed with SIGKILL => 128 + 9 = 137
         if returncode > 128 and returncode <= 137:
-            self._mmap.measure_int_put(DOCKER_ERROR_MEASURE, 1)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="The command {} was killed by signal {}. "
@@ -642,7 +598,7 @@ class _OneshotPipCheck():
 
 def check(pip_command: List[str],
           packages: List[str],
-          export_metrics=False) -> PipCheckResult:
+          stats: stats_module.Stats) -> PipCheckResult:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
@@ -657,9 +613,8 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
-        export_metrics: Whether to export custom metrics to stackdriver.
 
     Returns:
         A PipCheckResult representing the result of the compatibility check.
     """
-    return _OneshotPipCheck(pip_command, packages, export_metrics).run()
+    return _OneshotPipCheck(pip_command, packages, stats).run()
