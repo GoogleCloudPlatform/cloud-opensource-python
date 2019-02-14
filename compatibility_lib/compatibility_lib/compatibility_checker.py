@@ -37,7 +37,6 @@ class CompatibilityChecker(object):
 
     def check(self, packages, python_version):
         """Call the checker server to get back status results."""
-        print(packages)
         if not utils._is_package_in_whitelist(packages):
 
             UNKNOWN_STATUS_RESULT['packages'] = packages
