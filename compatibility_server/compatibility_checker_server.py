@@ -86,6 +86,7 @@ import views
 
 from google import auth as google_auth
 from opencensus.stats import stats as stats_module
+from opencensus.stats.exporters import stackdriver_exporter
 
 PYTHON_VERSION_TO_COMMAND = {
     '2': ['python2', '-m', 'pip'],
