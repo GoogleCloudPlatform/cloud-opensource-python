@@ -355,19 +355,22 @@ class _OneshotPipCheck():
         """Build pip commands."""
         return self._pip_command + subcommands
 
-    def _clone_repo(self, container: docker.models.containers.Container):
+    def _clone_repo(
+            self,
+            container: docker.models.containers.Container,
+            github_url: str):
         """Shallow clone the google-cloud-python repository."""
         # Create a temp directory
         _, directory = self._run_command(
             container,
-            ['mktemp', '-d'],
+            ['echo', '$mktemp -d'],
             stderr = True,
             stdout = True,
             raise_on_failure = True)
 
         directory = directory.strip('\n')
         shallow_clone_command = ['git', 'clone', '--depth', '1',
-                                 CLIENTLIBS_GITHUB_URL, directory]
+                                 github_url, directory]
 
         self._run_command(
             container,
@@ -385,18 +388,19 @@ class _OneshotPipCheck():
             # is large, has a large amount of history and contains many
             # independent packages. Installing packages from that repository is
             # quite slow e.g.
-            # $ time pip install git+git://...
+            # $ time pip install git+git://github.com/googleapis/google-cloud-python.git#subdirectory=monitoring
             # real	0m57.845s
             # user	2m15.394s
             # sys	0m7.130s
             # As an optimization, if any provided package is installed from
             # this repository, it is first cloned (using --depth=1 to avoid
             # unnecessary history) and then installed from local disk e.g.
-            # $ time git clone --depth 1 ... && pip install ...
+            # $ time git clone --depth 1 https://github.com/googleapis/google-cloud-python.git && pip install /tmp/tmp.HQgXAhWl0L/monitoring
             # real	0m2.242s
             # user	0m0.472s
             # sys	0m0.357s
-            client_repo_directory = self._clone_repo(container)
+            client_repo_directory = self._clone_repo(
+                container, CLIENTLIBS_GITHUB_URL)
 
         install_names = []
         for pkg in self._packages:
