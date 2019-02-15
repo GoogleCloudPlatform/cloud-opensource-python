@@ -26,12 +26,14 @@ import os.path
 import subprocess
 import unittest
 
+from opencensus.stats import stats as stats_module
+
 import pip_checker
+import views
 
 
 def timestamp_to_seconds(timestamp: str) -> int:
     """Convert a timestamp string into a seconds value
-    
     Args:
         timestamp: An ISO 8601 format string returned by calling isoformat()
             on a `datetime.datetime` type timestamp.
@@ -105,10 +107,13 @@ class TestPipChecker(unittest.TestCase):
     def setUp(self):
         self._fake_pip_path = os.path.join(os.path.dirname(__file__),
                                            'fake_pip.py')
+        self._stats = stats_module.Stats()
+        for view in views.ALL_VIEWS:
+            self._stats.view_manager.register_view(view)
 
     def test__run_command_success(self):
         checker = pip_checker._OneshotPipCheck(
-            ['python3', '-m', 'pip'], packages=['six'])
+            ['python3', '-m', 'pip'], packages=['six'], stats=self._stats)
         container = checker._run_container(MockDockerClient())
 
         returncode, output = checker._run_command(
@@ -120,9 +125,14 @@ class TestPipChecker(unittest.TestCase):
 
         self.assertEqual(output, 'testing\n')
 
+        docker_view_name = views.DOCKER_ERROR_VIEW.name
+        docker_view_data = self._stats.view_manager.get_view(
+            docker_view_name)
+        self.assertEqual(docker_view_data._tag_value_aggregation_data_map, {})
+
     def test__run_command_timeout(self):
         checker = pip_checker._OneshotPipCheck(
-            ['python3', '-m', 'pip'], packages=['six'])
+            ['python3', '-m', 'pip'], packages=['six'], stats=self._stats)
 
         TIME_OUT = 0.1
         patch_timeout = mock.patch('pip_checker.TIME_OUT', TIME_OUT)
@@ -136,6 +146,12 @@ class TestPipChecker(unittest.TestCase):
                 stdout=True,
                 stderr=True,
                 raise_on_failure=False)
+
+        docker_view_name = views.DOCKER_ERROR_VIEW.name
+        docker_view_data = self._stats.view_manager.get_view(
+            docker_view_name)
+        docker_data_map = docker_view_data._tag_value_aggregation_data_map
+        self.assertEqual(len(docker_data_map), 1)
 
     @mock.patch.object(pip_checker._OneshotPipCheck, '_call_pypi_json_api')
     @mock.patch('pip_checker.docker.from_env')
@@ -193,7 +209,8 @@ class TestPipChecker(unittest.TestCase):
                     '--list-output={}'.format(
                         json.dumps(expected_list_output))
                 ],
-                packages=['six'])
+                packages=['six'],
+                stats=self._stats)
         self.assertEqual(
             check_result,
             expected_check_result)
@@ -206,7 +223,8 @@ class TestPipChecker(unittest.TestCase):
                 self._fake_pip_path, '--expected-install-args=-U,six',
                 '--install-returncode=1', '--install-output=bad-install'
             ],
-            packages=['six'])
+            packages=['six'],
+            stats=self._stats)
         self.assertEqual(
             check_result,
             pip_checker.PipCheckResult(
@@ -267,7 +285,8 @@ class TestPipChecker(unittest.TestCase):
                     '--list-output={}'.format(
                         json.dumps(expected_list_output))
                 ],
-                packages=['six'])
+                packages=['six'],
+                stats=self._stats)
         expected_check_result = pip_checker.PipCheckResult(
                 packages=['six'],
                 result_type=pip_checker.PipCheckResultType.CHECK_WARNING,
