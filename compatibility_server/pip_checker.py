@@ -411,8 +411,8 @@ class _OneshotPipCheck():
                 environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
                     output)
                 if environment_error:
-                    MMAP.measure_int_put(DOCKER_ERROR_MEASURE, 1)
-                    MMAP.record(TMAP)
+                    self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+                    self._mmap.record(self._tmap)
                     raise PipError(error_msg=environment_error.group('error'),
                                    command=command,
                                    returncode=returncode)
