@@ -27,6 +27,7 @@ import datetime
 import enum
 import json
 import logging
+import os
 import re
 import shlex
 import urllib.request
@@ -354,46 +355,79 @@ class _OneshotPipCheck():
         """Build pip commands."""
         return self._pip_command + subcommands
 
+    def _clone_repo(self, container: docker.models.containers.Container):
+        """Shallow clone the google-cloud-python repository."""
+        # Create a temp directory
+        _, directory = self._run_command(
+            container,
+            ['mktemp', '-d'],
+            stderr = True,
+            stdout = True,
+            raise_on_failure = True)
+
+        directory = directory.strip('\n')
+        shallow_clone_command = ['git', 'clone', '--depth', '1',
+                                 CLIENTLIBS_GITHUB_URL, directory]
+
+        self._run_command(
+            container,
+            shallow_clone_command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=True)
+        return directory
+
     def _install(self, container: docker.models.containers.Container):
         """Run pip install in the container."""
-        # If there is cloud client libraries, install it from source.
-        # Else install it from PyPI.
+        client_repo_directory = ''
+        if any(GITHUB_CLIENTLIBS_PREFIX in pkg for pkg in self._packages):
+            # The https://github.com/googleapis/google-cloud-python repository
+            # is large, has a large amount of history and contains many
+            # independent packages. Installing packages from that repository is
+            # quite slow e.g.
+            # $ time pip install git+git://...
+            # real	0m57.845s
+            # user	2m15.394s
+            # sys	0m7.130s
+            # As an optimization, if any provided package is installed from
+            # this repository, it is first cloned (using --depth=1 to avoid
+            # unnecessary history) and then installed from local disk e.g.
+            # $ time git clone --depth 1 ... && pip install ...
+            # real	0m2.242s
+            # user	0m0.472s
+            # sys	0m0.357s
+            client_repo_directory = self._clone_repo(container)
+
+        install_names = []
         for pkg in self._packages:
             if GITHUB_CLIENTLIBS_PREFIX in pkg:
-                # Shallow clone the repository
-                shallow_clone_command = ['git', 'clone', '--depth', '1',
-                                         CLIENTLIBS_GITHUB_URL]
-                self._run_command(
-                    container,
-                    shallow_clone_command,
-                    stdout=False,
-                    stderr=True,
-                    raise_on_failure=False)
-                gh_clientlib = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
-                command = self._build_command(
-                    ['install', '-e',
-                     'google-cloud-python/{}'.format(gh_clientlib)])
+                install_subdirectory = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
+                install_names.append(
+                    os.path.join(client_repo_directory, install_subdirectory))
             else:
-                command = self._build_command(['install', '-U'] + [pkg])
+                install_names.append(pkg)
 
-            returncode, output = self._run_command(
-                container,
-                command,
-                stdout=False,
-                stderr=True,
-                raise_on_failure=False)
+        command = self._build_command(['install', '-U'] + install_names)
 
-            if returncode:
-                # Checking for environment error
-                environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
-                    output)
-                if environment_error:
-                    raise PipError(error_msg=environment_error.group('error'),
-                                   command=command,
-                                   returncode=returncode)
-                return PipCheckResult(self._packages,
-                                      PipCheckResultType.INSTALL_ERROR,
-                                      output)
+        returncode, output = self._run_command(
+            container,
+            command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=False)
+
+        if returncode:
+            # Checking for environment error
+            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
+                output)
+            if environment_error:
+                raise PipError(error_msg=environment_error.group('error'),
+                               command=command,
+                               returncode=returncode)
+            return PipCheckResult(self._packages,
+                                  PipCheckResultType.INSTALL_ERROR,
+                                  output)
+
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _check(self, container: docker.models.containers.Container):
