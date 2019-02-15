@@ -613,6 +613,7 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
+        stats: The stats object containing support for stats recording.
 
     Returns:
         A PipCheckResult representing the result of the compatibility check.
