@@ -38,6 +38,9 @@ import docker
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
 TIME_OUT = 300  # seconds
+GITHUB_CLIENTLIBS_PREFIX = 'git+git://github.com/googleapis/' \
+                           'google-cloud-python.git#subdirectory='
+CLIENTLIBS_GITHUB_URL = 'https://github.com/googleapis/google-cloud-python.git'
 
 # Pattern for pip installation errors not related to the package being
 # installed. See:
@@ -353,24 +356,44 @@ class _OneshotPipCheck():
 
     def _install(self, container: docker.models.containers.Container):
         """Run pip install in the container."""
-        command = self._build_command(['install', '-U'] + self._packages)
-        returncode, output = self._run_command(
-            container,
-            command,
-            stdout=False,
-            stderr=True,
-            raise_on_failure=False)
-        if returncode:
-            # Checking for environment error
-            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(output)
-            if environment_error:
-                raise PipError(error_msg=environment_error.group('error'),
-                               command=command,
-                               returncode=returncode)
+        # If there is cloud client libraries, install it from source.
+        # Else install it from PyPI.
+        for pkg in self._packages:
+            if GITHUB_CLIENTLIBS_PREFIX in pkg:
+                # Shallow clone the repository
+                shallow_clone_command = ['git', 'clone', '--depth', '1',
+                                         CLIENTLIBS_GITHUB_URL]
+                self._run_command(
+                    container,
+                    shallow_clone_command,
+                    stdout=False,
+                    stderr=True,
+                    raise_on_failure=False)
+                gh_clientlib = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
+                command = self._build_command(
+                    ['install', '-e',
+                     'google-cloud-python/{}'.format(gh_clientlib)])
+            else:
+                command = self._build_command(['install', '-U'] + [pkg])
 
-            return PipCheckResult(self._packages,
-                                  PipCheckResultType.INSTALL_ERROR,
-                                  output)
+            returncode, output = self._run_command(
+                container,
+                command,
+                stdout=False,
+                stderr=True,
+                raise_on_failure=False)
+
+            if returncode:
+                # Checking for environment error
+                environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
+                    output)
+                if environment_error:
+                    raise PipError(error_msg=environment_error.group('error'),
+                                   command=command,
+                                   returncode=returncode)
+                return PipCheckResult(self._packages,
+                                      PipCheckResultType.INSTALL_ERROR,
+                                      output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _check(self, container: docker.models.containers.Container):
