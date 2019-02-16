@@ -387,11 +387,11 @@ class _OneshotPipCheck():
         _, directory = self._run_command(
             container,
             ['echo', '$mktemp -d'],
-            stderr=True,
+            stderr=False,
             stdout=True,
             raise_on_failure=True)
 
-        directory = directory.strip('\n')
+        directory = directory.strip()
         shallow_clone_command = ['git', 'clone', '--depth', '1',
                                  github_url, directory]
 
