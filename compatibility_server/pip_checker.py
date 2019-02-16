@@ -387,9 +387,9 @@ class _OneshotPipCheck():
         _, directory = self._run_command(
             container,
             ['echo', '$mktemp -d'],
-            stderr = True,
-            stdout = True,
-            raise_on_failure = True)
+            stderr=True,
+            stdout=True,
+            raise_on_failure=True)
 
         directory = directory.strip('\n')
         shallow_clone_command = ['git', 'clone', '--depth', '1',
@@ -411,14 +411,16 @@ class _OneshotPipCheck():
             # is large, has a large amount of history and contains many
             # independent packages. Installing packages from that repository is
             # quite slow e.g.
-            # $ time pip install git+git://github.com/googleapis/google-cloud-python.git#subdirectory=monitoring
+            # $ time pip install git+git://github.com/googleapis/
+            #   google-cloud-python.git#subdirectory=monitoring
             # real	0m57.845s
             # user	2m15.394s
             # sys	0m7.130s
             # As an optimization, if any provided package is installed from
             # this repository, it is first cloned (using --depth=1 to avoid
             # unnecessary history) and then installed from local disk e.g.
-            # $ time git clone --depth 1 https://github.com/googleapis/google-cloud-python.git && pip install /tmp/tmp.HQgXAhWl0L/monitoring
+            # $ time git clone --depth 1 https://github.com/googleapis/
+            #   google-cloud-python.git && pip install /tmp_dir/monitoring
             # real	0m2.242s
             # user	0m0.472s
             # sys	0m0.357s
