@@ -3,3 +3,5 @@ docker
 flask
 requests
 opencensus==0.2.0
+grpcio==1.18.0
+google-cloud-monitoring==0.31.1
