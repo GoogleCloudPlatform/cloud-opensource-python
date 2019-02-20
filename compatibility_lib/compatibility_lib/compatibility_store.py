@@ -138,7 +138,7 @@ class CompatibilityStore:
 
     def connect(self):
         conn = pymysql.connect(
-            host='35.192.132.21',
+            host='127.0.0.1',
             user=self.mysql_user,
             password=self.mysql_password,
             db=_DATABASE_NAME,
