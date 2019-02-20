@@ -48,7 +48,7 @@ class CompatibilityChecker(object):
             'python-version': python_version,
             'package': packages
         }
-        result = requests.get(SERVER_URL, params=data, timeout=299)
+        result = requests.get(SERVER_URL, params=data)
         content = result.content.decode('utf-8')
 
         return json.loads(content), python_version

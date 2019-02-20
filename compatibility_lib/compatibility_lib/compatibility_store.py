@@ -14,6 +14,7 @@
 
 """Storage for package compatibility information."""
 
+from contextlib import closing
 import datetime
 from distutils import version
 import enum
@@ -137,16 +138,12 @@ class CompatibilityStore:
 
     def connect(self):
         conn = pymysql.connect(
-            host='127.0.0.1',
+            host='35.192.132.21',
             user=self.mysql_user,
             password=self.mysql_password,
             db=_DATABASE_NAME,
             charset='utf8mb4')
         return conn
-
-    def close(self, conn, cursor):
-        cursor.close()
-        conn.close()
 
     @staticmethod
     def _row_to_compatibility_status(packages: Iterable[package.Package],
@@ -222,13 +219,13 @@ class CompatibilityStore:
 
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
-        query = 'SELECT DISTINCT install_name FROM {}'.format(
-            _SELF_COMPATIBILITY_STATUS_TABLE_NAME)
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        results = cursor.fetchall()
-        self.close(conn=conn, cursor=cursor)
+        query = 'SELECT DISTINCT install_name FROM self_compatibility_status'
+
+        with closing(self.connect()) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(query)
+                results = cursor.fetchall()
+
         for row in results:
             yield package.Package(install_name=row[0])
 
@@ -262,15 +259,15 @@ class CompatibilityStore:
 
         install_name_to_package = {p.install_name: p for p in packages}
         package_to_result = {p: [] for p in packages}
+        packages_list = [p.install_name for p in packages]
 
-        query = 'SELECT * FROM {}'.format(
-            _SELF_COMPATIBILITY_STATUS_TABLE_NAME)
+        query = ('SELECT * FROM self_compatibility_status WHERE install_name '
+                 'IN %s')
 
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        results = cursor.fetchall()
-        self.close(conn, cursor)
+        with closing(self.connect()) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(query, [packages_list])
+                results = cursor.fetchall()
 
         for row in results:
             install_name = row[0]
@@ -298,16 +295,17 @@ class CompatibilityStore:
                 'expected 2 packages, got {}'.format(len(packages)))
         packages = sorted(packages, key=lambda p: p.install_name)
 
-        query = "SELECT * FROM {} WHERE install_name_lower=%s " \
-                "and install_name_higher='%s'".format(
-                    _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute(query % (
-            packages[0].install_name,
-            packages[1].install_name))
-        results = cursor.fetchall()
-        self.close(conn, cursor)
+        query = ("SELECT * FROM pairwise_compatibility_status "
+                 "WHERE install_name_lower=%s "
+                 "AND install_name_higher='%s'")
+
+        with closing(self.connect()) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(
+                    query,
+                    (packages[0].install_name, packages[1].install_name))
+                results = cursor.fetchall()
+
         return self._filter_older_versions(
             self._row_to_compatibility_status(packages, row)
             for row in results)
@@ -338,13 +336,15 @@ class CompatibilityStore:
         for p1, p2 in itertools.combinations(packages, r=2):
             packages_to_results[frozenset([p1, p2])] = []
 
-        query = 'SELECT * FROM {}'.format(
-            _PAIRWISE_COMPATIBILITY_STATUS_TABLE_NAME)
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute(query)
-        results = cursor.fetchall()
-        self.close(conn, cursor)
+        install_names = [p.install_name for p in packages]
+
+        query = ('SELECT * FROM pairwise_compatibility_status WHERE '
+                 'install_name_lower IN %s AND install_name_higher IN %s')
+
+        with closing(self.connect()) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(query, (install_names, install_names))
+                results = cursor.fetchall()
 
         for row in results:
             install_name_lower, install_name_higher, _, _, _, _ = row
@@ -373,22 +373,21 @@ class CompatibilityStore:
         self_rows = [r for r in rows if len(r) == 5]
         pair_rows = [r for r in rows if len(r) == 6]
 
-        conn = self.connect()
-        if self_rows:
-            self_sql = 'REPLACE INTO self_compatibility_status values ' \
-                       '(%s, %s, %s, %s, %s)'
-            cursor = conn.cursor()
-            cursor.executemany(self_sql, self_rows)
-            conn.commit()
-            cursor.close()
+        with closing(self.connect()) as conn:
+            with closing(conn.cursor()) as cursor:
+                if self_rows:
+                    self_sql = ('REPLACE INTO self_compatibility_status '
+                                'values (%s, %s, %s, %s, %s)')
+                    cursor = conn.cursor()
+                    cursor.executemany(self_sql, self_rows)
+                    conn.commit()
 
-        if pair_rows:
-            pair_sql = 'REPLACE INTO pairwise_compatibility_status values ' \
-                       '(%s, %s, %s, %s, %s, %s)'
-            cursor = conn.cursor()
-            cursor.executemany(pair_sql, pair_rows)
-            conn.commit()
-            cursor.close()
+                if pair_rows:
+                    pair_sql = ('REPLACE INTO pairwise_compatibility_status '
+                                'values (%s, %s, %s, %s, %s, %s)')
+                    cursor = conn.cursor()
+                    cursor.executemany(pair_sql, pair_rows)
+                    conn.commit()
 
         # Dependencies are not stored per Python version. This is not
         # theoretically sound but is probably good enough in practice.
@@ -440,12 +439,13 @@ class CompatibilityStore:
             key=lambda row: (row[0], row[1]))  # install_name, dep_name
 
         if dependency_rows:
-            sql = 'REPLACE INTO release_time_for_dependencies values ' \
-                  '(%s, %s, %s, %s, %s, %s, %s, %s)'
-            cursor = conn.cursor()
-            cursor.executemany(sql, dependency_rows)
-            conn.commit()
-            self.close(conn, cursor)
+            sql = ('REPLACE INTO release_time_for_dependencies values '
+                   '(%s, %s, %s, %s, %s, %s, %s, %s)')
+
+            with closing(self.connect()) as conn:
+                with closing(conn.cursor()) as cursor:
+                    cursor.executemany(sql, dependency_rows)
+                    conn.commit()
 
     def _get_package_version(self, result: CompatibilityResult) -> str:
         """Returns the version of the single package in a CompatibilityResult.
@@ -477,8 +477,6 @@ class CompatibilityStore:
         raise ValueError('missing version information for {}'.format(
             install_name_sanitized))
 
-    @retrying.retry(stop_max_attempt_number=10,
-                    wait_fixed=1000)
     def get_dependency_info(self, package_name):
         """Returns dependency info for an indicated Google OSS package.
 
@@ -488,14 +486,13 @@ class CompatibilityStore:
         Returns:
             A mapping between the dependency names and the info (dict).
         """
-        query = "SELECT * FROM {} WHERE install_name='%s'".format(
-            _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME)
+        query = ("SELECT * FROM release_time_for_dependencies "
+                 "WHERE install_name='%s'")
 
-        conn = self.connect()
-        cursor = conn.cursor()
-        cursor.execute(query % package_name)
-        results = cursor.fetchall()
-        self.close(conn, cursor)
+        with closing(self.connect()) as conn:
+            with closing(conn.cursor()) as cursor:
+                cursor.execute(query % package_name)
+                results = cursor.fetchall()
 
         dependency_info = {}
         for row in results:
