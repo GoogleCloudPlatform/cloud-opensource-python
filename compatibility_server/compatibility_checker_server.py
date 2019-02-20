@@ -197,7 +197,8 @@ def main():
         help='port to which the server should bind')
     export_metrics = os.environ.get('EXPORT_METRICS') is not None
 
-    argsdict = vars(parser.parse_args())
+    args = parser.parse_args()
+    argsdict = vars(args)
     argsdict['export_metrics'] = export_metrics
     logging.info('Running server with:\n%s', pprint.pformat(argsdict))
 
