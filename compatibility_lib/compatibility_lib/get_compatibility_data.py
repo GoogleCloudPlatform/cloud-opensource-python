@@ -118,7 +118,8 @@ def get_package_pairs(check_pypi=False, check_github=False):
     return self_packages, pair_packages
 
 
-def write_to_status_table(check_pypi=False, check_github=False):
+def write_to_status_table(
+        check_pypi=False, check_github=False, cloud_sql_proxy_path=None):
     """Get the compatibility status for PyPI versions."""
     # Write self compatibility status to BigQuery
     self_packages, pair_packages = get_package_pairs(check_pypi, check_github)
@@ -126,7 +127,7 @@ def write_to_status_table(check_pypi=False, check_github=False):
         packages=self_packages, pkg_sets=pair_packages)
     res_list = _result_dict_to_compatibility_result(results)
 
-    with connect_cloud_sql_proxy('/usr/local/google/home/yanhuil/fork/cloud_sql_proxy'):
+    with connect_cloud_sql_proxy(cloud_sql_proxy_path):
         store.save_compatibility_statuses(res_list)
 
 
@@ -142,8 +143,14 @@ if __name__ == '__main__':
         type=bool,
         default=False,
         help='Check GitHub head packages or not.')
+    parser.add_argument(
+        '--cloud_sql_proxy_path',
+        type=str,
+        default='cloud_sql_proxy',
+        help='Path to cloud_sql_proxy.')
     args = parser.parse_args()
 
     check_pypi = args.pypi
     check_github = args.github
-    write_to_status_table(check_pypi, check_github)
+    cloud_sql_proxy_path = args.cloud_sql_proxy_path
+    write_to_status_table(check_pypi, check_github, cloud_sql_proxy_path)
