@@ -27,6 +27,7 @@ import datetime
 import enum
 import json
 import logging
+import os
 import re
 import shlex
 import urllib.request
@@ -34,6 +35,10 @@ import urllib.request
 from typing import Any, List, Mapping, Optional, Tuple
 
 import docker
+import views
+
+from opencensus.stats import stats as stats_module
+from opencensus.tags import tag_map as tag_map_module
 
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
@@ -203,7 +208,8 @@ class _OneshotPipCheck():
 
     def __init__(self,
                  pip_command: List[str],
-                 packages: List[str]):
+                 packages: List[str],
+                 stats: stats_module.Stats):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
         Args:
@@ -211,9 +217,13 @@ class _OneshotPipCheck():
                 ['python3', '-m', 'pip'].
             packages: The packages to check for compatibility e.g.
                 ['numpy', 'tensorflow'].
+            export_metrics: Whether to export custom metrics to stackdriver.
         """
         self._pip_command = pip_command
         self._packages = packages
+        self._stats = stats
+        self._mmap = self._stats.stats_recorder.new_measurement_map()
+        self._tmap = tag_map_module.TagMap()
 
     def _get_base_image(self):
         """Get the base image name based on Python version."""
@@ -246,6 +256,8 @@ class _OneshotPipCheck():
                 remove=True,  # Remove the container when it finishes.
                 detach=True)
         except docker.errors.APIError as e:
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e.explanation))
@@ -253,6 +265,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
                           "container. Error message: {}".format(e))
@@ -265,6 +279,8 @@ class _OneshotPipCheck():
         try:
             container.stop(timeout=0)
         except (docker.errors.APIError, docker.errors.NotFound):
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
                           "Container does not exist.")
@@ -272,6 +288,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while stopping a docker"
                           "container. Error message: {}".format(e))
@@ -304,6 +322,8 @@ class _OneshotPipCheck():
         except docker.errors.APIError as e:
             # Clean up the container if command fails
             self._cleanup_container(container)
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(error_msg="Error occurs when executing "
                                             "commands in container."
                                             "Error message: "
@@ -312,6 +332,8 @@ class _OneshotPipCheck():
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
             # http://docs.python-requests.org/en/master/_modules/requests/exceptions/
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while running the command {} in"
                           "container. Error message: {}".format(command, e))
@@ -322,6 +344,8 @@ class _OneshotPipCheck():
         # If a docker container exits with a running command then it will be
         # killed with SIGKILL => 128 + 9 = 137
         if returncode > 128 and returncode <= 137:
+            self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
+            self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="The command {} was killed by signal {}. "
                           "This likely means that the Docker container timed "
@@ -354,46 +378,85 @@ class _OneshotPipCheck():
         """Build pip commands."""
         return self._pip_command + subcommands
 
+    def _clone_repo(
+            self,
+            container: docker.models.containers.Container,
+            github_url: str):
+        """Shallow clone the google-cloud-python repository."""
+        # Create a temp directory
+        _, directory = self._run_command(
+            container,
+            ['echo', '$mktemp -d'],
+            stderr=False,
+            stdout=True,
+            raise_on_failure=True)
+
+        directory = directory.strip()
+        shallow_clone_command = ['git', 'clone', '--depth', '1',
+                                 github_url, directory]
+
+        self._run_command(
+            container,
+            shallow_clone_command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=True)
+        return directory
+
     def _install(self, container: docker.models.containers.Container):
         """Run pip install in the container."""
-        # If there is cloud client libraries, install it from source.
-        # Else install it from PyPI.
+        client_repo_directory = ''
+        if any(GITHUB_CLIENTLIBS_PREFIX in pkg for pkg in self._packages):
+            # The https://github.com/googleapis/google-cloud-python repository
+            # is large, has a large amount of history and contains many
+            # independent packages. Installing packages from that repository is
+            # quite slow e.g.
+            # $ time pip install git+git://github.com/googleapis/
+            #   google-cloud-python.git#subdirectory=monitoring
+            # real	0m57.845s
+            # user	2m15.394s
+            # sys	0m7.130s
+            # As an optimization, if any provided package is installed from
+            # this repository, it is first cloned (using --depth=1 to avoid
+            # unnecessary history) and then installed from local disk e.g.
+            # $ time git clone --depth 1 https://github.com/googleapis/
+            #   google-cloud-python.git && pip install /tmp_dir/monitoring
+            # real	0m2.242s
+            # user	0m0.472s
+            # sys	0m0.357s
+            client_repo_directory = self._clone_repo(
+                container, CLIENTLIBS_GITHUB_URL)
+
+        install_names = []
         for pkg in self._packages:
             if GITHUB_CLIENTLIBS_PREFIX in pkg:
-                # Shallow clone the repository
-                shallow_clone_command = ['git', 'clone', '--depth', '1',
-                                         CLIENTLIBS_GITHUB_URL]
-                self._run_command(
-                    container,
-                    shallow_clone_command,
-                    stdout=False,
-                    stderr=True,
-                    raise_on_failure=False)
-                gh_clientlib = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
-                command = self._build_command(
-                    ['install', '-e',
-                     'google-cloud-python/{}'.format(gh_clientlib)])
+                install_subdirectory = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
+                install_names.append(
+                    os.path.join(client_repo_directory, install_subdirectory))
             else:
-                command = self._build_command(['install', '-U'] + [pkg])
+                install_names.append(pkg)
 
-            returncode, output = self._run_command(
-                container,
-                command,
-                stdout=False,
-                stderr=True,
-                raise_on_failure=False)
+        command = self._build_command(['install', '-U'] + install_names)
 
-            if returncode:
-                # Checking for environment error
-                environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
-                    output)
-                if environment_error:
-                    raise PipError(error_msg=environment_error.group('error'),
-                                   command=command,
-                                   returncode=returncode)
-                return PipCheckResult(self._packages,
-                                      PipCheckResultType.INSTALL_ERROR,
-                                      output)
+        returncode, output = self._run_command(
+            container,
+            command,
+            stdout=False,
+            stderr=True,
+            raise_on_failure=False)
+
+        if returncode:
+            # Checking for environment error
+            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
+                output)
+            if environment_error:
+                raise PipError(error_msg=environment_error.group('error'),
+                               command=command,
+                               returncode=returncode)
+            return PipCheckResult(self._packages,
+                                  PipCheckResultType.INSTALL_ERROR,
+                                  output)
+
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _check(self, container: docker.models.containers.Container):
@@ -572,7 +635,8 @@ class _OneshotPipCheck():
 
 
 def check(pip_command: List[str],
-          packages: List[str]) -> PipCheckResult:
+          packages: List[str],
+          stats: stats_module.Stats) -> PipCheckResult:
     """Runs a version compatibility check using the given packages.
 
     Conceptually, it runs:
@@ -587,8 +651,9 @@ def check(pip_command: List[str],
             ['python3', '-m', 'pip'].
         packages: The packages to check for compatibility e.g.
             ['numpy', 'tensorflow'].
+        stats: The stats object containing support for stats recording.
 
     Returns:
         A PipCheckResult representing the result of the compatibility check.
     """
-    return _OneshotPipCheck(pip_command, packages).run()
+    return _OneshotPipCheck(pip_command, packages, stats).run()

@@ -77,19 +77,49 @@ import argparse
 import configs
 import flask
 import logging
+import os
 import pprint
 import sys
 import wsgiref.simple_server
 
 import pip_checker
+import views
+
+from google import auth as google_auth
+from opencensus.stats import stats as stats_module
+from opencensus.stats.exporters import stackdriver_exporter
 
 PYTHON_VERSION_TO_COMMAND = {
     '2': ['python2', '-m', 'pip'],
     '3': ['python3', '-m', 'pip'],
 }
 
-
+STATS = stats_module.Stats()
 app = flask.Flask(__name__)
+
+
+def _get_project_id():
+    # get project id from default setting
+    try:
+        _, project_id = google_auth.default()
+    except google_auth.exceptions.DefaultCredentialsError:
+        raise ValueError("Couldn't find Google Cloud credentials, set the "
+                         "project ID with 'gcloud set project'")
+    return project_id
+
+
+def _enable_exporter():
+    """Create and register the stackdriver exporter.
+
+    For any data to be exported to stackdriver, an exporter needs to be created
+    and registered with the view manager. Collected data will be reported via
+    all the registered exporters. By not creating and registering an exporter,
+    all collected data will stay local and will not appear on stackdriver.
+    """
+    project_id = _get_project_id()
+    exporter = stackdriver_exporter.new_stats_exporter(
+       stackdriver_exporter.Options(project_id=project_id))
+    STATS.view_manager.register_exporter(exporter)
 
 
 def _sanitize_packages(packages):
@@ -135,7 +165,7 @@ def check():
 
     try:
         pip_result = pip_checker.check(
-            python_command, packages)
+            python_command, packages, STATS)
     except pip_checker.PipCheckerError as pip_error:
         return flask.make_response(pip_error.error_msg, 500)
 
@@ -165,8 +195,21 @@ def main():
         type=int,
         default=8888,
         help='port to which the server should bind')
+    export_metrics = os.environ.get('EXPORT_METRICS') is not None
+
     args = parser.parse_args()
-    logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
+    argsdict = vars(args)
+    argsdict['export_metrics'] = export_metrics
+    logging.info('Running server with:\n%s', pprint.pformat(argsdict))
+
+    if export_metrics:
+        _enable_exporter()
+
+    # The views need to be registered with the view manager for data to be
+    # collected. Once a view is registered, it reports data to any registered
+    # exporters.
+    for view in views.ALL_VIEWS:
+        STATS.view_manager.register_view(view)
 
     logging.basicConfig(
         level=logging.INFO,

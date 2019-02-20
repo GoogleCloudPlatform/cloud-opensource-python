@@ -1,4 +1,7 @@
 certifi
 docker
 flask
+google-cloud-monitoring==0.31.1
+grpcio==1.18.0
+opencensus==0.2.0
 requests
