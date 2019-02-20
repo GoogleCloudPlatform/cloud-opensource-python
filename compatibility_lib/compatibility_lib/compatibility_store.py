@@ -203,20 +203,6 @@ class CompatibilityStore:
 
         return rows
 
-    @staticmethod
-    def _filter_older_versions(crs: Iterable[CompatibilityResult]) \
-            -> Iterable[CompatibilityResult]:
-        """Remove old versions of CompatibilityResults from the given list."""
-
-        def key_func(cr):
-            return frozenset(cr.packages), cr.python_major_version
-
-        filtered_results = []
-        crs = sorted(crs, key=key_func)
-        for _, results in itertools.groupby(crs, key_func):
-            filtered_results.append(max(results, key=lambda cr: cr.timestamp))
-        return filtered_results
-
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
         query = 'SELECT DISTINCT install_name FROM self_compatibility_status'
@@ -274,8 +260,7 @@ class CompatibilityStore:
             p = install_name_to_package[install_name]
             package_to_result[p].append(self._row_to_compatibility_status(
                 [p], row))
-        return {p: self._filter_older_versions(crs)
-                for (p, crs) in package_to_result.items()}
+        return {p: crs for (p, crs) in package_to_result.items()}
 
     @retrying.retry(stop_max_attempt_number=7,
                     wait_fixed=2000)
@@ -306,9 +291,8 @@ class CompatibilityStore:
                     (packages[0].install_name, packages[1].install_name))
                 results = cursor.fetchall()
 
-        return self._filter_older_versions(
-            self._row_to_compatibility_status(packages, row)
-            for row in results)
+        return [self._row_to_compatibility_status(packages, row)
+                for row in results]
 
     @retrying.retry(stop_max_attempt_number=7,
                     wait_fixed=2000)
@@ -353,8 +337,7 @@ class CompatibilityStore:
             packages_to_results[frozenset([p_lower, p_higher])].append(
                 self._row_to_compatibility_status([p_lower, p_higher], row)
             )
-        return {p: self._filter_older_versions(crs) for (p, crs) in
-                packages_to_results.items()}
+        return {p: crs for (p, crs) in packages_to_results.items()}
 
     def save_compatibility_statuses(
             self,
@@ -378,14 +361,12 @@ class CompatibilityStore:
                 if self_rows:
                     self_sql = ('REPLACE INTO self_compatibility_status '
                                 'values (%s, %s, %s, %s, %s)')
-                    cursor = conn.cursor()
                     cursor.executemany(self_sql, self_rows)
                     conn.commit()
 
                 if pair_rows:
                     pair_sql = ('REPLACE INTO pairwise_compatibility_status '
                                 'values (%s, %s, %s, %s, %s, %s)')
-                    cursor = conn.cursor()
                     cursor.executemany(pair_sql, pair_rows)
                     conn.commit()
 
