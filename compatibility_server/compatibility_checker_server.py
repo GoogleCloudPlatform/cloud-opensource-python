@@ -77,6 +77,7 @@ import argparse
 import configs
 import flask
 import logging
+import os
 import pprint
 import sys
 import wsgiref.simple_server
@@ -194,14 +195,14 @@ def main():
         type=int,
         default=8888,
         help='port to which the server should bind')
-    parser.add_argument(
-        '--export_metrics',
-        action='store_true',
-        help='whether or not metrics should be exported to stackdriver')
-    args = parser.parse_args()
-    logging.info('Running server with:\n%s', pprint.pformat(vars(args)))
+    export_metrics = os.environ.get('EXPORT_METRICS') is not None
 
-    if args.export_metrics:
+    args = parser.parse_args()
+    argsdict = vars(args)
+    argsdict['export_metrics'] = export_metrics
+    logging.info('Running server with:\n%s', pprint.pformat(argsdict))
+
+    if export_metrics:
         _enable_exporter()
 
     # The views need to be registered with the view manager for data to be

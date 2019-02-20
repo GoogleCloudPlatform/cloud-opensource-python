@@ -22,6 +22,7 @@ ADD compatibility_checker_server.py /compatibility_checker
 ADD pip_checker.py /compatibility_checker
 ADD configs.py /compatibility_checker
 ADD requirements.txt /compatibility_checker
+ADD views.py /compatibility_checker
 
 RUN pip3 install -r /compatibility_checker/requirements.txt
 RUN pip3 install gunicorn[gevent]
@@ -34,4 +35,4 @@ EXPOSE 8888
 # created at most in the vm.
 CMD cd compatibility_checker && \
   gunicorn -b 0.0.0.0:8888 -w 10 --worker-class gevent --max-requests 20 --max-requests-jitter 10 --timeout 300 \
-           compatibility_checker_server:app --export_metrics
+           -e EXPORT_METRICS=1 compatibility_checker_server:app
