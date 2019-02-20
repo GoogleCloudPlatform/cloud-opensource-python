@@ -155,11 +155,9 @@ class TestGetCompatibilityData(unittest.TestCase):
         self.assertEqual(res_list[0].status, self.status)
 
     def test_write_to_status_table(self):
-        def mock_connect(path):
-            yield MockProxy
         patch_cloud_sql_proxy = mock.patch(
             'compatibility_lib.get_compatibility_data.connect_cloud_sql_proxy',
-            mock_connect)
+            return_value=MockProxy())
 
         with self.patch_checker, self.patch_store, patch_cloud_sql_proxy:
             from compatibility_lib import get_compatibility_data
@@ -179,7 +177,7 @@ class TestGetCompatibilityData(unittest.TestCase):
 class MockProxy(object):
 
     def __enter__(self):
-        pass
+        return mock.Mock()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
