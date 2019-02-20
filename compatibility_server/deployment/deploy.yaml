@@ -29,7 +29,7 @@ spec:
         run: compatibility-server
     spec:
       containers:
-      - image: gcr.io/python-compatibility-tools/compatibility-server:v1
+      - image: gcr.io/python-compatibility-tools/compatibility-server:v24
         imagePullPolicy: IfNotPresent
         name: compatibility-server
         ports:
