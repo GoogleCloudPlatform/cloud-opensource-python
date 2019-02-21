@@ -15,8 +15,13 @@
 """Get self and pairwise compatibility data and write to bigquery."""
 
 import argparse
+import contextlib
 import datetime
 import itertools
+import signal
+
+import pexpect
+from pexpect import popen_spawn
 
 from compatibility_lib import compatibility_checker
 from compatibility_lib import compatibility_store
@@ -28,6 +33,15 @@ store = compatibility_store.CompatibilityStore()
 
 PY2 = '2'
 PY3 = '3'
+
+INSTANCE_CONNECTION_NAME = 'python-compatibility-tools:us-central1:' \
+                           'compatibility-data'
+
+PORT = '3306'
+
+
+class ConnectionError(Exception):
+    pass
 
 
 def _result_dict_to_compatibility_result(results):
@@ -56,6 +70,29 @@ def _result_dict_to_compatibility_result(results):
     return res_list
 
 
+@contextlib.contextmanager
+def run_cloud_sql_proxy(cloud_sql_proxy_path):
+    instance_flag = '-instances={}=tcp:{}'.format(
+        INSTANCE_CONNECTION_NAME, PORT)
+    if cloud_sql_proxy_path is None:
+        assert cloud_sql_proxy_path, 'Could not find cloud_sql_proxy path'
+    process = popen_spawn.PopenSpawn([cloud_sql_proxy_path, instance_flag])
+
+    try:
+        process.expect('Ready for new connection', timeout=5)
+        yield
+    except pexpect.exceptions.TIMEOUT:
+        raise ConnectionError(
+            ('Cloud SQL Proxy was unable to start after 5 seconds. Output '
+             'of cloud_sql_proxy: \n{}').format(process.before))
+    except pexpect.exceptions.EOF:
+        raise ConnectionError(
+            ('Cloud SQL Proxy exited unexpectedly. Output of '
+             'cloud_sql_proxy: \n{}').format(process.before))
+    finally:
+        process.kill(signal.SIGTERM)
+
+
 def get_package_pairs(check_pypi=False, check_github=False):
     """Get package pairs for pypi and github head."""
     self_packages = []
@@ -81,7 +118,8 @@ def get_package_pairs(check_pypi=False, check_github=False):
     return self_packages, pair_packages
 
 
-def write_to_status_table(check_pypi=False, check_github=False):
+def write_to_status_table(
+        check_pypi=False, check_github=False, cloud_sql_proxy_path=None):
     """Get the compatibility status for PyPI versions."""
     # Write self compatibility status to BigQuery
     self_packages, pair_packages = get_package_pairs(check_pypi, check_github)
@@ -89,7 +127,8 @@ def write_to_status_table(check_pypi=False, check_github=False):
         packages=self_packages, pkg_sets=pair_packages)
     res_list = _result_dict_to_compatibility_result(results)
 
-    store.save_compatibility_statuses(res_list)
+    with run_cloud_sql_proxy(cloud_sql_proxy_path):
+        store.save_compatibility_statuses(res_list)
 
 
 if __name__ == '__main__':
@@ -104,8 +143,14 @@ if __name__ == '__main__':
         type=bool,
         default=False,
         help='Check GitHub head packages or not.')
+    parser.add_argument(
+        '--cloud_sql_proxy_path',
+        type=str,
+        default='cloud_sql_proxy',
+        help='Path to cloud_sql_proxy.')
     args = parser.parse_args()
 
     check_pypi = args.pypi
     check_github = args.github
-    write_to_status_table(check_pypi, check_github)
+    cloud_sql_proxy_path = args.cloud_sql_proxy_path
+    write_to_status_table(check_pypi, check_github, cloud_sql_proxy_path)

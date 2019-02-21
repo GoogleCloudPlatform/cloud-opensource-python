@@ -86,12 +86,13 @@ class CompatibilityChecker(object):
         if python_version is None:
             for py_ver in ['2', '3']:
                 # Remove the package not supported in the python_version
-                packages = self.filter_packages(packages, py_ver)
-                for pkg in packages:
+                filtered_single = self.filter_packages(packages, py_ver)
+                for pkg in filtered_single:
                     check_singles.append(([pkg], py_ver))
         else:
-            packages = self.filter_packages(packages, python_version)
-            check_singles = [([pkg], python_version) for pkg in packages]
+            filtered_single = self.filter_packages(packages, python_version)
+            check_singles = [
+                ([pkg], python_version) for pkg in filtered_single]
 
         # Generating pairs
         if pkg_sets is None:
