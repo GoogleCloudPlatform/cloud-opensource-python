@@ -23,7 +23,7 @@ namespaces = ['compatibility_lib']
 
 setuptools.setup(
     name="compatibility_lib",
-    version="0.1.0",
+    version="0.1.1",
     author="Cloud Python",
     description="A library to get and store the dependency compatibility "
                 "status data to BigQuery.",
