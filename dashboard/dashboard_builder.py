@@ -30,8 +30,12 @@ import argparse
 import datetime
 import logging
 import os
+import signal
 from typing import Any, Iterable, List, FrozenSet, Mapping
 import webbrowser
+
+import pexpect
+from pexpect import popen_spawn
 
 import jinja2
 
@@ -51,6 +55,14 @@ _JINJA2_ENVIRONMENT = jinja2.Environment(
 _DEFAULT_INSTALL_NAMES = configs.PKG_LIST
 
 SELF_SUCCESS = {'status': 'SUCCESS', 'self': True}
+
+INSTANCE_CONNECTION_NAME = 'python-compatibility-tools:us-central1:' \
+                           'compatibility-data'
+PORT = '3306'
+
+
+class DashboardBuilderError(Exception):
+    pass
 
 
 class _ResultHolder(object):
@@ -356,43 +368,60 @@ def main():
     checker = compatibility_checker.CompatibilityChecker()
     store = compatibility_store.CompatibilityStore()
 
-    packages = [
-        package.Package(install_name) for install_name in args.packages]
-    logging.info("Getting self compatibility results...")
-    package_to_results = store.get_self_compatibilities(packages)
-    logging.info("Getting pairwise compatibility results...")
-    pairwise_to_results = store.get_compatibility_combinations(packages)
+    instance_flag = '-instances={}=tcp:{}'.format(
+        INSTANCE_CONNECTION_NAME, PORT)
+    cloud_sql_proxy_path = './cloud_sql_proxy'
 
-    package_with_dependency_info = {}
-    for pkg in configs.PKG_LIST:
-        dep_info = store.get_dependency_info(pkg)
-        package_with_dependency_info[pkg] = dep_info
+    try:
+        # Run cloud_sql_proxy
+        process = popen_spawn.PopenSpawn([cloud_sql_proxy_path, instance_flag])
+        process.expect('Ready for new connection', timeout=5)
 
-    results = _ResultHolder(
-        package_to_results,
-        pairwise_to_results,
-        package_with_dependency_info,
-        checker,
-        store)
+        packages = [
+            package.Package(install_name) for install_name in args.packages]
+        logging.info("Getting self compatibility results...")
+        package_to_results = store.get_self_compatibilities(packages)
+        logging.info("Getting pairwise compatibility results...")
+        pairwise_to_results = store.get_compatibility_combinations(packages)
 
-    dashboard_builder = DashboardBuilder(packages, results)
+        package_with_dependency_info = {}
+        for pkg in configs.PKG_LIST:
+            dep_info = store.get_dependency_info(pkg)
+            package_with_dependency_info[pkg] = dep_info
 
-    # Build the pairwise grid dashboard
-    logging.info('Starting build the grid...')
-    grid_html = dashboard_builder.build_dashboard(
-        'dashboard/grid-template.html')
-    grid_path = os.path.dirname(os.path.abspath(__file__)) + '/grid.html'
-    with open(grid_path, 'wt') as f:
-        f.write(grid_html)
+        results = _ResultHolder(
+            package_to_results,
+            pairwise_to_results,
+            package_with_dependency_info,
+            checker,
+            store)
 
-    # Build the dashboard main page
-    logging.info('Starting build the main dashboard...')
-    main_html = dashboard_builder.build_dashboard(
-        'dashboard/main-template.html')
+        dashboard_builder = DashboardBuilder(packages, results)
 
-    main_path = os.path.dirname(os.path.abspath(__file__)) + '/index.html'
-    with open(main_path, 'wt') as f:
-        f.write(main_html)
+        # Build the pairwise grid dashboard
+        logging.info('Starting build the grid...')
+        grid_html = dashboard_builder.build_dashboard(
+            'dashboard/grid-template.html')
+        grid_path = os.path.dirname(os.path.abspath(__file__)) + '/grid.html'
+        with open(grid_path, 'wt') as f:
+            f.write(grid_html)
+
+        # Build the dashboard main page
+        logging.info('Starting build the main dashboard...')
+        main_html = dashboard_builder.build_dashboard(
+            'dashboard/main-template.html')
+
+        main_path = os.path.dirname(os.path.abspath(__file__)) + '/index.html'
+        with open(main_path, 'wt') as f:
+            f.write(main_html)
+    except Exception:
+        raise DashboardBuilderError('Error occurs when building dashboard.'
+                                    'Output: {}'.format(process.before))
+    finally:
+        process.kill(signal.SIGTERM)
+
+    # Stop cloud_sql_proxy
+    process.kill(signal.SIGTERM)
 
     if args.browser:
         webbrowser.open_new_tab('file://' + main_path)

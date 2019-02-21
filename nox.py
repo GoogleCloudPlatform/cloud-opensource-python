@@ -101,6 +101,7 @@ def update_dashboard(session):
     session.interpreter = 'python3.6'
     session.install('compatibility-lib')
     session.install('-r', 'requirements-test.txt')
+    session.install('-e', ','.join(LOCAL_DEPS))
 
     # Set the virtualenv dirname.
     session.virtualenv_dirname = 'dashboard'
