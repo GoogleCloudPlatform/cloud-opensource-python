@@ -71,7 +71,7 @@ def _result_dict_to_compatibility_result(results):
 
 
 @contextlib.contextmanager
-def connect_cloud_sql_proxy(cloud_sql_proxy_path):
+def run_cloud_sql_proxy(cloud_sql_proxy_path):
     instance_flag = '-instances={}=tcp:{}'.format(
         INSTANCE_CONNECTION_NAME, PORT)
     if cloud_sql_proxy_path is None:
@@ -127,7 +127,7 @@ def write_to_status_table(
         packages=self_packages, pkg_sets=pair_packages)
     res_list = _result_dict_to_compatibility_result(results)
 
-    with connect_cloud_sql_proxy(cloud_sql_proxy_path):
+    with run_cloud_sql_proxy(cloud_sql_proxy_path):
         store.save_compatibility_statuses(res_list)
 
 

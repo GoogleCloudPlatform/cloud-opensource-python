@@ -156,7 +156,7 @@ class TestGetCompatibilityData(unittest.TestCase):
 
     def test_write_to_status_table(self):
         patch_cloud_sql_proxy = mock.patch(
-            'compatibility_lib.get_compatibility_data.connect_cloud_sql_proxy',
+            'compatibility_lib.get_compatibility_data.run_cloud_sql_proxy',
             return_value=MockProxy())
 
         with self.patch_checker, self.patch_store, patch_cloud_sql_proxy:

@@ -20,7 +20,6 @@ from distutils import version
 import enum
 import itertools
 import os
-import retrying
 from typing import Any, FrozenSet, Iterable, List, Mapping, Optional, Tuple
 
 import pymysql
@@ -137,6 +136,8 @@ class CompatibilityStore:
         self.mysql_password = mysql_password
 
     def connect(self):
+        # Assumes that the database is running local or we are connecting to
+        # it through Cloud SQL Proxy.
         conn = pymysql.connect(
             host='127.0.0.1',
             user=self.mysql_user,
@@ -228,8 +229,6 @@ class CompatibilityStore:
         """
         return self.get_self_compatibilities([p])[p]
 
-    @retrying.retry(stop_max_attempt_number=7,
-                    wait_fixed=2000)
     def get_self_compatibilities(self,
                                  packages: Iterable[package.Package]) -> \
             Mapping[package.Package, List[CompatibilityResult]]:
@@ -262,8 +261,6 @@ class CompatibilityStore:
                 [p], row))
         return {p: crs for (p, crs) in package_to_result.items()}
 
-    @retrying.retry(stop_max_attempt_number=7,
-                    wait_fixed=2000)
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
             Iterable[CompatibilityResult]:
         """Returns CompatibilityStatuses for a pair of packages.
@@ -282,7 +279,7 @@ class CompatibilityStore:
 
         query = ("SELECT * FROM pairwise_compatibility_status "
                  "WHERE install_name_lower=%s "
-                 "AND install_name_higher='%s'")
+                 "AND install_name_higher=%s")
 
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
@@ -294,8 +291,6 @@ class CompatibilityStore:
         return [self._row_to_compatibility_status(packages, row)
                 for row in results]
 
-    @retrying.retry(stop_max_attempt_number=7,
-                    wait_fixed=2000)
     def get_compatibility_combinations(self,
                                        packages: List[package.Package]) -> \
             Mapping[FrozenSet[package.Package], List[CompatibilityResult]]:
@@ -362,13 +357,13 @@ class CompatibilityStore:
                     self_sql = ('REPLACE INTO self_compatibility_status '
                                 'values (%s, %s, %s, %s, %s)')
                     cursor.executemany(self_sql, self_rows)
-                    conn.commit()
 
                 if pair_rows:
                     pair_sql = ('REPLACE INTO pairwise_compatibility_status '
                                 'values (%s, %s, %s, %s, %s, %s)')
                     cursor.executemany(pair_sql, pair_rows)
-                    conn.commit()
+
+                conn.commit()
 
         # Dependencies are not stored per Python version. This is not
         # theoretically sound but is probably good enough in practice.
@@ -468,7 +463,7 @@ class CompatibilityStore:
             A mapping between the dependency names and the info (dict).
         """
         query = ("SELECT * FROM release_time_for_dependencies "
-                 "WHERE install_name='%s'")
+                 "WHERE install_name=%s")
 
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
