@@ -28,6 +28,7 @@ IGNORED_DEPENDENCIES = [
     'pip',
     'setuptools',
     'wheel',
+    'virtualenv',
 ]
 
 PKG_LIST = [
@@ -85,24 +86,40 @@ PKG_LIST = [
 
 WHITELIST_PKGS = PKG_LIST
 
+# WHITELIST_URLS maps a github url to its associated pypi package name. This is
+# used for sanitizing input packages and making sure we don't run random pypi
+# or github packages.
 WHITELIST_URLS = {
-    _format_url('googleapis/google-cloud-python', 'asset'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'automl'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'dataproc'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'dlp'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'iot'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'kms'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'legacy/google-cloud'):
-        'gcloud',
-    _format_url('googleapis/google-cloud-python', 'ndb'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'oslogin'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'redis'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'securitycenter'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'tasks'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'test_utils'): 'gcloud',
-    _format_url('googleapis/google-cloud-python', 'texttospeech'): 'gcloud',
+    _format_url('googleapis/google-cloud-python', 'asset'):
+        'google-cloud-asset',
+    _format_url('googleapis/google-cloud-python', 'automl'):
+        'google-cloud-automl',
+    _format_url('googleapis/google-cloud-python', 'dataproc'):
+        'google-cloud-dataproc',
+    _format_url('googleapis/google-cloud-python', 'dlp'):
+        'google-cloud-dlp',
+    _format_url('googleapis/google-cloud-python', 'iot'):
+        'google-cloud-iot',
+    _format_url('googleapis/google-cloud-python', 'kms'):
+        'google-cloud-kms',
+    _format_url('googleapis/google-cloud-python', 'ndb'):
+        'google-cloud-ndb',
+    # This is not released yet
+    _format_url('googleapis/google-cloud-python', 'oslogin'):
+        'google-cloud-os-login',
+    _format_url('googleapis/google-cloud-python', 'redis'):
+        'google-cloud-redis',
+    _format_url('googleapis/google-cloud-python', 'securitycenter'):
+        'google-cloud-securitycenter',
+    _format_url('googleapis/google-cloud-python', 'tasks'):
+        'google-cloud-tasks',
+    # This is the system test utilities for google-cloud-python
+    _format_url('googleapis/google-cloud-python', 'test_utils'):
+        'google-cloud-testutils',
+    _format_url('googleapis/google-cloud-python', 'texttospeech'):
+        'google-cloud-texttospeech',
     _format_url('googleapis/google-cloud-python', 'websecurityscanner'):
-        'gcloud',
+        'google-cloud-websecurityscanner',
     _format_url('googleapis/google-cloud-python', 'api_core'):
         'google-api-core',
     _format_url('googleapis/google-cloud-python', 'bigquery'):
@@ -157,18 +174,16 @@ WHITELIST_URLS = {
     _format_url('google/apitools'): 'google-apitools',
     _format_url('GoogleCloudPlatform/gsutil'): 'gsutil',
     _format_url('census-instrumentation/opencensus-python'): 'opencensus',
-    _format_url('protocolbuffers/protobuf', 'python'): 'protobuf',
     _format_url('google/protorpc'): 'protorpc',
     _format_url('tensorflow/tensorflow', 'tensorflow/tools/pip_package'):
         'tensorflow',
-    _format_url('tensorflow/tensorflow',
-                'tensorflow/contrib/tpu/profiler/pip_package'): 'tensorflow',
     _format_url('GoogleCloudPlatform/cloud-opensource-python',
                 'compatibility_lib'): 'compatibility-lib',
     # TODO: The following projects do not use setup.py
     # googleapis-common-protos
     # grpc-google-iam-v1
     # grpcio
+    # protobuf
     # tensorboard - not sure what the build process is
     # _format_url('tensorflow/tensorboard', 'tensorboard/pip_package'):
     #     'tensorboard',
