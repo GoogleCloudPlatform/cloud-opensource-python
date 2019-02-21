@@ -34,7 +34,6 @@ import signal
 from typing import Any, Iterable, List, FrozenSet, Mapping
 import webbrowser
 
-import pexpect
 from pexpect import popen_spawn
 
 import jinja2
