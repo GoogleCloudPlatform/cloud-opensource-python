@@ -86,6 +86,9 @@ PKG_LIST = [
 
 WHITELIST_PKGS = PKG_LIST
 
+# WHITELIST_URLS maps a github url to its associated pypi package name. This is
+# used for sanitizing input packages and making sure we don't run random pypi
+# or github packages.
 WHITELIST_URLS = {
     _format_url('googleapis/google-cloud-python', 'asset'):
         'google-cloud-asset',
