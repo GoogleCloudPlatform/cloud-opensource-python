@@ -136,7 +136,7 @@ class CompatibilityStore:
         self.mysql_password = mysql_password
 
     def connect(self):
-        # Assumes that the database is running local or we are connecting to
+        # Assumes that the database is running locally or we are connecting to
         # it through Cloud SQL Proxy.
         conn = pymysql.connect(
             host='127.0.0.1',
