@@ -19,7 +19,7 @@ set -ev
 function build_dashboard {
     if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
       wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy
-      chmod 777 cloud_sql_proxy
+      chmod +x cloud_sql_proxy
       python dashboard/dashboard_builder.py
     else
       echo "No credentials. Dashboard will not build."

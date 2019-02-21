@@ -378,9 +378,9 @@ def main():
 
         packages = [
             package.Package(install_name) for install_name in args.packages]
-        logging.info("Getting self compatibility results...")
+        logging.info('Getting self compatibility results...')
         package_to_results = store.get_self_compatibilities(packages)
-        logging.info("Getting pairwise compatibility results...")
+        logging.info('Getting pairwise compatibility results...')
         pairwise_to_results = store.get_compatibility_combinations(packages)
 
         package_with_dependency_info = {}
@@ -418,9 +418,6 @@ def main():
                                     'Output: {}'.format(process.before))
     finally:
         process.kill(signal.SIGTERM)
-
-    # Stop cloud_sql_proxy
-    process.kill(signal.SIGTERM)
 
     if args.browser:
         webbrowser.open_new_tab('file://' + main_path)
