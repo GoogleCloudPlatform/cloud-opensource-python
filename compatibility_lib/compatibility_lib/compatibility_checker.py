@@ -48,7 +48,9 @@ class CompatibilityChecker(object):
             'python-version': python_version,
             'package': packages
         }
-        result = requests.get(SERVER_URL, params=data)
+        # Set the timeout to 299 seconds, which should be less than the
+        # docker timeout (300 seconds).
+        result = requests.get(SERVER_URL, params=data, timeout=299)
         content = result.content.decode('utf-8')
 
         return json.loads(content), python_version
