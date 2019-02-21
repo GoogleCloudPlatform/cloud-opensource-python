@@ -467,7 +467,7 @@ class CompatibilityStore:
 
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                cursor.execute(query % package_name)
+                cursor.execute(query, package_name)
                 results = cursor.fetchall()
 
         dependency_info = {}
