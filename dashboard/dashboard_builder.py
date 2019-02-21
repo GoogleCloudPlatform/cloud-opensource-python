@@ -347,7 +347,7 @@ class DashboardBuilder():
             results=self._results,
             current_timestamp=current_timestamp)
 
-
+# TODO: Use helper function to reduce the length of main function.
 def main():
     parser = argparse.ArgumentParser(
         description='Display a grid show the dependency compatibility ' +
