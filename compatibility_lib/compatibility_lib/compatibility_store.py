@@ -126,24 +126,47 @@ class CompatibilityResult:
 class CompatibilityStore:
     """Storage for package compatibility information."""
 
-    def __init__(self, mysql_user=None, mysql_password=None):
+    def __init__(self,
+                 mysql_user=None,
+                 mysql_password=None,
+                 mysql_host=None,
+                 mysql_unix_socket=None,
+                 mysql_db=None):
         if mysql_user is None:
             mysql_user = os.environ.get('MYSQL_USER')
         if mysql_password is None:
             mysql_password = os.environ.get('MYSQL_PASSWORD')
+        # Assume using mysql_host to connect if both host and unix_socket
+        # are None.
+        if mysql_host is None and mysql_unix_socket is None:
+            mysql_host = '127.0.0.1'
+        if mysql_db is None:
+            mysql_db = _DATABASE_NAME
 
         self.mysql_user = mysql_user
         self.mysql_password = mysql_password
+        self.mysql_host = mysql_host
+        self.mysql_unix_socket = mysql_unix_socket
+        self.mysql_db = mysql_db
 
     def connect(self):
         # Assumes that the database is running locally or we are connecting to
-        # it through Cloud SQL Proxy.
-        conn = pymysql.connect(
-            host='127.0.0.1',
-            user=self.mysql_user,
-            password=self.mysql_password,
-            db=_DATABASE_NAME,
-            charset='utf8mb4')
+        # it through Cloud SQL Proxy if a mysql_host is given. Otherwise
+        # connecting using mysql unix socket.
+        if self.mysql_unix_socket is not None:
+            conn = pymysql.connect(
+                unix_socket=self.mysql_unix_socket,
+                user=self.mysql_user,
+                password=self.mysql_password,
+                db=self.mysql_db,
+                charset='utf8mb4')
+        else:
+            conn = pymysql.connect(
+                host=self.mysql_host,
+                user=self.mysql_user,
+                password=self.mysql_password,
+                db=_DATABASE_NAME,
+                charset='utf8mb4')
         return conn
 
     @staticmethod
