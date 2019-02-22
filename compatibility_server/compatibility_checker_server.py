@@ -137,6 +137,11 @@ def _sanitize_packages(packages):
     return sanitized_packages
 
 
+@app.route('/health_check')
+def health_check():
+    return 'hello world'
+
+
 @app.route('/')
 def check():
     packages = flask.request.args.getlist('package')
