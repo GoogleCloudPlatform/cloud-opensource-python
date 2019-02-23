@@ -57,7 +57,7 @@ class MockChecker(object):
             'dependency_info': DEP_INFO,
         }
 
-    def get_self_compatibility(self, python_version, packages=None):
+    def get_compatibility(self, python_version, packages=None):
         return [[self.check(
             packages=packages, python_version=python_version)]]
 

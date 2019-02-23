@@ -130,6 +130,7 @@ class CompatibilityStore:
                  mysql_user=None,
                  mysql_password=None,
                  mysql_host=None,
+                 mysql_port=None,
                  mysql_unix_socket=None,
                  mysql_db=None):
         if mysql_user is None:
@@ -142,10 +143,13 @@ class CompatibilityStore:
             mysql_host = '127.0.0.1'
         if mysql_db is None:
             mysql_db = _DATABASE_NAME
+        if mysql_port is None:
+            mysql_port = 3306
 
         self.mysql_user = mysql_user
         self.mysql_password = mysql_password
         self.mysql_host = mysql_host
+        self.mysql_port = mysql_port
         self.mysql_unix_socket = mysql_unix_socket
         self.mysql_db = mysql_db
 
@@ -163,6 +167,7 @@ class CompatibilityStore:
         else:
             conn = pymysql.connect(
                 host=self.mysql_host,
+                port=self.mysql_port,
                 user=self.mysql_user,
                 password=self.mysql_password,
                 db=_DATABASE_NAME,

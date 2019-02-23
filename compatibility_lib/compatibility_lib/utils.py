@@ -111,8 +111,8 @@ class DependencyInfo(object):
             a dict mapping from dependency package name (string) to
             the info (dict)
         """
-        _result = self.checker.get_self_compatibility(
-            self.py_version, [package_name])
+        _result = self.checker.get_compatibility(
+            python_version=self.py_version, packages=[package_name])
         result = [item for item in _result]
         depinfo = result[0][0].get('dependency_info')
 

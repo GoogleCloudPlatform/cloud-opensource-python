@@ -69,7 +69,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
 
-        self.mock_checker.get_self_compatibility.return_value = \
+        self.mock_checker.get_compatibility.return_value = \
             self.SELF_COMP_RES
 
     def test_constructor_default(self):
