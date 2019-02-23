@@ -10,3 +10,7 @@ handlers:
 
 automatic_scaling:
   min_instances: 3
+
+env_variables:
+  MYSQL_USER: 'root'
+  MYSQL_PASSWORD: '19931228'
