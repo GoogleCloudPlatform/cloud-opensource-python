@@ -33,8 +33,12 @@ from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder
 
 # Initializations
+DB_CONNECTION_NAME = 'python-compatibility-tools:us-central1:' \
+                     'compatibility-data'
+UNIX_SOCKET = '/cloudsql/{}'.format(DB_CONNECTION_NAME)
+
 checker = compatibility_checker.CompatibilityChecker()
-store = compatibility_store.CompatibilityStore()
+store = compatibility_store.CompatibilityStore(mysql_unix_socket=UNIX_SOCKET)
 highlighter = dependency_highlighter.DependencyHighlighter(
     checker=checker, store=store)
 finder = deprecated_dep_finder.DeprecatedDepFinder(
