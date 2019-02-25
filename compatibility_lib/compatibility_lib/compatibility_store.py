@@ -130,7 +130,7 @@ class CompatibilityStore:
                  mysql_user=None,
                  mysql_password=None,
                  mysql_host=None,
-                 mysql_port=None,
+                 mysql_port=3306,
                  mysql_unix_socket=None,
                  mysql_db=None):
         if mysql_user is None:
@@ -143,8 +143,6 @@ class CompatibilityStore:
             mysql_host = '127.0.0.1'
         if mysql_db is None:
             mysql_db = _DATABASE_NAME
-        if mysql_port is None:
-            mysql_port = 3306
 
         self.mysql_user = mysql_user
         self.mysql_password = mysql_password
