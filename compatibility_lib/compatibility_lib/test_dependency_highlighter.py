@@ -135,7 +135,7 @@ class TestDependencyHighlighter(unittest.TestCase):
 
         fake_value = [[{'dependency_info': _get_dep_info(False)}]]
         self._checker = mock.Mock()
-        self._checker.get_self_compatibility.return_value = fake_value
+        self._checker.get_compatibility.return_value = fake_value
 
     def setup_test__get_update_priority(self):
         low = dependency_highlighter.PriorityLevel.LOW_PRIORITY
