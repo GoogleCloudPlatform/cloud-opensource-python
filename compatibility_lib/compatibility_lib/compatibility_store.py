@@ -168,7 +168,7 @@ class CompatibilityStore:
                 port=self.mysql_port,
                 user=self.mysql_user,
                 password=self.mysql_password,
-                db=_DATABASE_NAME,
+                db=self.mysql_db,
                 charset='utf8mb4')
         return conn
 
