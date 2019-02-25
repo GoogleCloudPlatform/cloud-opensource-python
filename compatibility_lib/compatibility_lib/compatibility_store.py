@@ -472,7 +472,6 @@ class CompatibilityStore:
         if 'github.com' in install_name:
             install_name = configs.WHITELIST_URLS[install_name]
         install_name_sanitized = install_name.split('[')[0]
-        print(install_name_sanitized)
 
         for pkg, version_info in result.dependency_info.items():
             if pkg == install_name_sanitized:
