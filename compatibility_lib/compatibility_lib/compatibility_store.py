@@ -168,7 +168,7 @@ class CompatibilityStore:
                 port=self.mysql_port,
                 user=self.mysql_user,
                 password=self.mysql_password,
-                db=_DATABASE_NAME,
+                db=self.mysql_db,
                 charset='utf8mb4')
         return conn
 
@@ -472,6 +472,7 @@ class CompatibilityStore:
         if 'github.com' in install_name:
             install_name = configs.WHITELIST_URLS[install_name]
         install_name_sanitized = install_name.split('[')[0]
+        print(install_name_sanitized)
 
         for pkg, version_info in result.dependency_info.items():
             if pkg == install_name_sanitized:
