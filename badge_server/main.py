@@ -489,8 +489,8 @@ def google_compatibility_badge_image():
             }
 
             for py_ver in [2, 3]:
-                results = list(badge_utils.checker.get_pairwise_compatibility(
-                    py_ver, pkg_sets))
+                results = list(badge_utils.checker.get_compatibility(
+                    python_version=py_ver, pkg_sets=pkg_sets))
                 logging.warning(results)
                 py_version = badge_utils.PY_VER_MAPPING[py_ver]
 
