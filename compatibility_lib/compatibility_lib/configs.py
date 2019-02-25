@@ -102,6 +102,8 @@ WHITELIST_URLS = {
         'google-cloud-iot',
     _format_url('googleapis/google-cloud-python', 'kms'):
         'google-cloud-kms',
+    _format_url('googleapis/python-ndb', ''):
+        'google-cloud-ndb',
     # This is not released yet
     _format_url('googleapis/google-cloud-python', 'oslogin'):
         'google-cloud-os-login',
