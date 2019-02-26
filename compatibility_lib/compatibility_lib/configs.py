@@ -74,7 +74,6 @@ PKG_LIST = [
     'googleapis-common-protos',
     'grpc-google-iam-v1',
     'grpcio',
-    'gsutil',
     'opencensus',
     'protobuf',
     'protorpc',
@@ -113,9 +112,6 @@ WHITELIST_URLS = {
         'google-cloud-securitycenter',
     _format_url('googleapis/google-cloud-python', 'tasks'):
         'google-cloud-tasks',
-    # This is the system test utilities for google-cloud-python
-    _format_url('googleapis/google-cloud-python', 'test_utils'):
-        'google-cloud-testutils',
     _format_url('googleapis/google-cloud-python', 'texttospeech'):
         'google-cloud-texttospeech',
     _format_url('googleapis/google-cloud-python', 'websecurityscanner'):
@@ -172,7 +168,6 @@ WHITELIST_URLS = {
         'google-resumable-media',
     _format_url('apache/beam', 'sdks/python'): 'apache-beam[gcp]',
     _format_url('google/apitools'): 'google-apitools',
-    _format_url('GoogleCloudPlatform/gsutil'): 'gsutil',
     _format_url('census-instrumentation/opencensus-python'): 'opencensus',
     _format_url('google/protorpc'): 'protorpc',
     _format_url('tensorflow/tensorflow', 'tensorflow/tools/pip_package'):
