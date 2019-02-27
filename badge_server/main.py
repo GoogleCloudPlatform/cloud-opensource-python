@@ -14,19 +14,14 @@
 
 """A HTTP server for badges"""
 
-import contextlib
 import datetime
 import flask
-import pexpect
 import pybadges
-import signal
 
 import utils as badge_utils
 from compatibility_lib import utils as compat_utils
-from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import package
-from pexpect import popen_spawn
 
 app = flask.Flask(__name__)
 
@@ -180,7 +175,8 @@ def _get_results_from_compatibility_store(
     dependency_res = _get_dependency_result_dict(pkgname)
 
     status = _get_status(self_compat_res, google_compat_res, dependency_res)
-    timestamp = _get_timestamp(self_compat_res, google_compat_res, dependency_res)
+    timestamp = _get_timestamp(
+        self_compat_res, google_compat_res, dependency_res)
 
     return (status, timestamp, self_compat_res, google_compat_res,
             dependency_res)
