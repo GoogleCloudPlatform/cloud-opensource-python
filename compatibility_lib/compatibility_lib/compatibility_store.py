@@ -317,17 +317,12 @@ class CompatibilityStore:
         return [self._row_to_compatibility_status(packages, row)
                 for row in results]
 
-    def get_compatibility_combinations(
-            self,
-            packages: List[package.Package]=None,
-            install_names_lower: List[str]=None,
-            install_names_higher: List[str]=None) -> \
+    def get_compatibility_combinations(self,
+                                       packages: List[package.Package]) -> \
             Mapping[FrozenSet[package.Package], List[CompatibilityResult]]:
         """Returns a mapping between package pairs and CompatibilityResults.
-
         Args:
             packages: The packages to check compatibility for.
-
         Returns:
             A mapping between every combination of input packages and their
             CompatibilityResults. For example:
@@ -338,31 +333,26 @@ class CompatibilityStore:
                frozenset([p2, p3]): [CompatibilityResult...],
             }.
         """
-        packages_to_results = {}
-        # Get N*N grid for provided packages
-        if packages is not None:
-            for p1, p2 in itertools.combinations(packages, r=2):
-                packages_to_results[frozenset([p1, p2])] = []
+        install_name_to_package = {p.install_name: p for p in packages}
 
-            install_names = [p.install_name for p in packages]
-            install_names_lower = install_names
-            install_names_higher = install_names
+        packages_to_results = {}
+        for p1, p2 in itertools.combinations(packages, r=2):
+            packages_to_results[frozenset([p1, p2])] = []
+
+        install_names = [p.install_name for p in packages]
 
         query = ('SELECT * FROM pairwise_compatibility_status WHERE '
                  'install_name_lower IN %s AND install_name_higher IN %s')
 
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    query, (install_names_lower, install_names_higher))
+                cursor.execute(query, (install_names, install_names))
                 results = cursor.fetchall()
 
         for row in results:
             install_name_lower, install_name_higher, _, _, _, _ = row
-            p_lower = package.Package(install_name_lower)
-            p_higher = package.Package(install_name_higher)
-            if not packages_to_results.get(frozenset([p_lower, p_higher])):
-                packages_to_results[frozenset([p_lower, p_higher])] = []
+            p_lower = install_name_to_package[install_name_lower]
+            p_higher = install_name_to_package[install_name_higher]
             packages_to_results[frozenset([p_lower, p_higher])].append(
                 self._row_to_compatibility_status([p_lower, p_higher], row)
             )
