@@ -80,17 +80,17 @@ class TestDependencyInfo(unittest.TestCase):
 
         self.assertEqual(dep_info_getter.py_version, '2')
 
-    def test__get_from_bigquery_exists(self):
+    def test__get_from_cloud_sql_exists(self):
         dep_info_getter = utils.DependencyInfo(
             checker=self.mock_checker, store=self.fake_store)
-        dep_info = dep_info_getter._get_from_bigquery('opencensus')
+        dep_info = dep_info_getter._get_from_cloud_sql('opencensus')
 
         self.assertIsNotNone(dep_info)
 
-    def test__get_from_bigquery_not_exists(self):
+    def test__get_from_cloud_sql_not_exists(self):
         dep_info_getter = utils.DependencyInfo(
             checker=self.mock_checker, store=self.fake_store)
-        dep_info = dep_info_getter._get_from_bigquery('pkg_not_in_config')
+        dep_info = dep_info_getter._get_from_cloud_sql('pkg_not_in_config')
 
         self.assertIsNone(dep_info)
 
@@ -108,7 +108,7 @@ class TestDependencyInfo(unittest.TestCase):
         with self.assertRaises(utils.PackageNotSupportedError):
             dep_info_getter._get_from_endpoint('pkg_not_in_config')
 
-    def test_get_dependency_info_bigquery(self):
+    def test_get_dependency_info_compatibility_store(self):
         dep_info_getter = utils.DependencyInfo(
             checker=self.mock_checker, store=self.fake_store)
         dep_info = dep_info_getter.get_dependency_info('opencensus')
