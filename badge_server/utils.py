@@ -38,8 +38,11 @@ DB_CONNECTION_NAME = 'python-compatibility-tools:us-central1:' \
 UNIX_SOCKET = '/cloudsql/{}'.format(DB_CONNECTION_NAME)
 
 checker = compatibility_checker.CompatibilityChecker()
-# store = compatibility_store.CompatibilityStore(mysql_unix_socket=UNIX_SOCKET)
-store = compatibility_store.CompatibilityStore(mysql_host='127.0.0.1', mysql_port=3307)
+store = compatibility_store.CompatibilityStore(mysql_unix_socket=UNIX_SOCKET)
+
+# For local testing use below
+# store = compatibility_store.CompatibilityStore(mysql_host='127.0.0.1', mysql_port=3307)
+
 highlighter = dependency_highlighter.DependencyHighlighter(
     checker=checker, store=store)
 finder = deprecated_dep_finder.DeprecatedDepFinder(
