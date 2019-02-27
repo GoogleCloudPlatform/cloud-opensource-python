@@ -86,8 +86,8 @@ class DependencyInfo(object):
         self.checker = checker
         self.store = store
 
-    def _get_from_bigquery(self, package_name):
-        """Gets the package dependency info from bigquery
+    def _get_from_compatibility_store(self, package_name):
+        """Gets the package dependency info from compatibility store
 
         Args:
             package_name: the name of the package to query
@@ -144,7 +144,7 @@ class DependencyInfo(object):
             a dict mapping from dependency package name (string) to
             the info (dict)
         """
-        depinfo = self._get_from_bigquery(package_name)
+        depinfo = self._get_from_compatibility_store(package_name)
 
         if depinfo is None:
             depinfo = self._get_from_endpoint(package_name)
