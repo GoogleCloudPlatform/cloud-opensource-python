@@ -96,8 +96,8 @@ class DependencyInfo(object):
             the info (dict)
         """
         if self.store is not None:
-            if package_name in configs.PKG_LIST or \
-                            package_name in configs.WHITELIST_URLS:
+            if (package_name in configs.PKG_LIST or
+                    package_name in configs.WHITELIST_URLS):
                 depinfo = self.store.get_dependency_info(package_name)
                 return depinfo
         else:

@@ -400,12 +400,13 @@ class CompatibilityStore:
             install_name_lower, install_name_higher, _, _, _, _ = row
             p_lower = package.Package(install_name_lower)
             p_higher = package.Package(install_name_higher)
-            if not packages_to_results.get(frozenset([p_lower, p_higher])):
-                packages_to_results[frozenset([p_lower, p_higher])] = []
-            packages_to_results[frozenset([p_lower, p_higher])].append(
+            key = frozenset([p_lower, p_higher])
+            if not packages_to_results.get(key):
+                packages_to_results[key] = []
+            packages_to_results[key].append(
                 self._row_to_compatibility_status([p_lower, p_higher], row)
             )
-        return {p: crs for (p, crs) in packages_to_results.items()}
+        return packages_to_results
 
     def save_compatibility_statuses(
             self,
