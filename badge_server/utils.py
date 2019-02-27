@@ -38,7 +38,8 @@ DB_CONNECTION_NAME = 'python-compatibility-tools:us-central1:' \
 UNIX_SOCKET = '/cloudsql/{}'.format(DB_CONNECTION_NAME)
 
 checker = compatibility_checker.CompatibilityChecker()
-store = compatibility_store.CompatibilityStore(mysql_unix_socket=UNIX_SOCKET)
+# store = compatibility_store.CompatibilityStore(mysql_unix_socket=UNIX_SOCKET)
+store = compatibility_store.CompatibilityStore(mysql_host='127.0.0.1', mysql_port=3307)
 highlighter = dependency_highlighter.DependencyHighlighter(
     checker=checker, store=store)
 finder = deprecated_dep_finder.DeprecatedDepFinder(
@@ -104,28 +105,20 @@ def initialize_cache():
 
 
 def _build_default_result(
-        badge_type: BadgeType,
-        status: str = 'CALCULATING',
+        status: str = 'UNKWNON',
         details: Optional = None) -> dict:
     """Build the default result for different conditions."""
-    # Dependency badge
-    if badge_type == BadgeType.DEP_BADGE:
-        result = {
+    # Compatibility badge
+    result = {
+        'py2': {
+            'status': status,
+            'details': details,
+        },
+        'py3': {
             'status': status,
             'details': details,
         }
-    # Compatibility badge
-    else:
-        result = {
-            'py2': {
-                'status': status,
-                'details': details,
-            },
-            'py3': {
-                'status': status,
-                'details': details,
-            }
-        }
+    }
     return result
 
 
