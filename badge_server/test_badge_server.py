@@ -34,42 +34,55 @@ class TestBadgeServer(unittest.TestCase):
         self.patch_store = mock.patch(
             'main.badge_utils.store', self.fake_store)
 
-    def test__get_pair_status_for_packages_success(self):
-        pkg_sets = [
-            ['opencensus', 'google-api-core'],
-            ['opencensus', 'google-api-python-client']
-        ]
-        expected = {
-            'py2': {'status': 'SUCCESS', 'details': {}},
-            'py3': {'status': 'SUCCESS', 'details': {}}
-        }
-
-        with self.patch_checker, self.patch_store:
-            version_and_res = main._get_pair_status_for_packages(
-                pkg_sets)
-
-        self.assertEqual(version_and_res, expected)
-
-    def test__get_pair_status_for_packages_warning(self):
+    def test__get_self_compatibility_result_dict(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
+        expected = {
+            'py2': {'status': 'SUCCESS', 'details':
+                    'The package does not support this version of python.'},
+            'py3': {'status': 'SUCCESS', 'details': 'NO DETAILS'},
+        }
+
+        PACKAGE = package.Package('tensorflow')
+        cr_py3 = compatibility_store.CompatibilityResult(
+            packages=[PACKAGE],
+            python_major_version=3,
+            status=compatibility_store.Status.SUCCESS)
+        self.fake_store._packages_to_compatibility_result[
+            frozenset([PACKAGE])] = [cr_py3]
+
+        with self.patch_checker, self.patch_store:
+            result_dict = main._get_self_compatibility_result_dict('tensorflow')
+
+        self.assertEqual(result_dict, expected)
+
+    def test__get_pair_compatibility_result_dict_success(self):
+        expected = {
+            'py2': {'status': 'SUCCESS', 'details': None},
+            'py3': {'status': 'SUCCESS', 'details': None}
+        }
+
+        pkgs = ['google-api-core', 'google-api-python-client']
+        patch_configs = mock.patch('main.configs.PKG_LIST', pkgs)
+        with self.patch_checker, self.patch_store, patch_configs:
+            result_dict = main._get_pair_compatibility_result_dict('opencensus')
+
+        self.assertEqual(result_dict, expected)
+
+    def test__get_pair_compatibility_result_dict_warning(self):
+        from compatibility_lib import compatibility_store
+        from compatibility_lib import package
+
+        expected = {
+            'py2': {'status': 'CHECK_WARNING',
+                    'details': {'package2': 'NO DETAILS'} },
+            'py3': {'status': 'CHECK_WARNING',
+                    'details': {'package2': 'NO DETAILS'} },
+        }
+
         PACKAGE_1 = package.Package("package1")
         PACKAGE_2 = package.Package("package2")
-
-        pkg_sets = [
-            ['package1', 'package2'],
-        ]
-        expected = {
-            'py2': {
-                'status': 'CHECK_WARNING',
-                'details': {'package2': 'NO DETAILS'}
-            },
-            'py3': {
-                'status': 'CHECK_WARNING',
-                'details': {'package2': 'NO DETAILS'}
-            }
-        }
         cr_py2 = compatibility_store.CompatibilityResult(
             packages=[PACKAGE_1, PACKAGE_2],
             python_major_version=2,
@@ -84,42 +97,35 @@ class TestBadgeServer(unittest.TestCase):
 
         mock_self_res = mock.Mock()
         self_res = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'main._get_result_from_cache',
+            'main._get_self_compatibility_result_dict',
             mock_self_res)
 
-        with self.patch_checker, self.patch_store, patch_self_status:
-            version_and_res = main._get_pair_status_for_packages(
-                pkg_sets)
+        pkgs = ['package2']
+        patch_configs = mock.patch('main.configs.PKG_LIST', pkgs)
 
-        self.assertEqual(version_and_res, expected)
+        with self.patch_checker, self.patch_store, patch_self_status, \
+                patch_configs:
+            result_dict = main._get_pair_compatibility_result_dict(
+                'package1')
 
-    def test__get_pair_status_for_packages_install_error(self):
+        self.assertEqual(result_dict, expected)
+
+    def test__get_pair_compatibility_result_dict_install_error(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
+        expected = {
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
+        }
+
         PACKAGE_1 = package.Package("package1")
         PACKAGE_2 = package.Package("tensorflow")
-
-        pkg_sets = [
-            ['package1', 'tensorflow'],
-        ]
-        expected = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
-        }
         cr_py2 = compatibility_store.CompatibilityResult(
             packages=[PACKAGE_1, PACKAGE_2],
             python_major_version=2,
@@ -132,32 +138,28 @@ class TestBadgeServer(unittest.TestCase):
         self.fake_store._packages_to_compatibility_result[
             frozenset([PACKAGE_1, PACKAGE_2])] = pair_result
 
-        with self.patch_checker, self.patch_store:
-            version_and_res = main._get_pair_status_for_packages(
-                pkg_sets)
+        pkgs = ['tensorflow']
+        patch_configs = mock.patch('main.configs.PKG_LIST', pkgs)
 
-        self.assertEqual(version_and_res, expected)
+        with self.patch_checker, self.patch_store, patch_configs:
+            result_dict = main._get_pair_compatibility_result_dict(
+                'package1')
 
-    def test__get_pair_status_for_packages_self_conflict(self):
+        self.assertEqual(result_dict, expected)
+
+    def test__get_pair_compatibility_result_dict_self_conflict(self):
         # If the pair package is not self compatible, the package being checked
         # should not be marked as CHECK_WARNING.
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
+        expected = {
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
+        }
+
         PACKAGE_1 = package.Package("package1")
         PACKAGE_2 = package.Package("tensorflow")
-
-        pkg_sets = [
-            ['package1', 'tensorflow'],
-        ]
-        expected = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
-        }
         cr_py2 = compatibility_store.CompatibilityResult(
             packages=[PACKAGE_1, PACKAGE_2],
             python_major_version=2,
@@ -172,152 +174,119 @@ class TestBadgeServer(unittest.TestCase):
 
         mock_self_res = mock.Mock()
         self_res = {
-            'py2': {
-                'status': 'CHECK_WARNING', 'details': {}
-            },
-            'py3': {
-                'status': 'CHECK_WARNING', 'details': {}
-            }
+            'py2': { 'status': 'CHECK_WARNING', 'details': {} },
+            'py3': { 'status': 'CHECK_WARNING', 'details': {} },
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'main._get_result_from_cache',
+            'main._get_self_compatibility_result_dict',
             mock_self_res)
 
-        with self.patch_checker, self.patch_store, patch_self_status:
-            version_and_res = main._get_pair_status_for_packages(
-                pkg_sets)
+        pkgs = ['tensorflow']
+        patch_configs = mock.patch('main.configs.PKG_LIST', pkgs)
 
-        self.assertEqual(version_and_res, expected)
+        with self.patch_checker, self.patch_store, patch_self_status, \
+                patch_configs:
+            result_dict = main._get_pair_compatibility_result_dict(
+                'package1')
 
+        self.assertEqual(result_dict, expected)
 
-    def test__get_badge_use_py2(self):
-        package_name = 'package-1'
-        res = {
-            'py2': {
-                'status': 'CHECK_WARNING', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
-        }
-
-        image = main.badge_utils._get_badge(res, package_name)
-
-        self.assertIn(package_name, image)
-        self.assertIn("CHECK WARNING", image)
-
-    def test__get_badge_use_py3(self):
-        package_name = 'package-1'
-        res = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'CHECK_WARNING', 'details': {}
-            }
-        }
-
-        image = main.badge_utils._get_badge(res, package_name)
-
-        self.assertIn(package_name, image)
-        self.assertIn("CHECK WARNING", image)
-
-    def test__get_all_results_from_cache_success(self):
+    def test__get_results_from_compatibility_store_success(self):
         self_res = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
         }
-
         google_res = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
         }
+        dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
 
-        dep_res = {
-            'status': 'UP_TO_DATE',
-            'details': {},
-        }
+        mock_self_res = mock.Mock()
+        mock_self_res.return_value = self_res
 
-        main.cache.set("opencensus_self_comp_badge", self_res)
-        main.cache.set("opencensus_google_comp_badge", google_res)
-        main.cache.set("opencensus_dependency_badge", dep_res)
+        mock_google_res = mock.Mock()
+        mock_google_res.return_value = google_res
 
-        status, _, _, _, _ = main._get_all_results_from_cache(
-            'opencensus')
+        mock_dep_res = mock.Mock()
+        mock_dep_res.return_value = dep_res
+
+        patch_self_res = mock.patch(
+            'main._get_self_compatibility_result_dict', mock_self_res)
+        patch_google_res = mock.patch(
+            'main._get_pair_compatibility_result_dict', mock_google_res)
+        patch_dep_res = mock.patch(
+            'main._get_dependency_result_dict', mock_dep_res)
+
+        with patch_self_res, patch_google_res, patch_dep_res:
+            status, _, _, _, _ = main._get_results_from_compatibility_store(
+                'opencensus')
 
         self.assertEqual(status, 'SUCCESS')
 
-    def test__get_all_results_from_cache_calculating(self):
+    def test__get_results_from_compatibility_store_calculating(self):
         self_res = {
-            'py2': {
-                'status': 'CALCULATING', 'details': {}
-            },
-            'py3': {
-                'status': 'CALCULATING', 'details': {}
-            }
+            'py2': { 'status': 'CALCULATING', 'details': {} },
+            'py3': { 'status': 'CALCULATING', 'details': {} },
         }
-
         google_res = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
+            'py2': { 'status': 'CALCULATING', 'details': {} },
+            'py3': { 'status': 'CALCULATING', 'details': {} },
         }
+        dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
 
-        dep_res = {
-            'status': 'UP_TO_DATE',
-            'details': {},
-        }
+        mock_self_res = mock.Mock()
+        mock_self_res.return_value = self_res
 
-        main.cache.set("opencensus_self_comp_badge", self_res)
-        main.cache.set("opencensus_google_comp_badge", google_res)
-        main.cache.set("opencensus_dependency_badge", dep_res)
+        mock_google_res = mock.Mock()
+        mock_google_res.return_value = google_res
 
-        status, _, _, _, _ = main._get_all_results_from_cache(
-            'opencensus')
+        mock_dep_res = mock.Mock()
+        mock_dep_res.return_value = dep_res
+
+        patch_self_res = mock.patch(
+            'main._get_self_compatibility_result_dict', mock_self_res)
+        patch_google_res = mock.patch(
+            'main._get_pair_compatibility_result_dict', mock_google_res)
+        patch_dep_res = mock.patch(
+            'main._get_dependency_result_dict', mock_dep_res)
+
+        with patch_self_res, patch_google_res, patch_dep_res:
+            status, _, _, _, _ = main._get_results_from_compatibility_store(
+                'opencensus')
 
         self.assertEqual(status, 'CALCULATING')
 
-    def test__get_all_results_from_cache_check_warning(self):
+    def test__get_results_from_compatibility_store_check_warning(self):
         self_res = {
-            'py2': {
-                'status': 'CHECK_WARNING', 'details': {}
-            },
-            'py3': {
-                'status': 'CHECK_WARNING', 'details': {}
-            }
+            'py2': { 'status': 'CHECK_WARNING', 'details': {} },
+            'py3': { 'status': 'CHECK_WARNING', 'details': {} },
         }
-
         google_res = {
-            'py2': {
-                'status': 'SUCCESS', 'details': {}
-            },
-            'py3': {
-                'status': 'SUCCESS', 'details': {}
-            }
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
         }
+        dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
 
-        dep_res = {
-            'status': 'UP_TO_DATE',
-            'details': {},
-        }
+        mock_self_res = mock.Mock()
+        mock_self_res.return_value = self_res
 
-        main.cache.set("opencensus_self_comp_badge", self_res)
-        main.cache.set("opencensus_google_comp_badge", google_res)
-        main.cache.set("opencensus_dependency_badge", dep_res)
+        mock_google_res = mock.Mock()
+        mock_google_res.return_value = google_res
 
-        status, _, _, _, _ = main._get_all_results_from_cache(
-            'opencensus')
+        mock_dep_res = mock.Mock()
+        mock_dep_res.return_value = dep_res
+
+        patch_self_res = mock.patch(
+            'main._get_self_compatibility_result_dict', mock_self_res)
+        patch_google_res = mock.patch(
+            'main._get_pair_compatibility_result_dict', mock_google_res)
+        patch_dep_res = mock.patch(
+            'main._get_dependency_result_dict', mock_dep_res)
+
+        with patch_self_res, patch_google_res, patch_dep_res:
+            status, _, _, _, _ = main._get_results_from_compatibility_store(
+                'opencensus')
 
         self.assertEqual(status, 'CHECK_WARNING')

@@ -79,16 +79,16 @@ def _get_pair_compatibility_result_dict(pkgname) -> dict:
             if res.status.value == 'SUCCESS':
                 continue
             unsupported_pkgs = configs.PKG_PY_VERSION_NOT_SUPPORTED.get(ver)
-            if other_pkg in unsupported_pkgs:
+            opname = other_pkg.install_name
+            if opname in unsupported_pkgs:
                 continue
-            self_compat_res = _get_self_compatibility_result_dict(
-                other_pkg.install_name)
+            self_compat_res = _get_self_compatibility_result_dict(opname)
             if self_compat_res[pyver]['status'] != 'SUCCESS':
                 continue
 
             details = res.details if res.details else badge_utils.EMPTY_DETAILS
             result_dict[pyver]['status'] = res.status.value
-            result_dict[pyver]['details'][other_pkg] = details
+            result_dict[pyver]['details'][opname] = details
 
     return result_dict
 
