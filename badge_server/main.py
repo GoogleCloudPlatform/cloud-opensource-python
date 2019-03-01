@@ -227,7 +227,6 @@ def one_badge_image():
     response = flask.make_response(badge)
     response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
-    response.add_etag()
     return response
 
 
