@@ -47,12 +47,12 @@ from compatibility_lib import package
 app = flask.Flask(__name__)
 
 
-def _get_self_compatibility_result_dict(pkgname) -> dict:
+def _get_self_compatibility_result_dict(package_name) -> dict:
     """Return the dict which contains the self compatibility status and details
     for py2 and py3.
     """
-    pkg = package.Package(pkgname)
-    compatibility_results = badge_utils.store.get_self_compatibility(pkg)
+    package = package.Package(package_name)
+    compatibility_results = badge_utils.store.get_self_compatibility(package)
     result_dict = badge_utils._build_default_result(
         status='SUCCESS',
         details='The package does not support this version of python.')
@@ -65,7 +65,7 @@ def _get_self_compatibility_result_dict(pkgname) -> dict:
     return result_dict
 
 
-def _get_pair_compatibility_result_dict(pkgname) -> dict:
+def _get_pair_compatibility_result_dict(package_name) -> dict:
     """Get the pairwise dependency compatibility check result for a package.
 
     Rules:
@@ -80,15 +80,15 @@ def _get_pair_compatibility_result_dict(pkgname) -> dict:
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
 
-    pkg_pairs = [[package.Package(pkgname), package.Package(pkg)]
-                 for pkg in configs.PKG_LIST]
-    for pair in pkg_pairs:
-        _, other_pkg = pair
+    package_pairs = [[package.Package(package_name), package.Package(package)]
+                 for package in configs.PKG_LIST]
+    for pair in package_pairs:
+        _, other_package = pair
         compatibility_results = badge_utils.store.get_pair_compatibility(pair)
 
         for res in compatibility_results:
-            ver = res.python_major_version            # eg. '2', '3'
-            pyver = badge_utils.PY_VER_MAPPING[ver]   # eg. 'py2', 'py3'
+            version = res.python_major_version            # eg. '2', '3'
+            pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
             if result_dict[pyver]['details'] is None:
                 result_dict[pyver]['details'] = {}
@@ -97,30 +97,31 @@ def _get_pair_compatibility_result_dict(pkgname) -> dict:
             # Ignore the unsupported and non self compatible packages
             if res.status.value == 'SUCCESS':
                 continue
-            unsupported_pkgs = configs.PKG_PY_VERSION_NOT_SUPPORTED.get(ver)
-            opname = other_pkg.install_name
-            if opname in unsupported_pkgs:
+            unsupported_packages = configs.PKG_PY_VERSION_NOT_SUPPORTED.get(version)
+            other_package_name = other_package.install_name
+            if other_package_name in unsupported_packages:
                 continue
-            self_compat_res = _get_self_compatibility_result_dict(opname)
+            self_compat_res = _get_self_compatibility_result_dict(
+                other_package_name)
             if self_compat_res[pyver]['status'] != 'SUCCESS':
                 continue
 
             details = res.details if res.details else badge_utils.EMPTY_DETAILS
             result_dict[pyver]['status'] = res.status.value
-            result_dict[pyver]['details'][opname] = details
+            result_dict[pyver]['details'][other_package_name] = details
 
     return result_dict
 
 
-def _get_dependency_result_dict(pkgname) -> dict:
+def _get_dependency_result_dict(package_name) -> dict:
     """Return the dict which contains the self outdated dependencies
     status and details.
     """
     result_dict = badge_utils._build_default_result(
         status='UP_TO_DATE', include_pyversion=False, details={})
 
-    outdated_deps = badge_utils.highlighter.check_package(pkgname)
-    _deps_list = badge_utils.finder.get_deprecated_dep(pkgname)[1]
+    outdated_deps = badge_utils.highlighter.check_package(package_name)
+    _deps_list = badge_utils.finder.get_deprecated_dep(package_name)[1]
     deprecated_deps = ', '.join(_deps_list)
 
     details = {}
@@ -183,15 +184,15 @@ def _get_timestamp(
 
 
 def _get_results_from_compatibility_store(
-        pkgname: str,
+        package_name: str,
         commit_number: str = None):
     """Gets the status and timestamp"""
-    if not compat_utils._is_package_in_whitelist([pkgname]):
+    if not compat_utils._is_package_in_whitelist([package_name]):
         return ('UNKNOWN', '', {}, {}, {})
 
-    self_compat_res = _get_self_compatibility_result_dict(pkgname)
-    google_compat_res = _get_pair_compatibility_result_dict(pkgname)
-    dependency_res = _get_dependency_result_dict(pkgname)
+    self_compat_res = _get_self_compatibility_result_dict(package_name)
+    google_compat_res = _get_pair_compatibility_result_dict(package_name)
+    dependency_res = _get_dependency_result_dict(package_name)
 
     status = _get_status(self_compat_res, google_compat_res, dependency_res)
     timestamp = _get_timestamp(
@@ -207,40 +208,40 @@ def greetings():
     return 'Hello World!'
 
 
-def _format_badge_name(pkgname, bdgname, commit_number):
+def _format_badge_name(package_name, badge_name, commit_number):
     """Formats the badge name based on a number of factors.
-    This function assumes that the pkgname is whitelisted.
+    This function assumes that the package_name is whitelisted.
     """
     # TODO: implement checks for the following conditions
     # (they are currently using dummy info)
-    is_pypi = compat_utils._is_package_in_whitelist([pkgname])
+    is_pypi = compat_utils._is_package_in_whitelist([package_name])
     is_latest_commit = True
-    if 'github.com' in pkgname:
-        bdgname = bdgname or 'github head'
+    if 'github.com' in package_name:
+        badge_name = badge_name or 'github head'
         parens_text = 'master' if is_latest_commit else 'updating...'
-        bdgname = '{} ({})'.format(bdgname, parens_text)
+        badge_name = '{} ({})'.format(badge_name, parens_text)
     elif is_pypi:
-        bdgname = bdgname or pkgname
-        bdgname = '{} (PyPI)'.format(bdgname)
+        badge_name = badge_name or package_name
+        badge_name = '{} (PyPI)'.format(badge_name)
 
-    return bdgname
+    return badge_name
 
 
 @app.route('/one_badge_image')
 def one_badge_image():
     """Generate a badge that captures all checks."""
-    pkgname = flask.request.args.get('package')
-    bdgname = flask.request.args.get('badge')
+    package_name = flask.request.args.get('package')
+    badge_name = flask.request.args.get('badge')
 
-    commit_number = badge_utils._calculate_commit_number(pkgname)
-    status, timestamp, _, _, _ = _get_results_from_compatibility_store(pkgname)
+    commit_number = badge_utils._calculate_commit_number(package_name)
+    status, timestamp, _, _, _ = _get_results_from_compatibility_store(package_name)
     color = badge_utils.STATUS_COLOR_MAPPING[status]
-    bdgname = _format_badge_name(pkgname, bdgname, commit_number)
+    badge_name = _format_badge_name(package_name, badge_name, commit_number)
     details_link = '{}{}'.format(
         flask.request.url_root[:-1],
-        flask.url_for('one_badge_target', package=pkgname))
+        flask.url_for('one_badge_target', package=package_name))
     badge = pybadges.badge(
-        left_text=bdgname,
+        left_text=badge_name,
         right_text=status,
         right_color=color,
         whole_link=details_link)
@@ -256,14 +257,14 @@ def one_badge_image():
 
 @app.route('/one_badge_target')
 def one_badge_target():
-    pkgname = flask.request.args.get('package')
-    commit_number = badge_utils._calculate_commit_number(pkgname)
+    package_name = flask.request.args.get('package')
+    commit_number = badge_utils._calculate_commit_number(package_name)
 
     status, _, self, google, dep = _get_results_from_compatibility_store(
-        pkgname)
+        package_name)
     return flask.render_template(
         'one-badge.html',
-        package_name=pkgname,
+        package_name=package_name,
         self_compat_res=self,
         google_compat_res=google,
         dependency_res=dep,
