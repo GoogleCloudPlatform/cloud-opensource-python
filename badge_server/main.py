@@ -190,17 +190,16 @@ def _format_badge_name(pkgname, bdgname, commit_number):
     """Formats the badge name based on a number of factors.
     This function assumes that the pkgname is whitelisted.
     """
-    if bdgname is None:
-        bdgname = pkgname
-
     # TODO: implement checks for the following conditions
     # (they are currently using dummy info)
     is_pypi = compat_utils._is_package_in_whitelist([pkgname])
     is_latest_commit = True
     if 'github.com' in pkgname:
+        bdgname = bdgname or 'github head'
         parens_text = 'master' if is_latest_commit else 'updating...'
         bdgname = '{} ({})'.format(bdgname, parens_text)
     elif is_pypi:
+        bdgname = bdgname or pkgname
         bdgname = '{} (PyPI)'.format(bdgname)
 
     return bdgname
