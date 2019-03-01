@@ -245,6 +245,9 @@ def one_badge_image():
         right_color=color,
         whole_link=details_link)
 
+    # Set the cache for force refreshing the badge image when refreshing the
+    # github readme page, otherwise the image will stay the same and won't be
+    # updated for a while.
     response = flask.make_response(badge)
     response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
