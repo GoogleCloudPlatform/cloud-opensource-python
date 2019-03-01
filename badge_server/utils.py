@@ -104,12 +104,12 @@ def initialize_cache():
 
 
 def _build_default_result(
-        badge_type: BadgeType,
-        status: str = 'CALCULATING',
+        status: str,
+        include_pyversion: bool = True,
         details: Optional = None) -> dict:
     """Build the default result for different conditions."""
     # Dependency badge
-    if badge_type == BadgeType.DEP_BADGE:
+    if not include_pyversion:
         result = {
             'status': status,
             'details': details,

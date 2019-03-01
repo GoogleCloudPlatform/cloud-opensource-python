@@ -33,7 +33,6 @@ def _get_self_compatibility_result_dict(pkgname) -> dict:
     pkg = package.Package(pkgname)
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
     result_dict = badge_utils._build_default_result(
-        badge_type=badge_utils.BadgeType.SELF_COMP_BADGE,
         status='SUCCESS',
         details='The package does not support this version of python.')
     for res in compatibility_results:
@@ -58,8 +57,7 @@ def _get_pair_compatibility_result_dict(pkgname) -> dict:
         - Return success status if compatible with all the list of Google owned
           Python packages.
     """
-    result_dict = badge_utils._build_default_result(
-        badge_type=badge_utils.BadgeType.GOOGLE_COMP_BADGE, status='SUCCESS')
+    result_dict = badge_utils._build_default_result(status='SUCCESS')
 
     pkg_pairs = [[package.Package(pkgname), package.Package(pkg)]
                  for pkg in configs.PKG_LIST]
@@ -98,7 +96,7 @@ def _get_dependency_result_dict(pkgname) -> dict:
     status and details.
     """
     result_dict = badge_utils._build_default_result(
-        badge_utils.BadgeType.DEP_BADGE, 'UP_TO_DATE', {})
+        status='UP_TO_DATE', include_pyversion=False, details={})
 
     outdated_deps = badge_utils.highlighter.check_package(pkgname)
     _deps_list = badge_utils.finder.get_deprecated_dep(pkgname)[1]
