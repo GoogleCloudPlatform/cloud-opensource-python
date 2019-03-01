@@ -12,7 +12,28 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A HTTP server for badges"""
+"""A HTTP server that generates badges for google python projects
+
+Requires Python 3.6 or later.
+
+Example usage (defaults to using host='0.0.0.0', port=8080):
+    $ python3 main.py
+
+For production usage, this module exports a WSGI application called  `app`
+
+Supported routes:
+    /one_badge_image?package=<package_name>&badge=<badge_name>
+        - displays the badge image
+        - lefthand side displays badge name representing a py package
+        - righthand side displays the status
+    /one_badge_target?package=<package_name>
+        - displays self and pairwise compatibility
+        - displays any outdated dependencies
+
+Example Usage:
+    http://0.0.0.0:8080/one_badge_image?package=tensorflow&badge=TensorFlow
+    http://0.0.0.0:8080/one_badge_target?package=tensorflow
+"""
 
 import datetime
 import flask
