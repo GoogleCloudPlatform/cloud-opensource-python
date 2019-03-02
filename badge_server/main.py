@@ -144,9 +144,9 @@ def _get_dependency_dict(package_name) -> dict:
         dep_detail['priority'] = dep.priority.level.name
         dep_detail['detail'] = dep.priority.details
         outdated_depencdency_name_to_details[dep.name] = dep_detail
-        result_dict['status'] = max_level.name
-        result_dict['details'] = outdated_depencdency_name_to_details
-        result_dict['deprecated_deps'] = deprecated_deps
+    result_dict['status'] = max_level.name
+    result_dict['details'] = outdated_depencdency_name_to_details
+    result_dict['deprecated_deps'] = deprecated_deps
 
     result_dict['timestamp'] = datetime.datetime.now().strftime(
         badge_utils.TIMESTAMP_FORMAT)
