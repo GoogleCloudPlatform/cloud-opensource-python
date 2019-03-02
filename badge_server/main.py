@@ -260,10 +260,10 @@ def one_badge_image():
     # updated for a while.
     response.headers['Cache-Control'] = 'no-cache'
 
-    # https://tools.ietf.org/html/rfc2616#section-13.4 allows success responses to be cached if
-    # no `Cache-Control` header is set. Since the content of the image is frequently updated,
-    # caching is explicitly disabled to force the client/cache to refetch the content on every
-    # request.
+    # https://tools.ietf.org/html/rfc2616#section-13.4 allows success responses
+    # to be cached if no `Cache-Control` header is set. Since the content of
+    # the image is frequently updated, caching is explicitly disabled to force
+    # the client/cache to refetch the content on every request.
     response.add_etag()
 
     return response
