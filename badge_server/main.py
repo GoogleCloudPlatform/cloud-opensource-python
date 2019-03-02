@@ -114,7 +114,7 @@ def _get_pair_compatibility_dict(package_name) -> dict:
             if self_compat_res[pyver]['status'] != 'SUCCESS':
                 continue
 
-            details = res.details if res.details else badge_utils.EMPTY_DETAILS
+            details = res.details or badge_utils.EMPTY_DETAILS
             result_dict[pyver]['status'] = res.status.value
             result_dict[pyver]['details'][other_package_name] = details
 
