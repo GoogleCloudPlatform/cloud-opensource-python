@@ -192,7 +192,7 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_results_from_compatibility_store_success(self):
+    def test__get_badge_data_success(self):
         self_res = {
             'py2': { 'status': 'SUCCESS', 'details': {} },
             'py3': { 'status': 'SUCCESS', 'details': {} },
@@ -220,12 +220,11 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            status, _, _, _, _ = main._get_results_from_compatibility_store(
-                'opencensus')
+            status, _, _, _, _ = main._get_badge_data('opencensus')
 
         self.assertEqual(status, 'SUCCESS')
 
-    def test__get_results_from_compatibility_store_calculating(self):
+    def test__get_badge_data_calculating(self):
         self_res = {
             'py2': { 'status': 'CALCULATING', 'details': {} },
             'py3': { 'status': 'CALCULATING', 'details': {} },
@@ -253,12 +252,11 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            status, _, _, _, _ = main._get_results_from_compatibility_store(
-                'opencensus')
+            status, _, _, _, _ = main._get_badge_data('opencensus')
 
         self.assertEqual(status, 'CALCULATING')
 
-    def test__get_results_from_compatibility_store_check_warning(self):
+    def test__get_badge_data_check_warning(self):
         self_res = {
             'py2': { 'status': 'CHECK_WARNING', 'details': {} },
             'py3': { 'status': 'CHECK_WARNING', 'details': {} },
@@ -286,7 +284,6 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            status, _, _, _, _ = main._get_results_from_compatibility_store(
-                'opencensus')
+            status, _, _, _, _ = main._get_badge_data('opencensus')
 
         self.assertEqual(status, 'CHECK_WARNING')
