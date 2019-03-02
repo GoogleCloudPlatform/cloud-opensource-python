@@ -528,7 +528,6 @@ class CompatibilityStore:
         for pkg, version_info in result.dependency_info.items():
             if pkg == install_name_sanitized:
                 return version_info['installed_version']
-
         raise ValueError('missing version information for {}'.format(
             install_name_sanitized))
 
