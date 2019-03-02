@@ -293,7 +293,7 @@ class TestBadgeServer(unittest.TestCase):
 
         with patch_self_res, patch_google_res, patch_dep_res:
             self_res, google_res, dep_res = main._get_check_results('opencensus')
-            status = main._get_badge_status(self_res, badge_res, dep_res)
+            status = main._get_badge_status(self_res, google_res, dep_res)
 
         self.assertEqual(self_res, expected_self_res)
         self.assertEqual(google_res, expected_google_res)
