@@ -34,7 +34,7 @@ class TestBadgeServer(unittest.TestCase):
         self.patch_store = mock.patch(
             'main.badge_utils.store', self.fake_store)
 
-    def test__get_self_compatibility_result_dict(self):
+    def test__get_self_compatibility_dict(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
@@ -53,11 +53,11 @@ class TestBadgeServer(unittest.TestCase):
             frozenset([PACKAGE])] = [cr_py3]
 
         with self.patch_checker, self.patch_store:
-            result_dict = main._get_self_compatibility_result_dict('tensorflow')
+            result_dict = main._get_self_compatibility_dict('tensorflow')
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_pair_compatibility_result_dict_success(self):
+    def test__get_pair_compatibility_dict_success(self):
         expected = {
             'py2': {'status': 'SUCCESS', 'details': None},
             'py3': {'status': 'SUCCESS', 'details': None}
@@ -66,11 +66,11 @@ class TestBadgeServer(unittest.TestCase):
         pkgs = ['google-api-core', 'google-api-python-client']
         patch_configs = mock.patch('main.configs.PKG_LIST', pkgs)
         with self.patch_checker, self.patch_store, patch_configs:
-            result_dict = main._get_pair_compatibility_result_dict('opencensus')
+            result_dict = main._get_pair_compatibility_dict('opencensus')
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_pair_compatibility_result_dict_warning(self):
+    def test__get_pair_compatibility_dict_warning(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
@@ -102,7 +102,7 @@ class TestBadgeServer(unittest.TestCase):
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'main._get_self_compatibility_result_dict',
+            'main._get_self_compatibility_dict',
             mock_self_res)
 
         pkgs = ['package2']
@@ -110,12 +110,12 @@ class TestBadgeServer(unittest.TestCase):
 
         with self.patch_checker, self.patch_store, patch_self_status, \
                 patch_configs:
-            result_dict = main._get_pair_compatibility_result_dict(
+            result_dict = main._get_pair_compatibility_dict(
                 'package1')
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_pair_compatibility_result_dict_install_error(self):
+    def test__get_pair_compatibility_dict_install_error(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
@@ -142,12 +142,12 @@ class TestBadgeServer(unittest.TestCase):
         patch_configs = mock.patch('main.configs.PKG_LIST', pkgs)
 
         with self.patch_checker, self.patch_store, patch_configs:
-            result_dict = main._get_pair_compatibility_result_dict(
+            result_dict = main._get_pair_compatibility_dict(
                 'package1')
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_pair_compatibility_result_dict_self_conflict(self):
+    def test__get_pair_compatibility_dict_self_conflict(self):
         # If the pair package is not self compatible, the package being checked
         # should not be marked as CHECK_WARNING.
         from compatibility_lib import compatibility_store
@@ -179,7 +179,7 @@ class TestBadgeServer(unittest.TestCase):
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
-            'main._get_self_compatibility_result_dict',
+            'main._get_self_compatibility_dict',
             mock_self_res)
 
         pkgs = ['tensorflow']
@@ -187,7 +187,7 @@ class TestBadgeServer(unittest.TestCase):
 
         with self.patch_checker, self.patch_store, patch_self_status, \
                 patch_configs:
-            result_dict = main._get_pair_compatibility_result_dict(
+            result_dict = main._get_pair_compatibility_dict(
                 'package1')
 
         self.assertEqual(result_dict, expected)
@@ -213,11 +213,11 @@ class TestBadgeServer(unittest.TestCase):
         mock_dep_res.return_value = dep_res
 
         patch_self_res = mock.patch(
-            'main._get_self_compatibility_result_dict', mock_self_res)
+            'main._get_self_compatibility_dict', mock_self_res)
         patch_google_res = mock.patch(
-            'main._get_pair_compatibility_result_dict', mock_google_res)
+            'main._get_pair_compatibility_dict', mock_google_res)
         patch_dep_res = mock.patch(
-            'main._get_dependency_result_dict', mock_dep_res)
+            'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
             status, _, _, _, _ = main._get_results_from_compatibility_store(
@@ -246,11 +246,11 @@ class TestBadgeServer(unittest.TestCase):
         mock_dep_res.return_value = dep_res
 
         patch_self_res = mock.patch(
-            'main._get_self_compatibility_result_dict', mock_self_res)
+            'main._get_self_compatibility_dict', mock_self_res)
         patch_google_res = mock.patch(
-            'main._get_pair_compatibility_result_dict', mock_google_res)
+            'main._get_pair_compatibility_dict', mock_google_res)
         patch_dep_res = mock.patch(
-            'main._get_dependency_result_dict', mock_dep_res)
+            'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
             status, _, _, _, _ = main._get_results_from_compatibility_store(
@@ -279,11 +279,11 @@ class TestBadgeServer(unittest.TestCase):
         mock_dep_res.return_value = dep_res
 
         patch_self_res = mock.patch(
-            'main._get_self_compatibility_result_dict', mock_self_res)
+            'main._get_self_compatibility_dict', mock_self_res)
         patch_google_res = mock.patch(
-            'main._get_pair_compatibility_result_dict', mock_google_res)
+            'main._get_pair_compatibility_dict', mock_google_res)
         patch_dep_res = mock.patch(
-            'main._get_dependency_result_dict', mock_dep_res)
+            'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
             status, _, _, _, _ = main._get_results_from_compatibility_store(
