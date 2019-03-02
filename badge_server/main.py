@@ -154,11 +154,23 @@ def _get_dependency_dict(package_name) -> dict:
     return result_dict
 
 
-def _get_status(
+def _get_badge_status(
         self_compat_res: dict,
         google_compat_res: dict,
         dependency_res: dict) -> str:
-    """Get the cummulative status"""
+    """Get the badge status.
+
+    The badge status will determine the right hand text and the color of
+    the badge.
+
+    Badge status to color mapping:
+    SUCCESS -> green
+    CALCULATING -> blue
+    UNKNOWN -> purple
+    CHECK_WARNING -> red
+
+    See badge_utils.STATUS_COLOR_MAPPING.
+    """
     dep_status = dependency_res['status']
     dep_status = 'SUCCESS' if dep_status == 'UP_TO_DATE' else dep_status
 
@@ -192,7 +204,12 @@ def _get_timestamp(
 
 
 def _get_badge_data(package_name: str, commit_number: str = None):
-    """Gets the status and timestamp"""
+    """Gets the badge data.
+
+    Returns a 5 tuple: status, timestamp, and self compatibility,
+    pair compatibility, dependency dicts that are used to generate badge images
+    and badge target pages.
+    """
     if not compat_utils._is_package_in_whitelist([package_name]):
         return ('UNKNOWN', '', {}, {}, {})
 
@@ -200,7 +217,7 @@ def _get_badge_data(package_name: str, commit_number: str = None):
     google_compat_res = _get_pair_compatibility_dict(package_name)
     dependency_res = _get_dependency_dict(package_name)
 
-    status = _get_status(self_compat_res, google_compat_res, dependency_res)
+    status = _get_badge_status(self_compat_res, google_compat_res, dependency_res)
     timestamp = _get_timestamp(
         self_compat_res, google_compat_res, dependency_res)
 
