@@ -132,7 +132,7 @@ def _get_dependency_dict(package_name) -> dict:
     _deps_list = badge_utils.finder.get_deprecated_dep(package_name)[1]
     deprecated_deps = ', '.join(_deps_list)
 
-    details = {}
+    outdated_depencdency_name_to_details = {}
     max_level = badge_utils.priority_level.UP_TO_DATE
     for dep in outdated_deps:
         dep_detail = {}
@@ -143,9 +143,9 @@ def _get_dependency_dict(package_name) -> dict:
         dep_detail['latest_version'] = dep.latest_version
         dep_detail['priority'] = dep.priority.level.name
         dep_detail['detail'] = dep.priority.details
-        details[dep.name] = dep_detail
+        outdated_depencdency_name_to_details[dep.name] = dep_detail
         result_dict['status'] = max_level.name
-        result_dict['details'] = details
+        result_dict['details'] = outdated_depencdency_name_to_details
         result_dict['deprecated_deps'] = deprecated_deps
 
     result_dict['timestamp'] = datetime.datetime.now().strftime(
