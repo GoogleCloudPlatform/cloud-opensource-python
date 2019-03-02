@@ -148,9 +148,6 @@ def _get_dependency_dict(package_name) -> dict:
     result_dict['details'] = outdated_depencdency_name_to_details
     result_dict['deprecated_deps'] = deprecated_deps
 
-    result_dict['timestamp'] = datetime.datetime.now().strftime(
-        badge_utils.TIMESTAMP_FORMAT)
-
     return result_dict
 
 
@@ -171,6 +168,13 @@ def _get_badge_status(
 
     See badge_utils.STATUS_COLOR_MAPPING.
     """
+
+    # If a package is not whitelisted, return 'UNKNOWN'
+    unknown_args = ({}, {}, {})
+    args = (self_compat_res, google_compat_res, dependency_res)
+    if args == unknown_args:
+        return 'UNKNOWN'
+
     dep_status = dependency_res['status']
     dep_status = 'SUCCESS' if dep_status == 'UP_TO_DATE' else dep_status
 
@@ -189,40 +193,20 @@ def _get_badge_status(
     return 'CHECK_WARNING'
 
 
-def _get_timestamp(
-        self_compat_res: dict,
-        google_compat_res: dict,
-        dependency_res: dict) -> str:
-    """Get the timestamp"""
-    self_compat_ts = self_compat_res.get('timestamp', '')
-    google_compat_ts = google_compat_res.get('timestamp', '')
-    dependency_ts = dependency_res.get('timestamp', '')
-    ts_list = [self_compat_ts, google_compat_ts, dependency_ts]
-    ts_list.sort(reverse=True)
-    timestamp = ts_list[0] if ts_list else ''
-    return timestamp
+def _get_check_results(package_name: str, commit_number: str = None):
+    """Gets the compatibility and dependency check results.
 
-
-def _get_badge_data(package_name: str, commit_number: str = None):
-    """Gets the badge data.
-
-    Returns a 5 tuple: status, timestamp, and self compatibility,
-    pair compatibility, dependency dicts that are used to generate badge images
-    and badge target pages.
+    Returns a 3 tuple: self compatibility, pair compatibility, dependency dicts
+    that are used to generate badge images and badge target pages.
     """
     if not compat_utils._is_package_in_whitelist([package_name]):
-        return ('UNKNOWN', '', {}, {}, {})
+        return ({}, {}, {})
 
     self_compat_res = _get_self_compatibility_dict(package_name)
     google_compat_res = _get_pair_compatibility_dict(package_name)
     dependency_res = _get_dependency_dict(package_name)
 
-    status = _get_badge_status(self_compat_res, google_compat_res, dependency_res)
-    timestamp = _get_timestamp(
-        self_compat_res, google_compat_res, dependency_res)
-
-    return (status, timestamp, self_compat_res, google_compat_res,
-            dependency_res)
+    return (self_compat_res, google_compat_res, dependency_res)
 
 
 @app.route('/')
@@ -257,7 +241,8 @@ def one_badge_image():
     badge_name = flask.request.args.get('badge')
 
     commit_number = badge_utils._calculate_commit_number(package_name)
-    status, timestamp, _, _, _ = _get_badge_data(package_name)
+    self, google, dependency = _get_check_results(package_name)
+    status = _get_badge_status(self, google, dependency)
     color = badge_utils.STATUS_COLOR_MAPPING[status]
     badge_name = _format_badge_name(package_name, badge_name, commit_number)
     details_link = '{}{}'.format(
@@ -291,14 +276,16 @@ def one_badge_target():
     package_name = flask.request.args.get('package')
     commit_number = badge_utils._calculate_commit_number(package_name)
 
-    status, _, self, google, dep = _get_badge_data(package_name)
-    return flask.render_template(
+    self, google, dependency = _get_check_results(package_name)
+    status = _get_badge_status(self, google, dependency)
+    target = flask.render_template(
         'one-badge.html',
         package_name=package_name,
         self_compat_res=self,
         google_compat_res=google,
         dependency_res=dep,
         commit_number=commit_number)
+    return target
 
 
 if __name__ == '__main__':

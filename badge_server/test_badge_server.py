@@ -192,25 +192,25 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_badge_data_success(self):
-        self_res = {
+    def test__get_check_results_success(self):
+        expected_self_res = {
             'py2': { 'status': 'SUCCESS', 'details': {} },
             'py3': { 'status': 'SUCCESS', 'details': {} },
         }
-        google_res = {
+        expected_google_res = {
             'py2': { 'status': 'SUCCESS', 'details': {} },
             'py3': { 'status': 'SUCCESS', 'details': {} },
         }
-        dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
+        expected_dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
 
         mock_self_res = mock.Mock()
-        mock_self_res.return_value = self_res
+        mock_self_res.return_value = expected_self_res
 
         mock_google_res = mock.Mock()
-        mock_google_res.return_value = google_res
+        mock_google_res.return_value = expected_google_res
 
         mock_dep_res = mock.Mock()
-        mock_dep_res.return_value = dep_res
+        mock_dep_res.return_value = expected_dep_res
 
         patch_self_res = mock.patch(
             'main._get_self_compatibility_dict', mock_self_res)
@@ -220,29 +220,33 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            status, _, _, _, _ = main._get_badge_data('opencensus')
+            self_res, google_res, dep_res = main._get_check_results('opencensus')
+            status = main._get_badge_status(self_res, google_res, dep_res)
 
+        self.assertEqual(self_res, expected_self_res)
+        self.assertEqual(google_res, expected_google_res)
+        self.assertEqual(dep_res, expected_dep_res)
         self.assertEqual(status, 'SUCCESS')
 
-    def test__get_badge_data_calculating(self):
-        self_res = {
+    def test__get_check_results_calculating(self):
+        expected_self_res = {
             'py2': { 'status': 'CALCULATING', 'details': {} },
             'py3': { 'status': 'CALCULATING', 'details': {} },
         }
-        google_res = {
+        expected_google_res = {
             'py2': { 'status': 'CALCULATING', 'details': {} },
             'py3': { 'status': 'CALCULATING', 'details': {} },
         }
-        dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
+        expected_dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
 
         mock_self_res = mock.Mock()
-        mock_self_res.return_value = self_res
+        mock_self_res.return_value = expected_self_res
 
         mock_google_res = mock.Mock()
-        mock_google_res.return_value = google_res
+        mock_google_res.return_value = expected_google_res
 
         mock_dep_res = mock.Mock()
-        mock_dep_res.return_value = dep_res
+        mock_dep_res.return_value = expected_dep_res
 
         patch_self_res = mock.patch(
             'main._get_self_compatibility_dict', mock_self_res)
@@ -252,29 +256,33 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            status, _, _, _, _ = main._get_badge_data('opencensus')
+            self_res, google_res, dep_res = main._get_check_results('opencensus')
+            status = main._get_badge_status(self_res, google_res, dep_res)
 
+        self.assertEqual(self_res, expected_self_res)
+        self.assertEqual(google_res, expected_google_res)
+        self.assertEqual(dep_res, expected_dep_res)
         self.assertEqual(status, 'CALCULATING')
 
-    def test__get_badge_data_check_warning(self):
-        self_res = {
+    def test__get_check_results_check_warning(self):
+        expected_self_res = {
             'py2': { 'status': 'CHECK_WARNING', 'details': {} },
             'py3': { 'status': 'CHECK_WARNING', 'details': {} },
         }
-        google_res = {
+        expected_google_res = {
             'py2': { 'status': 'SUCCESS', 'details': {} },
             'py3': { 'status': 'SUCCESS', 'details': {} },
         }
-        dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
+        expected_dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
 
         mock_self_res = mock.Mock()
-        mock_self_res.return_value = self_res
+        mock_self_res.return_value = expected_self_res
 
         mock_google_res = mock.Mock()
-        mock_google_res.return_value = google_res
+        mock_google_res.return_value = expected_google_res
 
         mock_dep_res = mock.Mock()
-        mock_dep_res.return_value = dep_res
+        mock_dep_res.return_value = expected_dep_res
 
         patch_self_res = mock.patch(
             'main._get_self_compatibility_dict', mock_self_res)
@@ -284,6 +292,10 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            status, _, _, _, _ = main._get_badge_data('opencensus')
+            self_res, badge_res, dep_res = main._get_check_results('opencensus')
+            status = main._get_badge_status(self_res, badge_res, dep_res)
 
+        self.assertEqual(self_res, expected_self_res)
+        self.assertEqual(google_res, expected_google_res)
+        self.assertEqual(dep_res, expected_dep_res)
         self.assertEqual(status, 'CHECK_WARNING')
