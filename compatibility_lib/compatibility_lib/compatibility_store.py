@@ -469,8 +469,12 @@ class CompatibilityStore:
                 if install_name not in install_name_to_compatibility_result:
                     install_name_to_compatibility_result[install_name] = cs
                 else:
+                    compatibility_res = install_name_to_compatibility_result[
+                        install_name]
+                    if compatibility_res.dependency_info is None:
+                        continue
                     old_version_string = self._get_package_version(
-                        install_name_to_compatibility_result[install_name])
+                        compatibility_res)
                     new_version_string = self._get_package_version(cs)
 
                     old_version = version.LooseVersion(old_version_string)
