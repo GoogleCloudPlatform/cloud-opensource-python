@@ -35,7 +35,6 @@ Example Usage:
     http://0.0.0.0:8080/one_badge_target?package=tensorflow
 """
 
-import datetime
 import flask
 import pybadges
 
@@ -277,13 +276,12 @@ def one_badge_target():
     commit_number = badge_utils._calculate_commit_number(package_name)
 
     self, google, dependency = _get_check_results(package_name)
-    status = _get_badge_status(self, google, dependency)
     target = flask.render_template(
         'one-badge.html',
         package_name=package_name,
         self_compat_res=self,
         google_compat_res=google,
-        dependency_res=dep,
+        dependency_res=dependency,
         commit_number=commit_number)
     return target
 

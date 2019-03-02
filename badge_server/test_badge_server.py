@@ -292,7 +292,7 @@ class TestBadgeServer(unittest.TestCase):
             'main._get_dependency_dict', mock_dep_res)
 
         with patch_self_res, patch_google_res, patch_dep_res:
-            self_res, badge_res, dep_res = main._get_check_results('opencensus')
+            self_res, google_res, dep_res = main._get_check_results('opencensus')
             status = main._get_badge_status(self_res, badge_res, dep_res)
 
         self.assertEqual(self_res, expected_self_res)
