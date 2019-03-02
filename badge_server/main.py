@@ -185,10 +185,6 @@ def _get_badge_status(
 
     if ['SUCCESS'] * len(_statuses) == _statuses:
         return 'SUCCESS'
-    elif 'CALCULATING' in _statuses:
-        return 'CALCULATING'
-    elif 'UNKNOWN' in _statuses:
-        return 'UNKNOWN'
     return 'CHECK_WARNING'
 
 
