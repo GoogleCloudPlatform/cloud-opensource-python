@@ -98,10 +98,18 @@ def _get_pair_compatibility_dict(package_name) -> dict:
             # Ignore the unsupported and non self compatible packages
             if res.status.value == 'SUCCESS':
                 continue
+
+            # Not all packages are supported in both Python 2 and Python 3. If
+            # `other_package` is not supported in the Python version being
+            # checked then skip the result.
             unsupported_packages = unsupported_package_mapping.get(version)
             other_package_name = other_package.install_name
             if other_package_name in unsupported_packages:
                 continue
+
+            # If `other_package` is not self compatible (meaning that it has a
+            # conflict within it's own dependencies) then skip the result since
+            # the `other_package` will be incompatible with all other packages.
             self_compat_res = _get_self_compatibility_dict(other_package_name)
             if self_compat_res[pyver]['status'] != 'SUCCESS':
                 continue
@@ -244,12 +252,20 @@ def one_badge_image():
         right_color=color,
         whole_link=details_link)
 
+    response = flask.make_response(badge)
+    response.content_type = badge_utils.SVG_CONTENT_TYPE
+
     # Set the cache for force refreshing the badge image when refreshing the
     # github readme page, otherwise the image will stay the same and won't be
     # updated for a while.
-    response = flask.make_response(badge)
-    response.content_type = badge_utils.SVG_CONTENT_TYPE
     response.headers['Cache-Control'] = 'no-cache'
+
+    # https://tools.ietf.org/html/rfc2616#section-13.4 allows success responses to be cached if
+    # no `Cache-Control` header is set. Since the content of the image is frequently updated,
+    # caching is explicitly disabled to force the client/cache to refetch the content on every
+    # request.
+    response.add_etag()
+
     return response
 
 
