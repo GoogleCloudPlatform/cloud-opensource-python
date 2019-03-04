@@ -161,19 +161,11 @@ def _get_badge_status(
 
     Badge status to color mapping:
     SUCCESS -> green
-    CALCULATING -> blue
     UNKNOWN -> purple
     CHECK_WARNING -> red
 
     See badge_utils.STATUS_COLOR_MAPPING.
     """
-
-    # If a package is not whitelisted, return 'UNKNOWN'
-    unknown_args = ({}, {}, {})
-    args = (self_compat_res, google_compat_res, dependency_res)
-    if args == unknown_args:
-        return 'UNKNOWN'
-
     dep_status = dependency_res['status']
     dep_status = 'SUCCESS' if dep_status == 'UP_TO_DATE' else dep_status
 
@@ -185,6 +177,8 @@ def _get_badge_status(
 
     if ['SUCCESS'] * len(_statuses) == _statuses:
         return 'SUCCESS'
+    elif 'UNKNOWN' in _statuses:
+        return 'UNKNOWN'
     return 'CHECK_WARNING'
 
 
@@ -194,8 +188,16 @@ def _get_check_results(package_name: str, commit_number: str = None):
     Returns a 3 tuple: self compatibility, pair compatibility, dependency dicts
     that are used to generate badge images and badge target pages.
     """
+    self_compat_res = badge_utils._build_default_result(
+        status='UNKNOWN', details={})
+    google_compat_res = badge_utils._build_default_result(
+        status='UNKNOWN', details={})
+    dependency_res = badge_utils._build_default_result(
+        status='UNKNOWN', include_pyversion=False, details={})
+
+    # If a package is not whitelisted, return defaults
     if not compat_utils._is_package_in_whitelist([package_name]):
-        return ({}, {}, {})
+        return (self_compat_res, google_compat_res, dependency_res)
 
     self_compat_res = _get_self_compatibility_dict(package_name)
     google_compat_res = _get_pair_compatibility_dict(package_name)
