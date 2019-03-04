@@ -102,7 +102,6 @@ def _get_pair_compatibility_dict(package_name) -> dict:
         }
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
-    from pdb import set_trace; set_trace()
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
