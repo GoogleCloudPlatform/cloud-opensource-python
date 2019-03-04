@@ -49,6 +49,18 @@ app = flask.Flask(__name__)
 def _get_self_compatibility_dict(package_name) -> dict:
     """Return the dict which contains the self compatibility status and details
     for py2 and py3.
+
+    Args:
+        package_name: the name of the package to check.
+
+    Returns:
+        A dict containing the self compatibility status and details for any
+        self incompatibilities. The dict will be formatted like the following:
+
+        {
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
+        }
     """
     pkg = package.Package(package_name)
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
@@ -76,6 +88,18 @@ def _get_pair_compatibility_dict(package_name) -> dict:
               pairwise conflict isn't related to the package being checked.
         - Return success status if compatible with all the list of Google owned
           Python packages.
+
+    Args:
+        package_name: the name of the package to get outdated dependencies for.
+
+    Returns:
+        A dict containing the pair compatibility status and details for any
+        pair incompatibilities. The dict will be formatted like the following:
+
+        {
+            'py2': { 'status': 'SUCCESS', 'details': {} },
+            'py3': { 'status': 'SUCCESS', 'details': {} },
+        }
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
 
@@ -123,6 +147,17 @@ def _get_pair_compatibility_dict(package_name) -> dict:
 def _get_dependency_dict(package_name) -> dict:
     """Return the dict which contains the self outdated dependencies
     status and details.
+
+    Args:
+        package_name: the name of the package to get outdated dependencies for.
+
+    Returns:
+        A dict containing the outdated dependency status and details for any
+        outdated dependencies. The dict will be formatted like the following:
+
+        {
+            'status': 'UP_TO_DATE', 'details': {}
+        }
     """
     result_dict = badge_utils._build_default_result(
         status='UP_TO_DATE', include_pyversion=False, details={})
