@@ -102,12 +102,11 @@ def _get_pair_compatibility_dict(package_name) -> dict:
         }
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
-
-    package_pairs = [[package.Package(package_name), package.Package(pkgname)]
-                     for pkgname in configs.PKG_LIST]
-    for pair in package_pairs:
+    from pdb import set_trace; set_trace()
+    pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
+        package_name)
+    for pair, compatibility_results in pair_mapping.items():
         _, other_package = pair
-        compatibility_results = badge_utils.store.get_pair_compatibility(pair)
         unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
 
         for res in compatibility_results:
