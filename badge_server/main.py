@@ -106,6 +106,8 @@ def _get_pair_compatibility_dict(package_name) -> dict:
         package_name)
     for pair, compatibility_results in pair_mapping.items():
         _, other_package = pair
+        if package_name == other_package.install_name:
+            other_package, _ = pair
         unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
 
         for res in compatibility_results:
