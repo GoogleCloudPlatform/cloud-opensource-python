@@ -283,16 +283,11 @@ def one_badge_image():
     response = flask.make_response(badge)
     response.content_type = badge_utils.SVG_CONTENT_TYPE
 
-    # Set the cache for force refreshing the badge image when refreshing the
-    # github readme page, otherwise the image will stay the same and won't be
-    # updated for a while.
-    response.headers['Cache-Control'] = 'no-cache'
-
     # https://tools.ietf.org/html/rfc2616#section-13.4 allows success responses
     # to be cached if no `Cache-Control` header is set. Since the content of
     # the image is frequently updated, caching is explicitly disabled to force
     # the client/cache to refetch the content on every request.
-    response.add_etag()
+    response.headers['Cache-Control'] = 'no-cache'
 
     return response
 
