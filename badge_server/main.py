@@ -46,12 +46,12 @@ from compatibility_lib import package
 app = flask.Flask(__name__)
 
 
-def _get_self_compatibility_dict(package_name) -> dict:
-    """Return the dict which contains the self compatibility status and details
-    for py2 and py3.
+def _get_self_compatibility_dict(package_name: str) -> dict:
+    """Returns a dict containing self compatibility status and details.
 
     Args:
-        package_name: the name of the package to check.
+        package_name: the name of the package to check (e.g.
+        "google-cloud-storage").
 
     Returns:
         A dict containing the self compatibility status and details for any
@@ -76,7 +76,7 @@ def _get_self_compatibility_dict(package_name) -> dict:
     return result_dict
 
 
-def _get_pair_compatibility_dict(package_name) -> dict:
+def _get_pair_compatibility_dict(package_name: str) -> dict:
     """Get the pairwise dependency compatibility check result for a package.
 
     Rules:
@@ -90,7 +90,8 @@ def _get_pair_compatibility_dict(package_name) -> dict:
           Python packages.
 
     Args:
-        package_name: the name of the package to get outdated dependencies for.
+        package_name: the name of the package to get pairwise dependencies for
+        (e.g. "google-cloud-storage").
 
     Returns:
         A dict containing the pair compatibility status and details for any
@@ -144,12 +145,12 @@ def _get_pair_compatibility_dict(package_name) -> dict:
     return result_dict
 
 
-def _get_dependency_dict(package_name) -> dict:
-    """Return the dict which contains the self outdated dependencies
-    status and details.
+def _get_dependency_dict(package_name: str) -> dict:
+    """Returns a dict containing outdated dependencies' status and details.
 
     Args:
-        package_name: the name of the package to get outdated dependencies for.
+        package_name: the name of the package to get outdated dependencies for
+        (e.g. "google-cloud-storage").
 
     Returns:
         A dict containing the outdated dependency status and details for any
