@@ -195,25 +195,20 @@ def _get_badge_status(
     The badge status will determine the right hand text and the color of
     the badge.
 
-    Badge status to color mapping:
-    SUCCESS -> green
-    UNKNOWN -> purple
-    CHECK_WARNING -> red
-
     See badge_utils.STATUS_COLOR_MAPPING.
     """
     dep_status = dependency_res['status']
     dep_status = 'SUCCESS' if dep_status == 'UP_TO_DATE' else dep_status
 
-    _statuses = []
+    statuses = []
     for pyver in ['py2', 'py3']:
-        _statuses.append(self_compat_res[pyver]['status'])
-        _statuses.append(google_compat_res[pyver]['status'])
-    _statuses.append(dep_status)
+        statuses.append(self_compat_res[pyver]['status'])
+        statuses.append(google_compat_res[pyver]['status'])
+    statuses.append(dep_status)
 
-    if ['SUCCESS'] * len(_statuses) == _statuses:
+    if all(status == 'SUCCESS' for status in statuses):
         return 'SUCCESS'
-    elif 'UNKNOWN' in _statuses:
+    elif 'UNKNOWN' in statuses:
         return 'UNKNOWN'
     return 'CHECK_WARNING'
 
