@@ -121,7 +121,6 @@ class CompatibilityStore:
                    for pair in package_pairs}
         return results
 
-
     def get_compatibility_combinations(self,
                                        packages: List[package.Package]) -> \
             Mapping[FrozenSet[package.Package], List[
