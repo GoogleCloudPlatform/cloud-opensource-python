@@ -249,9 +249,7 @@ def greetings():
 
 
 def _format_badge_name(package_name, badge_name, commit_number):
-    """Formats the badge name based on a number of factors.
-    This function assumes that the package_name is whitelisted.
-    """
+  """Formats the badge name (assumes package_name is whitelisted)."""
     # TODO: implement checks for the following conditions
     # (they are currently using dummy info)
     is_pypi = compat_utils._is_package_in_whitelist([package_name])
