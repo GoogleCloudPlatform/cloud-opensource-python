@@ -102,14 +102,13 @@ class CompatibilityStore:
         """Returns a mapping between package pairs and CompatibilityResults.
 
         Args:
-            packages: The package to check compatibility for.
+            package_name: The package to check compatibility for.
 
         Returns:
             A mapping between every pairing between the given package with
             each google cloud python package (found in configs.PKG_LIST) and
             their pairwise CompatibilityResults. For example:
-            get_pairwise_compatibility_for_package('package_name');
-            configs.PKG_LIST = [p2, p3, p4] =>
+            Given package_name = 'p1', configs.PKG_LIST = [p2, p3, p4] =>
             {
                frozenset([p1, p2]): [CompatibilityResult...],
                frozenset([p1, p3]): [CompatibilityResult...],
