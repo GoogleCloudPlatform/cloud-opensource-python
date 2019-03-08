@@ -256,19 +256,13 @@ def greetings():
 
 def _format_badge_name(package_name, badge_name, commit_number):
     """Formats the badge name (assumes package_name is whitelisted)."""
-    # TODO: implement checks for the following conditions
-    # (they are currently using dummy info)
-    is_pypi = compat_utils._is_package_in_whitelist([package_name])
-    is_latest_commit = True
-    if 'github.com' in package_name:
-        badge_name = badge_name or 'github head'
-        parens_text = 'master' if is_latest_commit else 'updating...'
-        badge_name = '{} ({})'.format(badge_name, parens_text)
-    elif is_pypi:
-        badge_name = badge_name or package_name
-        badge_name = '{} (PyPI)'.format(badge_name)
+    if badge_name:
+        return badge_name
 
-    return badge_name
+    if 'github.com' in package_name:
+        return 'compatibility check (master)'
+    else:
+        return 'compatibility check (pypi)'
 
 
 @app.route('/one_badge_image')
