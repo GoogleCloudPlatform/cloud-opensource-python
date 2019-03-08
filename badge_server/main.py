@@ -96,8 +96,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
     Returns:
         A dict containing the pair compatibility status and details for any
         pair incompatibilities. Note that details can map to None, a string,
-        or another dict. The returned dict will be formatted like the following:
-
+        or another dict. The returned dict will be formatted like the
+        following:
         {
             'py2': {'status': 'INSTALL_ERROR',
                     'details': {'apache-beam[gcp]': 'NO DETAILS'}},
@@ -158,7 +158,6 @@ def _get_dependency_dict(package_name: str) -> dict:
         A dict containing the outdated dependency status and details for any
         outdated dependencies. Note that details maps to a dict that may be
         nested. The returned dict will be formatted like the following:
-
         {
             'status': 'HIGH_PRIORITY',
             'details': {
@@ -166,7 +165,8 @@ def _get_dependency_dict(package_name: str) -> dict:
                     'installed_version': '1.6.1',
                     'latest_version': '1.10.0',
                     'priority': 'HIGH_PRIORITY',
-                    'detail': 'google-cloud-bigquery is 3 or more minor versions behind the latest version'
+                    'detail': ('google-cloud-bigquery is 3 or more minor'
+                              'versions behind the latest version')
                 },
             },
         }
