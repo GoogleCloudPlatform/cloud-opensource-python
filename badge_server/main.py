@@ -95,11 +95,13 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
 
     Returns:
         A dict containing the pair compatibility status and details for any
-        pair incompatibilities. The dict will be formatted like the following:
+        pair incompatibilities. Note that details can map to None, a string,
+        or another dict. The returned dict will be formatted like the following:
 
         {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': {'status': 'INSTALL_ERROR',
+                    'details': {'apache-beam[gcp]': 'NO DETAILS'}},
+            'py3': {'status': 'SUCCESS', 'details': {}}
         }
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
@@ -154,10 +156,19 @@ def _get_dependency_dict(package_name: str) -> dict:
 
     Returns:
         A dict containing the outdated dependency status and details for any
-        outdated dependencies. The dict will be formatted like the following:
+        outdated dependencies. Note that details maps to a dict that may be
+        nested. The returned dict will be formatted like the following:
 
         {
-            'status': 'UP_TO_DATE', 'details': {}
+            'status': 'HIGH_PRIORITY',
+            'details': {
+                'google-cloud-bigquery': {
+                    'installed_version': '1.6.1',
+                    'latest_version': '1.10.0',
+                    'priority': 'HIGH_PRIORITY',
+                    'detail': 'google-cloud-bigquery is 3 or more minor versions behind the latest version'
+                },
+            },
         }
     """
     result_dict = badge_utils._build_default_result(
