@@ -363,16 +363,17 @@ class CompatibilityStore:
         """Returns a mapping between package pairs and CompatibilityResults.
 
         Args:
-            package_name: The packages to check compatibility for.
+            package_name: The package to check compatibility for.
 
         Returns:
-            A mapping between every combination of input packages and their
-            CompatibilityResults. For example:
-            get_compatibility_combinations(packages = [p1, p2, p3]) =>
+            A mapping between every pairing between the given package with
+            each google cloud python package (found in configs.PKG_LIST) and
+            their pairwise CompatibilityResults. For example:
+            Given package_name = 'p1', configs.PKG_LIST = [p2, p3, p4] =>
             {
                frozenset([p1, p2]): [CompatibilityResult...],
                frozenset([p1, p3]): [CompatibilityResult...],
-               frozenset([p2, p3]): [CompatibilityResult...],
+               frozenset([p1, p4]): [CompatibilityResult...],
             }.
         """
         pkg_sets = [sorted([package_name, pkg]) for pkg in configs.PKG_LIST]

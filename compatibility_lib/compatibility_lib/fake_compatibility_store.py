@@ -19,6 +19,7 @@ from typing import Iterable, FrozenSet, List, Mapping
 
 from compatibility_lib import package
 from compatibility_lib import compatibility_store
+from compatibility_lib import configs
 
 
 class CompatibilityStore:
@@ -94,6 +95,31 @@ class CompatibilityStore:
             self._packages_to_compatibility_result.get(
                 frozenset(packages),
                 []))
+
+    def get_pairwise_compatibility_for_package(self, package_name: str) -> \
+            Mapping[FrozenSet[package.Package],
+                    List[compatibility_store.CompatibilityResult]]:
+        """Returns a mapping between package pairs and CompatibilityResults.
+
+        Args:
+            package_name: The package to check compatibility for.
+
+        Returns:
+            A mapping between every pairing between the given package with
+            each google cloud python package (found in configs.PKG_LIST) and
+            their pairwise CompatibilityResults. For example:
+            Given package_name = 'p1', configs.PKG_LIST = [p2, p3, p4] =>
+            {
+               frozenset([p1, p2]): [CompatibilityResult...],
+               frozenset([p1, p3]): [CompatibilityResult...],
+               frozenset([p1, p4]): [CompatibilityResult...],
+            }.
+        """
+        package_pairs = [[package.Package(package_name), package.Package(name)]
+                         for name in configs.PKG_LIST]
+        results = {frozenset(pair): self.get_pair_compatibility(pair)
+                   for pair in package_pairs}
+        return results
 
     def get_compatibility_combinations(self,
                                        packages: List[package.Package]) -> \
