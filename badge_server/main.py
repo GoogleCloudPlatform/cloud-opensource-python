@@ -51,7 +51,7 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
 
     Args:
         package_name: the name of the package to check (e.g.
-        "google-cloud-storage").
+            "google-cloud-storage").
 
     Returns:
         A dict containing the self compatibility status and details for any
@@ -91,7 +91,7 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
 
     Args:
         package_name: the name of the package to get pairwise dependencies for
-        (e.g. "google-cloud-storage").
+            (e.g. "google-cloud-storage").
 
     Returns:
         A dict containing the pair compatibility status and details for any
@@ -152,7 +152,7 @@ def _get_dependency_dict(package_name: str) -> dict:
 
     Args:
         package_name: the name of the package to get outdated dependencies for
-        (e.g. "google-cloud-storage").
+            (e.g. "google-cloud-storage").
 
     Returns:
         A dict containing the outdated dependency status and details for any
