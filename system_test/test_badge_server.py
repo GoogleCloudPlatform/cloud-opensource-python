@@ -38,8 +38,7 @@ def wait_app_to_start():
 
 def run_application():
     """Start running the compatibility checker server."""
-    cmd = 'python badge_server/main.py ' \
-          '--host=\'0.0.0.0\' --port=8080'
+    cmd = 'python badge_server/main.py '
     process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
@@ -51,9 +50,6 @@ def run_application():
 class TestBadgeServer(unittest.TestCase):
 
     def setUp(self):
-        # Set the env var to run the badge server locally
-        os.environ['RUN_LOCALLY'] = 'True'
-
         # Run application
         self.process = run_application()
 
@@ -66,48 +62,10 @@ class TestBadgeServer(unittest.TestCase):
 
     @retry(wait_fixed=RETRY_WAIT_PERIOD,
            stop_max_attempt_number=RETRY_MAX_ATTEMPT)
-    def test_self_compatibility_badge(self):
-        response = requests.get(
-            '{}self_compatibility_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
-        status_code = response.status_code
-        content = response.content
-
-        self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
-
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
-    def test_google_compatibility_badge(self):
-        response = requests.get(
-            '{}google_compatibility_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
-        status_code = response.status_code
-        content = response.content
-
-        self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
-
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
-    def test_self_dependency_badge(self):
-        response = requests.get(
-            '{}self_dependency_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
-        status_code = response.status_code
-        content = response.content
-
-        self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
-
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
     def test_one_badge(self):
-        response = requests.get(
-            '{}one_badge_image?package={}'.format(
-                BASE_URL, PACKAGE_FOR_TEST))
+        response = requests.get('{}/'.format(BASE_URL))
         status_code = response.status_code
         content = response.content
 
         self.assertEqual(status_code, 200)
-        self.assertIn(b"CALCULATING", content)
+        self.assertIn(b"Hello World!", content)
