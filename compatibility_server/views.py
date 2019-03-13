@@ -19,12 +19,10 @@ from opencensus.stats import view as view_module
 # docker error
 DOCKER_ERROR_MEASURE = measure_module.MeasureInt(
     'docker_error', 'The number of docker errors.', 'Errors')
-DOCKER_ERROR_VIEW = view_module.View(
-    "docker_error_count",
-    "The number of the docker errors",
-    [],
-    DOCKER_ERROR_MEASURE,
-    aggregation_module.CountAggregation())
+DOCKER_ERROR_VIEW = view_module.View("docker_error_count",
+                                     "The number of the docker errors", [],
+                                     DOCKER_ERROR_MEASURE,
+                                     aggregation_module.CountAggregation())
 
 ALL_VIEWS = [
     DOCKER_ERROR_VIEW,

@@ -43,6 +43,7 @@ DEP_INFO = {
 
 
 class MockChecker(object):
+
     def check(self, packages, python_version):
         if not utils._is_package_in_whitelist(packages):
             UNKNOWN_STATUS_RESULT['packages'] = packages
@@ -58,8 +59,7 @@ class MockChecker(object):
         }
 
     def get_compatibility(self, python_version, packages=None):
-        return [[self.check(
-            packages=packages, python_version=python_version)]]
+        return [[self.check(packages=packages, python_version=python_version)]]
 
 
 class TestDependencyInfo(unittest.TestCase):
@@ -118,12 +118,12 @@ class TestDependencyInfo(unittest.TestCase):
 
 class Test__parse_datetime(unittest.TestCase):
 
-  def test__parse_datetime(self):
-      date_string = '2018-08-16T15:42:04.351677'
-      expected = '2018-08-16 00:00:00'
-      res = utils._parse_datetime(date_string)
-      self.assertEqual(str(res), expected)
+    def test__parse_datetime(self):
+        date_string = '2018-08-16T15:42:04.351677'
+        expected = '2018-08-16 00:00:00'
+        res = utils._parse_datetime(date_string)
+        self.assertEqual(str(res), expected)
 
-  def test__parse_datetime_empty(self):
-      res = utils._parse_datetime(None)
-      self.assertIsNone(res)
+    def test__parse_datetime_empty(self):
+        res = utils._parse_datetime(None)
+        self.assertIsNone(res)

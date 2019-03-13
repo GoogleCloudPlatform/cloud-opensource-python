@@ -98,9 +98,8 @@ class DeprecatedDepFinder(object):
 
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
-            results = p.map(
-                self.get_deprecated_dep,
-                ((pkg) for pkg in packages))
+            results = p.map(self.get_deprecated_dep,
+                            ((pkg) for pkg in packages))
 
             for result in zip(results):
                 yield result

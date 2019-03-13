@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for compatibility_store.CompatibilityStore."""
 
 import datetime
@@ -41,8 +40,8 @@ class TestCompatibilityResult(unittest.TestCase):
             status=status)
 
         self.assertEqual(compat_result.packages, packages)
-        self.assertEqual(
-            compat_result.python_major_version, python_major_version)
+        self.assertEqual(compat_result.python_major_version,
+                         python_major_version)
         self.assertEqual(compat_result.status, status)
         self.assertIsNone(compat_result.details)
         self.assertIsNone(compat_result.dependency_info)
@@ -60,7 +59,9 @@ class TestCompatibilityResult(unittest.TestCase):
                 "latest_version": "2.1.0",
                 "current_time": "2018-07-13T17:11:29.140608",
                 "latest_version_time": "2018-05-12T16:26:31",
-                "is_latest": True}}
+                "is_latest": True
+            }
+        }
         timestamp = datetime.datetime.utcnow()
 
         compat_result = compatibility_store.CompatibilityResult(
@@ -72,8 +73,8 @@ class TestCompatibilityResult(unittest.TestCase):
             timestamp=timestamp)
 
         self.assertEqual(compat_result.packages, packages)
-        self.assertEqual(
-            compat_result.python_major_version, python_major_version)
+        self.assertEqual(compat_result.python_major_version,
+                         python_major_version)
         self.assertEqual(compat_result.status, status)
         self.assertEqual(compat_result.details, details)
         self.assertEqual(compat_result.dependency_info, dependency_info)
@@ -89,9 +90,8 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_cursor = mock.Mock()
         mock_pymysql.connect.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchall.return_value = [
-            [pkgs[0], 'SUCCESS'],
-            [pkgs[1], 'CHECK WARNING']]
+        mock_cursor.fetchall.return_value = [[pkgs[0], 'SUCCESS'],
+                                             [pkgs[1], 'CHECK WARNING']]
         patch_pymysql = mock.patch(
             'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
 
@@ -117,8 +117,7 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.return_value = [row]
         patch_pymysql = mock.patch(
-            'compatibility_lib.compatibility_store.pymysql',
-            mock_pymysql)
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
 
         store = compatibility_store.CompatibilityStore()
         with patch_pymysql:
@@ -143,8 +142,7 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_conn.cursor.return_value = mock_cursor
         mock_cursor.fetchall.return_value = rows
         patch_pymysql = mock.patch(
-            'compatibility_lib.compatibility_store.pymysql',
-            mock_pymysql)
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
         store = compatibility_store.CompatibilityStore()
 
         with patch_pymysql:
@@ -164,8 +162,7 @@ class TestCompatibilityStore(unittest.TestCase):
         store = compatibility_store.CompatibilityStore()
 
         patch_pymysql = mock.patch(
-            'compatibility_lib.compatibility_store.pymysql',
-            mock_pymysql)
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
         packages = [PACKAGE_1]
         with patch_pymysql, self.assertRaises(ValueError):
             store.get_pair_compatibility(packages)
@@ -176,12 +173,11 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_cursor = mock.Mock()
         mock_pymysql.connect.return_value = mock_conn
         mock_conn.cursor.return_value = mock_cursor
-        row = ('pkg1', 'pkg2', 'SUCCESS', '3',
-               '2018-07-17 02:14:27.15768 UTC', None)
+        row = ('pkg1', 'pkg2', 'SUCCESS', '3', '2018-07-17 02:14:27.15768 UTC',
+               None)
         mock_cursor.fetchall.return_value = [row]
         patch_pymysql = mock.patch(
-            'compatibility_lib.compatibility_store.pymysql',
-            mock_pymysql)
+            'compatibility_lib.compatibility_store.pymysql', mock_pymysql)
         store = compatibility_store.CompatibilityStore()
         packages = [PACKAGE_1, PACKAGE_2]
 
@@ -194,12 +190,12 @@ class TestCompatibilityStore(unittest.TestCase):
             isinstance(res[0], compatibility_store.CompatibilityResult))
 
     def test_compatibility_combinations(self):
-        row1 = ('package1', 'package2', 'SUCCESS',
-                '3', '2018-07-17 02:14:27.15768 UTC', None)
-        row2 = ('package1', 'package3', 'SUCCESS',
-                '3', '2018-07-17 02:14:27.15768 UTC', None)
-        row3 = ('package2', 'package3', 'SUCCESS',
-                '3', '2018-07-17 02:14:27.15768 UTC', None)
+        row1 = ('package1', 'package2', 'SUCCESS', '3',
+                '2018-07-17 02:14:27.15768 UTC', None)
+        row2 = ('package1', 'package3', 'SUCCESS', '3',
+                '2018-07-17 02:14:27.15768 UTC', None)
+        row3 = ('package2', 'package3', 'SUCCESS', '3',
+                '2018-07-17 02:14:27.15768 UTC', None)
         store = compatibility_store.CompatibilityStore()
 
         mock_pymysql = mock.Mock()
@@ -235,8 +231,7 @@ class TestCompatibilityStore(unittest.TestCase):
             details=None,
             dependency_info=None,
             timestamp=None)
-        row_pairwise = ('package1', 'package2', 'SUCCESS',
-                        '3', None, None)
+        row_pairwise = ('package1', 'package2', 'SUCCESS', '3', None, None)
 
         mock_pymysql = mock.Mock()
         mock_conn = mock.Mock()
@@ -254,8 +249,7 @@ class TestCompatibilityStore(unittest.TestCase):
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
 
-        mock_cursor.executemany.assert_called_with(
-            pair_sql, [row_pairwise])
+        mock_cursor.executemany.assert_called_with(pair_sql, [row_pairwise])
 
     def test_save_compatibility_statuses_self(self):
         packages = [PACKAGE_1]
@@ -284,8 +278,7 @@ class TestCompatibilityStore(unittest.TestCase):
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
 
-        mock_cursor.executemany.assert_called_with(
-            self_sql, [row_self])
+        mock_cursor.executemany.assert_called_with(self_sql, [row_self])
 
     def test_save_compatibility_statuses_release_time(self):
         packages = [PACKAGE_1]
@@ -295,14 +288,16 @@ class TestCompatibilityStore(unittest.TestCase):
             python_major_version='3',
             status=status,
             details=None,
-            dependency_info={'dep1': {
-                'installed_version': '2.1.0',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.1.0',
-                'current_time': '2018-07-13T17:11:29.140608',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': True,
-            }},
+            dependency_info={
+                'dep1': {
+                    'installed_version': '2.1.0',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.1.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': True,
+                }
+            },
             timestamp=None)
         row_release_time = ('package1', 'dep1', '2.1.0', '2018-05-12T16:26:31',
                             '2.1.0', '2018-05-12T16:26:31', True,
@@ -323,8 +318,7 @@ class TestCompatibilityStore(unittest.TestCase):
             store = compatibility_store.CompatibilityStore()
             store.save_compatibility_statuses([comp_status])
 
-        mock_cursor.executemany.assert_called_with(
-            sql, [row_release_time])
+        mock_cursor.executemany.assert_called_with(sql, [row_release_time])
 
     def test_save_compatibility_statuses_release_time_for_latest(self):
         packages = [PACKAGE_4]
@@ -335,28 +329,32 @@ class TestCompatibilityStore(unittest.TestCase):
             python_major_version='2',
             status=status,
             details=None,
-            dependency_info={'package4': {
-                'installed_version': '12.7.0',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '12.7.0',
-                'current_time': '2018-07-13T17:11:29.140608',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': True,
-            }},
+            dependency_info={
+                'package4': {
+                    'installed_version': '12.7.0',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '12.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': True,
+                }
+            },
             timestamp=timestamp)
         comp_status_py3 = mock.Mock(
             packages=packages,
             python_major_version='3',
             status=status,
             details=None,
-            dependency_info={'package4': {
-                'installed_version': '2.2.0',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.7.0',
-                'current_time': '2018-07-13T17:11:29.140608',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': False,
-            }},
+            dependency_info={
+                'package4': {
+                    'installed_version': '2.2.0',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': False,
+                }
+            },
             timestamp=timestamp)
         row_release_time = ('package4[gcp]', 'package4', '12.7.0',
                             '2018-05-12T16:26:31', '12.7.0',
@@ -378,8 +376,7 @@ class TestCompatibilityStore(unittest.TestCase):
             store.save_compatibility_statuses(
                 [comp_status_py2, comp_status_py3])
 
-        mock_cursor.executemany.assert_called_with(
-            sql, [row_release_time])
+        mock_cursor.executemany.assert_called_with(sql, [row_release_time])
 
     def test_save_compatibility_statuses_release_time_for_latest_many_packages(
             self):
@@ -397,29 +394,32 @@ class TestCompatibilityStore(unittest.TestCase):
                     'current_time': '2018-07-13T17:11:29.140608',
                     'latest_version_time': '2018-05-12T16:26:31',
                     'is_latest': False,
-                }        ,
+                },
                 'apache-beam': {
-                'installed_version': '2.7.0',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.7.0',
-                'current_time': '2018-07-13T17:11:29.140608',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': True,
-            }},
+                    'installed_version': '2.7.0',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': True,
+                }
+            },
             timestamp=None)
         apache_beam_py3 = mock.Mock(
             packages=[package.Package('apache-beam[gcp]')],
             python_major_version='3',
             status=status,
             details=None,
-            dependency_info={'apache-beam': {
-                'installed_version': '2.2.0',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.7.0',
-                'current_time': '2018-07-13T17:11:29.140608',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': False,
-            }},
+            dependency_info={
+                'apache-beam': {
+                    'installed_version': '2.2.0',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': False,
+                }
+            },
             timestamp=None)
         google_api_core_py2 = mock.Mock(
             packages=[package.Package('google-api-core')],
@@ -434,21 +434,24 @@ class TestCompatibilityStore(unittest.TestCase):
                     'current_time': '2018-07-13T17:11:29.140608',
                     'latest_version_time': '2018-05-12T16:26:31',
                     'is_latest': True,
-                }},
+                }
+            },
             timestamp=None)
         google_api_core_py3 = mock.Mock(
             packages=[package.Package('google-api-core')],
             python_major_version='3',
             status=status,
             details=None,
-            dependency_info={'google-api-core': {
-                'installed_version': '3.7.1',
-                'installed_version_time': '2018-05-12T16:26:31',
-                'latest_version': '2.7.0',
-                'current_time': '2018-07-13T17:11:29.140608',
-                'latest_version_time': '2018-05-12T16:26:31',
-                'is_latest': False,
-            }},
+            dependency_info={
+                'google-api-core': {
+                    'installed_version': '3.7.1',
+                    'installed_version_time': '2018-05-12T16:26:31',
+                    'latest_version': '2.7.0',
+                    'current_time': '2018-07-13T17:11:29.140608',
+                    'latest_version_time': '2018-05-12T16:26:31',
+                    'is_latest': False,
+                }
+            },
             timestamp=None)
 
         apache_beam_row = ('apache-beam[gcp]', 'apache-beam', '2.7.0',
@@ -477,14 +480,14 @@ class TestCompatibilityStore(unittest.TestCase):
 
         with patch_pymysql:
             store = compatibility_store.CompatibilityStore()
-            store.save_compatibility_statuses(
-                [apache_beam_py2,
-                 apache_beam_py3,
-                 google_api_core_py2,
-                 google_api_core_py3])
+            store.save_compatibility_statuses([
+                apache_beam_py2, apache_beam_py3, google_api_core_py2,
+                google_api_core_py3
+            ])
 
         mock_cursor.executemany.assert_called_with(
             sql, [apache_beam_row, six_row, google_api_core_row])
+
 
 class MockClient(object):
 

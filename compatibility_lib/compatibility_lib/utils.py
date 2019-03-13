@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Common utils for compatibility_lib."""
 
 from datetime import datetime
@@ -39,8 +38,7 @@ class PackageNotSupportedError(Exception):
 
 def call_pypi_json_api(package_name, pkg_version=None):
     if pkg_version is not None:
-        pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(
-            package_name, pkg_version)
+        pypi_pkg_url = PYPI_URL + '{}/{}/json'.format(package_name, pkg_version)
     else:
         pypi_pkg_url = PYPI_URL + '{}/json'.format(package_name)
 
@@ -50,8 +48,8 @@ def call_pypi_json_api(package_name, pkg_version=None):
         with urllib.request.urlopen(r) as f:
             result = json.loads(f.read().decode('utf-8'))
     except urllib.error.HTTPError:
-        logging.error('Package {} with version {} not found in Pypi'.
-                      format(package_name, pkg_version))
+        logging.error('Package {} with version {} not found in Pypi'.format(
+            package_name, pkg_version))
         return None
     return result
 
@@ -123,12 +121,12 @@ class DependencyInfo(object):
         # the package is not supported by checker server (not in whitelist).
         if depinfo is None:
             logging.warning(
-                "Could not get the dependency info of package {} from server."
-                .format(package_name))
+                "Could not get the dependency info of package {} from server.".
+                format(package_name))
             raise PackageNotSupportedError(package_name)
 
-        fields = ('installed_version_time',
-                  'current_time', 'latest_version_time')
+        fields = ('installed_version_time', 'current_time',
+                  'latest_version_time')
         for pkgname in depinfo.keys():
             for field in fields:
                 depinfo[pkgname][field] = _parse_datetime(

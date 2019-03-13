@@ -19,7 +19,6 @@ import unittest
 from compatibility_lib.semver_checker import check
 from compatibility_lib.package_crawler_static import get_package_info, get_module_info
 
-
 CWD = os.path.dirname(os.path.realpath(__file__))
 TEST_DIR = os.path.join(CWD, 'testpkgs')
 
@@ -64,7 +63,9 @@ class TestSimplePackages(unittest.TestCase):
         new_dir = os.path.join(TEST_DIR, 'added_args/0.2.0')
 
         res = check(old_dir, new_dir)
-        expected = ['args do not match; expecting: "self, x", got: "self, x, y"']
+        expected = [
+            'args do not match; expecting: "self, x", got: "self, x, y"'
+        ]
         self.assertEqual(expected, res)
 
     def test_semver_check_on_removed_args(self):

@@ -17,21 +17,19 @@ import setuptools
 with open("README.rst", "r") as fh:
     long_description = fh.read()
 
-
 namespaces = ['compatibility_lib']
-
 
 setuptools.setup(
     name="compatibility_lib",
     version="0.1.4",
     author="Cloud Python",
     description="A library to get and store the dependency compatibility "
-                "status data to BigQuery.",
+    "status data to BigQuery.",
     long_description=long_description,
     license="Apache-2.0",
     include_package_data=True,
     url="https://github.com/GoogleCloudPlatform/cloud-opensource-python/tree/"
-        "master/compatibility_lib",
+    "master/compatibility_lib",
     packages=setuptools.find_packages(),
     namespace_packages=namespaces,
     classifiers=(

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Storage for package compatibility information."""
 
 from contextlib import closing
@@ -74,8 +73,8 @@ class CompatibilityResult:
 
     def __repr__(self):
         return ('CompatibilityResult({}, {}, {}, {}, {}, {})'.format(
-            self.packages, self.python_major_version, self.status,
-            self.details, self.timestamp, self.dependency_info))
+            self.packages, self.python_major_version, self.status, self.details,
+            self.timestamp, self.dependency_info))
 
     def __hash__(self):
         return hash((tuple(self.packages), self.status, self.timestamp))
@@ -84,8 +83,7 @@ class CompatibilityResult:
         if isinstance(o, CompatibilityResult):
             return (frozenset(self.packages) == frozenset(o.packages) and
                     self.python_major_version == o.python_major_version and
-                    self.status == o.status and
-                    self.details == o.details and
+                    self.status == o.status and self.details == o.details and
                     self.dependency_info == o.dependency_info and
                     self.timestamp == o.timestamp)
         return NotImplemented
@@ -190,8 +188,7 @@ class CompatibilityStore:
         )
 
     @staticmethod
-    def _compatibility_status_to_row(
-            cs: CompatibilityResult) -> Tuple:
+    def _compatibility_status_to_row(cs: CompatibilityResult) -> Tuple:
         """Converts a CompatibilityResult into a tuple."""
         status = cs.status.value
         py_version = str(cs.python_major_version)
@@ -200,11 +197,11 @@ class CompatibilityStore:
             install_name = cs.packages[0].install_name
             return (install_name, status, py_version, None, details)
         else:
-            names = sorted([cs.packages[0].install_name,
-                            cs.packages[1].install_name])
+            names = sorted(
+                [cs.packages[0].install_name, cs.packages[1].install_name])
             install_name_lower, install_name_higher = names
-            return (install_name_lower, install_name_higher,
-                    status, py_version, None, details)
+            return (install_name_lower, install_name_higher, status, py_version,
+                    None, details)
 
     @staticmethod
     def _compatibility_status_to_release_time_rows(
@@ -218,14 +215,11 @@ class CompatibilityStore:
         rows = []
 
         for pkg, version_info in dependency_info.items():
-            row = (install_name,
-                   pkg,
-                   version_info['installed_version'],
+            row = (install_name, pkg, version_info['installed_version'],
                    version_info['installed_version_time'],
                    version_info['latest_version'],
                    version_info['latest_version_time'],
-                   version_info['is_latest'],
-                   version_info['current_time'])
+                   version_info['is_latest'], version_info['current_time'])
             rows.append(row)
 
         return rows
@@ -283,8 +277,8 @@ class CompatibilityStore:
         for row in results:
             install_name = row[0]
             p = install_name_to_package[install_name]
-            package_to_result[p].append(self._row_to_compatibility_status(
-                [p], row))
+            package_to_result[p].append(
+                self._row_to_compatibility_status([p], row))
         return {p: crs for (p, crs) in package_to_result.items()}
 
     def get_pair_compatibility(self, packages: List[package.Package]) -> \
@@ -299,8 +293,8 @@ class CompatibilityStore:
             One CompatibilityResult per Python version.
         """
         if len(packages) != 2:
-            raise ValueError(
-                'expected 2 packages, got {}'.format(len(packages)))
+            raise ValueError('expected 2 packages, got {}'.format(
+                len(packages)))
         packages = sorted(packages, key=lambda p: p.install_name)
 
         query = ("SELECT * FROM pairwise_compatibility_status "
@@ -310,12 +304,12 @@ class CompatibilityStore:
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
                 cursor.execute(
-                    query,
-                    (packages[0].install_name, packages[1].install_name))
+                    query, (packages[0].install_name, packages[1].install_name))
                 results = cursor.fetchall()
 
-        return [self._row_to_compatibility_status(packages, row)
-                for row in results]
+        return [
+            self._row_to_compatibility_status(packages, row) for row in results
+        ]
 
     def get_compatibility_combinations(self,
                                        packages: List[package.Package]) -> \
@@ -354,8 +348,7 @@ class CompatibilityStore:
             p_lower = install_name_to_package[install_name_lower]
             p_higher = install_name_to_package[install_name_higher]
             packages_to_results[frozenset([p_lower, p_higher])].append(
-                self._row_to_compatibility_status([p_lower, p_higher], row)
-            )
+                self._row_to_compatibility_status([p_lower, p_higher], row))
         return {p: crs for (p, crs) in packages_to_results.items()}
 
     def get_pairwise_compatibility_for_package(self, package_name) -> \
@@ -392,9 +385,9 @@ class CompatibilityStore:
 
         with closing(self.connect()) as conn:
             with closing(conn.cursor()) as cursor:
-                cursor.execute(
-                    query, (install_names_lower, install_names_higher,
-                            package_name, package_name))
+                cursor.execute(query,
+                               (install_names_lower, install_names_higher,
+                                package_name, package_name))
                 results = cursor.fetchall()
 
         for row in results:
@@ -405,23 +398,22 @@ class CompatibilityStore:
             if not packages_to_results.get(key):
                 packages_to_results[key] = []
             packages_to_results[key].append(
-                self._row_to_compatibility_status([p_lower, p_higher], row)
-            )
+                self._row_to_compatibility_status([p_lower, p_higher], row))
         return packages_to_results
 
     def save_compatibility_statuses(
-            self,
-            compatibility_statuses: Iterable[
-                CompatibilityResult]):
+            self, compatibility_statuses: Iterable[CompatibilityResult]):
         """Save the given CompatibilityStatuses"""
 
         compatibility_statuses = list(compatibility_statuses)
-        if any(cs for cs in compatibility_statuses
-               if len(cs.packages) not in [1, 2]):
+        if any(
+                cs for cs in compatibility_statuses
+                if len(cs.packages) not in [1, 2]):
             raise ValueError('CompatibilityResult must have 1 or 2 packages')
 
-        rows = [self._compatibility_status_to_row(s) for s in
-                compatibility_statuses]
+        rows = [
+            self._compatibility_status_to_row(s) for s in compatibility_statuses
+        ]
 
         self_rows = [r for r in rows if len(r) == 5]
         pair_rows = [r for r in rows if len(r) == 6]
@@ -483,9 +475,10 @@ class CompatibilityStore:
                     if new_version > old_version:
                         install_name_to_compatibility_result[install_name] = cs
 
-        dependency_rows = itertools.chain(
-            *[self._compatibility_status_to_release_time_rows(cs)
-              for cs in install_name_to_compatibility_result.values()])
+        dependency_rows = itertools.chain(*[
+            self._compatibility_status_to_release_time_rows(cs)
+            for cs in install_name_to_compatibility_result.values()
+        ])
 
         # Insert the dependency rows in a stable order to make testing more
         # convenient.
@@ -529,8 +522,8 @@ class CompatibilityStore:
         for pkg, version_info in result.dependency_info.items():
             if pkg == install_name_sanitized:
                 return version_info['installed_version']
-        raise ValueError('missing version information for {}'.format(
-            install_name_sanitized))
+        raise ValueError(
+            'missing version information for {}'.format(install_name_sanitized))
 
     def get_dependency_info(self, package_name):
         """Returns dependency info for an indicated Google OSS package.

@@ -27,10 +27,7 @@ def _get_dep_info(datetime=True):
     if not datetime:
         return dep_info
 
-    fields = (
-        'installed_version_time',
-        'latest_version_time',
-        'current_time')
+    fields = ('installed_version_time', 'latest_version_time', 'current_time')
     for _, info in dep_info.items():
         for field in fields:
             time = info[field]
@@ -40,7 +37,7 @@ def _get_dep_info(datetime=True):
 
 class TestPriority(unittest.TestCase):
 
-  def test_constructor_default(self):
+    def test_constructor_default(self):
         expected_level = dependency_highlighter.PriorityLevel.UP_TO_DATE
         expected_details = ''
 
@@ -49,13 +46,12 @@ class TestPriority(unittest.TestCase):
         self.assertEqual(expected_level, priority.level)
         self.assertEqual(expected_details, priority.details)
 
-  def test_constructor_explicit(self):
+    def test_constructor_explicit(self):
         expected_level = dependency_highlighter.PriorityLevel.LOW_PRIORITY
         expected_details = 'this is a test'
 
         priority = dependency_highlighter.Priority(
-            level=expected_level,
-            details=expected_details)
+            level=expected_level, details=expected_details)
 
         self.assertEqual(expected_level, priority.level)
         self.assertEqual(expected_details, priority.details)
@@ -69,18 +65,16 @@ class TestOutdatedDependency(unittest.TestCase):
         'this dependency is 1 or more major versions behind the latest')
     expected_info = _get_dep_info()[expected_pkgname]
 
-    expected_repr = (
-        "OutdatedDependency<'google-cloud-bigquery', "
-        "HIGH_PRIORITY>")
+    expected_repr = ("OutdatedDependency<'google-cloud-bigquery', "
+                     "HIGH_PRIORITY>")
 
-    expected_str = (
-        'Dependency Name:\tgoogle-cloud-bigquery\n'
-        'Priority:\t\tHIGH_PRIORITY\n'
-        'Installed Version:\t0.25.0\n'
-        'Latest Available:\t1.5.0\n'
-        'Time Since Latest:\t14 days\n'
-        'this dependency is 1 or more major versions '
-        'behind the latest\n')
+    expected_str = ('Dependency Name:\tgoogle-cloud-bigquery\n'
+                    'Priority:\t\tHIGH_PRIORITY\n'
+                    'Installed Version:\t0.25.0\n'
+                    'Latest Available:\t1.5.0\n'
+                    'Time Since Latest:\t14 days\n'
+                    'this dependency is 1 or more major versions '
+                    'behind the latest\n')
 
     outdated = dependency_highlighter.OutdatedDependency(
         pkgname=expected_pkgname,
@@ -92,21 +86,16 @@ class TestOutdatedDependency(unittest.TestCase):
         self.assertEqual(self.expected_pkgname, self.outdated.name)
         self.assertEqual(self.expected_parent, self.outdated.parent)
         self.assertEqual(self.expected_priority, self.outdated.priority)
-        self.assertEqual(
-            self.expected_info['installed_version'],
-            self.outdated.installed_version)
-        self.assertEqual(
-            self.expected_info['installed_version_time'],
-            self.outdated.installed_version_time)
-        self.assertEqual(
-            self.expected_info['latest_version'],
-            self.outdated.latest_version)
-        self.assertEqual(
-            self.expected_info['latest_version_time'],
-            self.outdated.latest_version_time)
-        self.assertEqual(
-            self.expected_info['current_time'],
-            self.outdated.current_time)
+        self.assertEqual(self.expected_info['installed_version'],
+                         self.outdated.installed_version)
+        self.assertEqual(self.expected_info['installed_version_time'],
+                         self.outdated.installed_version_time)
+        self.assertEqual(self.expected_info['latest_version'],
+                         self.outdated.latest_version)
+        self.assertEqual(self.expected_info['latest_version_time'],
+                         self.outdated.latest_version_time)
+        self.assertEqual(self.expected_info['current_time'],
+                         self.outdated.current_time)
 
     def test_repr(self):
         self.assertEqual(self.expected_repr, self.outdated.__repr__())
@@ -167,23 +156,24 @@ class TestDependencyHighlighter(unittest.TestCase):
 
         def run(install_tup, latest_tup, numdays):
             install, latest = dictify(install_tup), dictify(latest_tup)
-            res = highlighter._get_update_priority(
-                'PACKAGE', install, latest, timedelta(days=numdays))
+            res = highlighter._get_update_priority('PACKAGE', install, latest,
+                                                   timedelta(days=numdays))
             return res
 
         cases = [
-            (expect(low, not_updated),    run((2,5,0), (2,6,0), 5)),
-            (expect(high, six_months),    run((2,5,0), (2,6,0), 200)),
-            (expect(high, three_minor),   run((2,5,0), (2,8,0), 13)),
-            (expect(low, not_updated),    run((2,5,0), (3,0,0), 29)),
-            (expect(high, thirty_days),   run((2,5,0), (3,0,0), 50)),
-            (expect(high, major_version), run((2,5,0), (3,0,4), 1)),
-            (expect(high, major_version), run((2,5,0), (5,0,4), 1)),
+            (expect(low, not_updated), run((2, 5, 0), (2, 6, 0), 5)),
+            (expect(high, six_months), run((2, 5, 0), (2, 6, 0), 200)),
+            (expect(high, three_minor), run((2, 5, 0), (2, 8, 0), 13)),
+            (expect(low, not_updated), run((2, 5, 0), (3, 0, 0), 29)),
+            (expect(high, thirty_days), run((2, 5, 0), (3, 0, 0), 50)),
+            (expect(high, major_version), run((2, 5, 0), (3, 0, 4), 1)),
+            (expect(high, major_version), run((2, 5, 0), (5, 0, 4), 1)),
         ]
 
         return cases
 
     def test__get_update_priority(self):
+
         def comp(p1, p2):
             if p1.level != p2.level:
                 return False
@@ -236,14 +226,14 @@ class TestDependencyHighlighter(unittest.TestCase):
 
 class TestUtilityFunctions(unittest.TestCase):
     good_tags = [
-        ('1.1',         (1, 1, 0)),
-        ('2018.5.90',   (2018, 5, 90)),
-        ('10.1.0.1',    (10, 1, 0)),
+        ('1.1', (1, 1, 0)),
+        ('2018.5.90', (2018, 5, 90)),
+        ('10.1.0.1', (10, 1, 0)),
     ]
 
     bad_tags = [
-        '3', 'abc', '1.a2.0', '4..5.0', '6.30.1-dev',
-        '2.2.2rc', '1.0.dev', '2.1a0', '1.1rc3'
+        '3', 'abc', '1.a2.0', '4..5.0', '6.30.1-dev', '2.2.2rc', '1.0.dev',
+        '2.1a0', '1.1rc3'
     ]
 
     def test__sanitize_release_tag(self):

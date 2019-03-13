@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for compatibility_store.CompatibilityStore."""
 
 import datetime
@@ -95,8 +94,10 @@ class TestCompatibilityStore(unittest.TestCase):
         self._store = fake_compatibility_store.CompatibilityStore()
 
     def test_get_self_compatibility(self):
-        crs = [PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
-               PACKAGE_2_PY2_CR]
+        crs = [
+            PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
+            PACKAGE_2_PY2_CR
+        ]
         self._store.save_compatibility_statuses(crs)
         self.assertEqual(
             frozenset(self._store.get_self_compatibility(PACKAGE_1)),
@@ -106,44 +107,47 @@ class TestCompatibilityStore(unittest.TestCase):
             frozenset([PACKAGE_2_PY2_CR]))
 
     def test_get_self_compatibility_no_result(self):
-        crs = [PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
-               PACKAGE_2_PY2_CR,
-               PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]
+        crs = [
+            PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
+            PACKAGE_2_PY2_CR, PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR
+        ]
         self._store.save_compatibility_statuses(crs)
         self.assertFalse(
             frozenset(self._store.get_self_compatibility(PACKAGE_3)))
 
     def test_get_self_compatibilities(self):
-        crs = [PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
-               PACKAGE_2_PY2_CR,
-               PACKAGE_3_PY2_CR, PACKAGE_3_PY3_CR,
-               PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]
+        crs = [
+            PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
+            PACKAGE_2_PY2_CR, PACKAGE_3_PY2_CR, PACKAGE_3_PY3_CR,
+            PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR
+        ]
         self._store.save_compatibility_statuses(crs)
         self.assertEqual(
-            self._store.get_self_compatibilities([PACKAGE_1, PACKAGE_2]),
-            {
+            self._store.get_self_compatibilities([PACKAGE_1, PACKAGE_2]), {
                 PACKAGE_1: [PACKAGE_1_PY2_CR, PACKAGE_1_PY3_CR],
                 PACKAGE_2: [PACKAGE_2_PY2_CR]
             })
 
     def test_get_self_compatibilities_no_results(self):
-        crs = [PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
-               PACKAGE_2_PY2_CR,
-               PACKAGE_3_PY2_CR, PACKAGE_3_PY3_CR,
-               PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]
+        crs = [
+            PACKAGE_1_PY2_CR, PACKAGE_1_PY2_OLD_CR, PACKAGE_1_PY3_CR,
+            PACKAGE_2_PY2_CR, PACKAGE_3_PY2_CR, PACKAGE_3_PY3_CR,
+            PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR
+        ]
         self._store.save_compatibility_statuses(crs)
         self.assertEqual(
             self._store.get_self_compatibilities(
-                [PACKAGE_1, PACKAGE_2, PACKAGE_4]),
-            {
-                PACKAGE_1: [PACKAGE_1_PY2_CR, PACKAGE_1_PY3_CR],
-                PACKAGE_2: [PACKAGE_2_PY2_CR],
-                PACKAGE_4: [],
-            })
+                [PACKAGE_1, PACKAGE_2, PACKAGE_4]), {
+                    PACKAGE_1: [PACKAGE_1_PY2_CR, PACKAGE_1_PY3_CR],
+                    PACKAGE_2: [PACKAGE_2_PY2_CR],
+                    PACKAGE_4: [],
+                })
 
     def test_get_pair_compatibility(self):
-        crs = [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
-               PACKAGE_1_AND_2_PY3_CR]
+        crs = [
+            PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
+            PACKAGE_1_AND_2_PY3_CR
+        ]
         self._store.save_compatibility_statuses(crs)
 
         self.assertEqual(
@@ -160,28 +164,35 @@ class TestCompatibilityStore(unittest.TestCase):
                 self._store.get_pair_compatibility([PACKAGE_1, PACKAGE_3])))
 
     def test_get_compatibility_combinations(self):
-        crs = [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
-               PACKAGE_1_AND_2_PY3_CR]
+        crs = [
+            PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
+            PACKAGE_1_AND_2_PY3_CR
+        ]
         self._store.save_compatibility_statuses(crs)
 
         self.assertEqual(
-            frozenset(self._store.get_compatibility_combinations(
-                [PACKAGE_1, PACKAGE_2])),
-            frozenset({frozenset([PACKAGE_1, PACKAGE_2]): [
-                PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]})
-        )
+            frozenset(
+                self._store.get_compatibility_combinations(
+                    [PACKAGE_1, PACKAGE_2])),
+            frozenset({
+                frozenset([PACKAGE_1, PACKAGE_2]):
+                [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]
+            }))
 
     def test_get_compatibility_combinations_no_results(self):
-        crs = [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
-               PACKAGE_1_AND_2_PY3_CR]
+        crs = [
+            PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
+            PACKAGE_1_AND_2_PY3_CR
+        ]
         self._store.save_compatibility_statuses(crs)
 
         self.assertEqual(
-            frozenset(self._store.get_compatibility_combinations(
-                [PACKAGE_1, PACKAGE_2, PACKAGE_3])),
+            frozenset(
+                self._store.get_compatibility_combinations(
+                    [PACKAGE_1, PACKAGE_2, PACKAGE_3])),
             frozenset({
-                frozenset([PACKAGE_1, PACKAGE_2]): [PACKAGE_1_AND_2_PY2_CR,
-                                                    PACKAGE_1_AND_2_PY3_CR],
+                frozenset([PACKAGE_1, PACKAGE_2]):
+                [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR],
                 frozenset([PACKAGE_1, PACKAGE_3]): [],
                 frozenset([PACKAGE_2, PACKAGE_3]): [],
             }))

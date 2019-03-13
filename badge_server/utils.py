@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Common utils methods for badge server."""
 
 import datetime
@@ -41,8 +40,7 @@ checker = compatibility_checker.CompatibilityChecker()
 store = compatibility_store.CompatibilityStore(mysql_unix_socket=UNIX_SOCKET)
 highlighter = dependency_highlighter.DependencyHighlighter(
     checker=checker, store=store)
-finder = deprecated_dep_finder.DeprecatedDepFinder(
-    checker=checker, store=store)
+finder = deprecated_dep_finder.DeprecatedDepFinder(checker=checker, store=store)
 priority_level = dependency_highlighter.PriorityLevel
 
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
@@ -103,10 +101,9 @@ def initialize_cache():
     return cache
 
 
-def _build_default_result(
-        status: str,
-        include_pyversion: bool = True,
-        details: Optional = None) -> dict:
+def _build_default_result(status: str,
+                          include_pyversion: bool = True,
+                          details: Optional = None) -> dict:
     """Build the default result for different conditions."""
     # Dependency badge
     if not include_pyversion:
@@ -150,9 +147,7 @@ def _get_badge(res: dict, badge_name: str) -> str:
 
     status = status.replace('_', ' ')
     return pybadges.badge(
-        left_text=badge_name,
-        right_text=status,
-        right_color=color)
+        left_text=badge_name, right_text=status, right_color=color)
 
 
 def _calculate_commit_number(package: str) -> Optional[str]:
@@ -171,8 +166,8 @@ def _calculate_commit_number(package: str) -> Optional[str]:
                     commits = json.loads(f.read())
                 return commits[0]['sha']
             except Exception as e:
-                logging.warning(
-                    'Unable to generate caching key for "%s": %s', package, e)
+                logging.warning('Unable to generate caching key for "%s": %s',
+                                package, e)
                 return None
 
     return None
@@ -184,8 +179,8 @@ def _is_github_cache_valid(cache_timestamp_str=None):
     if cache_timestamp_str is None:
         return False
 
-    cache_timestamp = datetime.datetime.strptime(
-        cache_timestamp_str, TIMESTAMP_FORMAT)
+    cache_timestamp = datetime.datetime.strptime(cache_timestamp_str,
+                                                 TIMESTAMP_FORMAT)
     current_timestamp = datetime.datetime.now()
     seconds_diff = (current_timestamp - cache_timestamp).seconds
 

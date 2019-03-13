@@ -58,14 +58,12 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             },
         }
 
-        self.SELF_COMP_RES = ((
-            {
-                'result': 'SUCCESS',
-                'packages': ['package1'],
-                'description': None,
-                'dependency_info': self.DEP_INFO,
-            },
-        ),)
+        self.SELF_COMP_RES = (({
+            'result': 'SUCCESS',
+            'packages': ['package1'],
+            'description': None,
+            'dependency_info': self.DEP_INFO,
+        },),)
         self.mock_checker = mock.Mock(autospec=True)
         self.fake_store = fake_compatibility_store.CompatibilityStore()
 
@@ -89,8 +87,8 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             py_version='2', checker=self.mock_checker, store=self.fake_store)
 
         self.assertEqual(finder.py_version, '2')
-        self.assertIsInstance(
-            finder._dependency_info_getter, utils.DependencyInfo)
+        self.assertIsInstance(finder._dependency_info_getter,
+                              utils.DependencyInfo)
 
     def test__get_development_status_from_pypi_error(self):
         PKG_INFO = {
@@ -107,7 +105,8 @@ class TestDeprecatedDepFinder(unittest.TestCase):
             mock_call_pypi_json_api)
 
         with patch_utils:
-            finder = deprecated_dep_finder.DeprecatedDepFinder(checker=self.mock_checker, store=self.fake_store)
+            finder = deprecated_dep_finder.DeprecatedDepFinder(
+                checker=self.mock_checker, store=self.fake_store)
             development_status = finder._get_development_status_from_pypi(
                 'package1')
 

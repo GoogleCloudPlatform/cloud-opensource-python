@@ -38,16 +38,14 @@ class TestCompatibilityChecker(unittest.TestCase):
         mock_requests.get.return_value = mock_response
 
         patch_request = mock.patch(
-            'compatibility_lib.compatibility_checker.requests',
-            mock_requests)
+            'compatibility_lib.compatibility_checker.requests', mock_requests)
 
         with patch_request:
             checker.check(packages, python_version)
 
         mock_requests.get.assert_called_with(
             compatibility_checker.SERVER_URL, params=data, timeout=299)
-        self.assertEqual(compatibility_checker.SERVER_URL,
-                         expected_server_url)
+        self.assertEqual(compatibility_checker.SERVER_URL, expected_server_url)
 
     def _mock_retrying_check(self, *args):
         packages = args[0][0]
@@ -59,8 +57,13 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         pkg_list = ['pkg1', 'pkg2', 'pkg3']
         pkg_py_version_not_supported = {
-            2: ['tensorflow', ],
-            3: ['apache-beam[gcp]', 'gsutil', ],
+            2: [
+                'tensorflow',
+            ],
+            3: [
+                'apache-beam[gcp]',
+                'gsutil',
+            ],
         }
 
         mock_config = mock.Mock()
@@ -73,8 +76,7 @@ class TestCompatibilityChecker(unittest.TestCase):
             'compatibility_lib.compatibility_checker.concurrent.futures.ThreadPoolExecutor',
             FakeExecutor)
         patch_retrying_check = mock.patch.object(
-            compatibility_checker.CompatibilityChecker,
-            'retrying_check',
+            compatibility_checker.CompatibilityChecker, 'retrying_check',
             self._mock_retrying_check)
 
         res = []
@@ -84,24 +86,24 @@ class TestCompatibilityChecker(unittest.TestCase):
             for item in result:
                 res.append(item)
 
-        expected = sorted([
-            ((['pkg1'], '2', 'SUCCESS'),),
-            ((['pkg2'], '2', 'SUCCESS'),),
-            ((['pkg3'], '2', 'SUCCESS'),),
-            ((['pkg1'], '3', 'SUCCESS'),),
-            ((['pkg2'], '3', 'SUCCESS'),),
-            ((['pkg3'], '3', 'SUCCESS'),),
-            ((['pkg1', 'pkg2'], '2', 'SUCCESS'),),
-            ((['pkg1', 'pkg3'], '2', 'SUCCESS'),),
-            ((['pkg2', 'pkg3'], '2', 'SUCCESS'),),
-            ((['pkg1', 'pkg2'], '3', 'SUCCESS'),),
-            ((['pkg1', 'pkg3'], '3', 'SUCCESS'),),
-            ((['pkg2', 'pkg3'], '3', 'SUCCESS'),)])
+        expected = sorted([((['pkg1'], '2', 'SUCCESS'),),
+                           ((['pkg2'], '2', 'SUCCESS'),),
+                           ((['pkg3'], '2', 'SUCCESS'),),
+                           ((['pkg1'], '3', 'SUCCESS'),),
+                           ((['pkg2'], '3', 'SUCCESS'),),
+                           ((['pkg3'], '3', 'SUCCESS'),),
+                           ((['pkg1', 'pkg2'], '2', 'SUCCESS'),),
+                           ((['pkg1', 'pkg3'], '2', 'SUCCESS'),),
+                           ((['pkg2', 'pkg3'], '2', 'SUCCESS'),),
+                           ((['pkg1', 'pkg2'], '3', 'SUCCESS'),),
+                           ((['pkg1', 'pkg3'], '3', 'SUCCESS'),),
+                           ((['pkg2', 'pkg3'], '3', 'SUCCESS'),)])
 
         self.assertEqual(sorted(res), expected)
 
 
 class FakeExecutor(object):
+
     def __init__(self, max_workers=10):
         self.max_workers = max_workers
 

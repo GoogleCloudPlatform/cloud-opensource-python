@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Creates a web page that shows the compatibility between packages as a grid.
 
 For example:
@@ -65,18 +64,15 @@ class DashboardBuilderError(Exception):
 
 
 class _ResultHolder(object):
-    def __init__(
-        self,
-        package_to_results:
-            Mapping[package.Package,
-                    List[compatibility_store.CompatibilityResult]],
-        pairwise_to_results:
-            Mapping[FrozenSet[package.Package],
-                    List[compatibility_store.CompatibilityResult]],
-        package_with_dependency_info=None,
-        checker=None,
-        store=None
-    ):
+
+    def __init__(self,
+                 package_to_results: Mapping[package.Package, List[
+                     compatibility_store.CompatibilityResult]],
+                 pairwise_to_results: Mapping[FrozenSet[package.Package], List[
+                     compatibility_store.CompatibilityResult]],
+                 package_with_dependency_info=None,
+                 checker=None,
+                 store=None):
         self._package_to_results = package_to_results
         self._pairwise_to_results = pairwise_to_results
         self._package_with_dependency_info = package_with_dependency_info
@@ -227,8 +223,7 @@ class _ResultHolder(object):
 
         return result
 
-    def get_result(self,
-                   package_1: package.Package,
+    def get_result(self, package_1: package.Package,
                    package_2: package.Package) -> Mapping[str, Any]:
         """Returns the installation result of two packages.
 
@@ -255,68 +250,61 @@ class _ResultHolder(object):
 
         if (not self._package_to_results[package_1] or
                 not self._package_to_results[package_2]):
-            self_result.append(
-                {
-                    'status': compatibility_store.Status.UNKNOWN.name,
-                    'self': True,
-                }
-            )
+            self_result.append({
+                'status': compatibility_store.Status.UNKNOWN.name,
+                'self': True,
+            })
             status_type = 'self-unknown'
 
-        package_results = (
-                self._package_to_results[package_1] +
-                self._package_to_results[package_2])
+        package_results = (self._package_to_results[package_1] +
+                           self._package_to_results[package_2])
 
         for pr in package_results:
             if not self._is_py_version_incompatible(pr) and \
                             pr.status != compatibility_store.Status.SUCCESS:
-                self_result.append(
-                    {
-                        'status': pr.status.value,
-                        'self': True,
-                        'details': pr.details
-                    }
-                )
+                self_result.append({
+                    'status': pr.status.value,
+                    'self': True,
+                    'details': pr.details
+                })
                 status_type = 'self-' + pr.status.value.lower()
 
         if package_1 == package_2:
             if not self_result:
-                self_result.append(
-                    {
-                        'status': compatibility_store.Status.SUCCESS.name,
-                        'self': True,
-                    }
-                )
+                self_result.append({
+                    'status':
+                    compatibility_store.Status.SUCCESS.name,
+                    'self':
+                    True,
+                })
         else:
-            pairwise_results = self._pairwise_to_results[
-                frozenset([package_1, package_2])]
+            pairwise_results = self._pairwise_to_results[frozenset(
+                [package_1, package_2])]
             if not pairwise_results:
-                pair_result.append(
-                    {
-                        'status': compatibility_store.Status.UNKNOWN.name,
-                        'self': False,
-                    }
-                )
+                pair_result.append({
+                    'status':
+                    compatibility_store.Status.UNKNOWN.name,
+                    'self':
+                    False,
+                })
                 status_type = 'pairwise-unknown'
             for pr in pairwise_results:
                 if not self._is_py_version_incompatible(pr) and \
                             pr.status != compatibility_store.Status.SUCCESS:
-                    pair_result.append(
-                        {
-                            'status': pr.status.value,
-                            'self': False,
-                            'details': pr.details
-                        }
-                    )
+                    pair_result.append({
+                        'status': pr.status.value,
+                        'self': False,
+                        'details': pr.details
+                    })
                     status_type = 'pairwise-' + pr.status.value.lower()
 
             if not pair_result:
-                pair_result.append(
-                    {
-                        'status': compatibility_store.Status.SUCCESS.name,
-                        'self': False,
-                    }
-                )
+                pair_result.append({
+                    'status':
+                    compatibility_store.Status.SUCCESS.name,
+                    'self':
+                    False,
+                })
                 if status_type == 'self-success':
                     status_type = 'pairwise-success'
 
@@ -352,11 +340,12 @@ class DashboardBuilder():
 def main():
     parser = argparse.ArgumentParser(
         description='Display a grid show the dependency compatibility ' +
-                    'between Python packages')
-    parser.add_argument('--packages', nargs='+',
-                        default=_DEFAULT_INSTALL_NAMES,
-                        help='the packages to display compatibility ' +
-                             'information for')
+        'between Python packages')
+    parser.add_argument(
+        '--packages',
+        nargs='+',
+        default=_DEFAULT_INSTALL_NAMES,
+        help='the packages to display compatibility ' + 'information for')
     parser.add_argument(
         '--browser',
         action='store_true',
@@ -368,8 +357,8 @@ def main():
     checker = compatibility_checker.CompatibilityChecker()
     store = compatibility_store.CompatibilityStore()
 
-    instance_flag = '-instances={}=tcp:{}'.format(
-        INSTANCE_CONNECTION_NAME, PORT)
+    instance_flag = '-instances={}=tcp:{}'.format(INSTANCE_CONNECTION_NAME,
+                                                  PORT)
     cloud_sql_proxy_path = './cloud_sql_proxy'
 
     try:
@@ -378,7 +367,8 @@ def main():
         process.expect('Ready for new connection', timeout=5)
 
         packages = [
-            package.Package(install_name) for install_name in args.packages]
+            package.Package(install_name) for install_name in args.packages
+        ]
         logging.info('Getting self compatibility results...')
         package_to_results = store.get_self_compatibilities(packages)
         logging.info('Getting pairwise compatibility results...')
@@ -389,12 +379,8 @@ def main():
             dep_info = store.get_dependency_info(pkg)
             package_with_dependency_info[pkg] = dep_info
 
-        results = _ResultHolder(
-            package_to_results,
-            pairwise_to_results,
-            package_with_dependency_info,
-            checker,
-            store)
+        results = _ResultHolder(package_to_results, pairwise_to_results,
+                                package_with_dependency_info, checker, store)
 
         dashboard_builder = DashboardBuilder(packages, results)
 

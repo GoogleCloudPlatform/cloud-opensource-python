@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """checks two packages for semver breakage"""
 
 from compatibility_lib import package_crawler_static as crawler

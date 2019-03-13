@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Get self and pairwise compatibility data and write to bigquery."""
 
 import argparse
@@ -51,8 +50,9 @@ def _result_dict_to_compatibility_result(results):
         res_dict = item[0]
         result_content, python_version = res_dict
         check_result = result_content.get('result')
-        packages_list = [package.Package(pkg)
-                         for pkg in result_content.get('packages')]
+        packages_list = [
+            package.Package(pkg) for pkg in result_content.get('packages')
+        ]
         details = result_content.get('description')
         timestamp = datetime.datetime.now().isoformat()
         dependency_info = result_content.get('dependency_info')
@@ -63,8 +63,7 @@ def _result_dict_to_compatibility_result(results):
             status=compatibility_store.Status(check_result),
             details=details,
             timestamp=timestamp,
-            dependency_info=dependency_info
-        )
+            dependency_info=dependency_info)
         res_list.append(compatibility_result)
 
     return res_list
@@ -72,8 +71,8 @@ def _result_dict_to_compatibility_result(results):
 
 @contextlib.contextmanager
 def run_cloud_sql_proxy(cloud_sql_proxy_path):
-    instance_flag = '-instances={}=tcp:{}'.format(
-        INSTANCE_CONNECTION_NAME, PORT)
+    instance_flag = '-instances={}=tcp:{}'.format(INSTANCE_CONNECTION_NAME,
+                                                  PORT)
     if cloud_sql_proxy_path is None:
         assert cloud_sql_proxy_path, 'Could not find cloud_sql_proxy path'
     process = popen_spawn.PopenSpawn([cloud_sql_proxy_path, instance_flag])
@@ -86,9 +85,8 @@ def run_cloud_sql_proxy(cloud_sql_proxy_path):
             ('Cloud SQL Proxy was unable to start after 5 seconds. Output '
              'of cloud_sql_proxy: \n{}').format(process.before))
     except pexpect.exceptions.EOF:
-        raise ConnectionError(
-            ('Cloud SQL Proxy exited unexpectedly. Output of '
-             'cloud_sql_proxy: \n{}').format(process.before))
+        raise ConnectionError(('Cloud SQL Proxy exited unexpectedly. Output of '
+                               'cloud_sql_proxy: \n{}').format(process.before))
     finally:
         process.kill(signal.SIGTERM)
 
@@ -118,8 +116,9 @@ def get_package_pairs(check_pypi=False, check_github=False):
     return self_packages, pair_packages
 
 
-def write_to_status_table(
-        check_pypi=False, check_github=False, cloud_sql_proxy_path=None):
+def write_to_status_table(check_pypi=False,
+                          check_github=False,
+                          cloud_sql_proxy_path=None):
     """Get the compatibility status for PyPI versions."""
     # Write self compatibility status to BigQuery
     self_packages, pair_packages = get_package_pairs(check_pypi, check_github)

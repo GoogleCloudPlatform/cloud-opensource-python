@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A HTTP server that generates badges for google python projects
 
 Requires Python 3.6 or later.
@@ -114,8 +113,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
 
         for res in compatibility_results:
-            version = res.python_major_version            # eg. '2', '3'
-            pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
+            version = res.python_major_version  # eg. '2', '3'
+            pyver = badge_utils.PY_VER_MAPPING[version]  # eg. 'py2', 'py3'
 
             if result_dict[pyver]['details'] is None:
                 result_dict[pyver]['details'] = {}
@@ -197,10 +196,8 @@ def _get_dependency_dict(package_name: str) -> dict:
     return result_dict
 
 
-def _get_badge_status(
-        self_compat_res: dict,
-        google_compat_res: dict,
-        dependency_res: dict) -> str:
+def _get_badge_status(self_compat_res: dict, google_compat_res: dict,
+                      dependency_res: dict) -> str:
     """Get the badge status.
 
     The badge status will determine the right hand text and the color of

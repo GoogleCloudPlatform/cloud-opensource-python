@@ -26,8 +26,8 @@ HOST_PORT = '0.0.0.0:8080'
 BASE_URL = 'http://0.0.0.0:8080/'
 PACKAGE_FOR_TEST = 'opencensus'
 
-RETRY_WAIT_PERIOD = 8000 # Wait 8 seconds between each retry
-RETRY_MAX_ATTEMPT = 10 # Retry 10 times
+RETRY_WAIT_PERIOD = 8000  # Wait 8 seconds between each retry
+RETRY_MAX_ATTEMPT = 10  # Retry 10 times
 
 
 def wait_app_to_start():
@@ -40,10 +40,7 @@ def run_application():
     """Start running the compatibility checker server."""
     cmd = 'python badge_server/main.py '
     process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        shell=True,
-        preexec_fn=os.setsid)
+        cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
     return process
 
 
@@ -60,8 +57,8 @@ class TestBadgeServer(unittest.TestCase):
         # Kill the application process
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
 
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
+    @retry(
+        wait_fixed=RETRY_WAIT_PERIOD, stop_max_attempt_number=RETRY_MAX_ATTEMPT)
     def test_one_badge(self):
         response = requests.get('{}/'.format(BASE_URL))
         status_code = response.status_code
