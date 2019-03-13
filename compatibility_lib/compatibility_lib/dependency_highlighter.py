@@ -22,7 +22,7 @@ from compatibility_lib import configs
 from compatibility_lib import utils
 
 DEFAULT_GRACE_PERIOD_IN_DAYS = 183  # applies to any version updates
-MAJOR_GRACE_PERIOD_IN_DAYS = 30     # applies to major version updates only
+MAJOR_GRACE_PERIOD_IN_DAYS = 30  # applies to major version updates only
 ALLOWED_MINOR_DIFF = 3
 
 
@@ -73,13 +73,10 @@ class OutdatedDependency(object):
                'Latest Available:\t{}\n'
                'Time Since Latest:\t{} days\n'
                '{}\n')
-        return msg.format(
-            self.name,
-            self.priority.level.name,
-            self.installed_version,
-            self.latest_version,
-            (self.current_time-self.latest_version_time).days,
-            self.priority.details)
+        return msg.format(self.name, self.priority.level.name,
+                          self.installed_version, self.latest_version,
+                          (self.current_time - self.latest_version_time).days,
+                          self.priority.details)
 
 
 class DependencyHighlighter(object):
@@ -166,16 +163,16 @@ class DependencyHighlighter(object):
                 # Skip the check if release timestamp is None.
                 if current_time is None or latest_version_time is None:
                     logging.warning(
-                        'Release time for dependency {} is not available.'
-                        .format(name))
+                        'Release time for dependency {} is not available.'.
+                        format(name))
                     continue
 
                 try:
                     latest = _sanitize_release_tag(info['latest_version'])
                 except UnstableReleaseError:
                     logging.warning(
-                        'The latest version of {} is not a stable release.'
-                        .format(name))
+                        'The latest version of {} is not a stable release.'.
+                        format(name))
                     continue
 
                 elapsed_time = current_time - latest_version_time
@@ -183,8 +180,8 @@ class DependencyHighlighter(object):
                 if priority.level == PriorityLevel.UP_TO_DATE:
                     priority = self._get_update_priority(
                         name, install, latest, elapsed_time)
-                dependency = OutdatedDependency(
-                    name, package_name, priority, info)
+                dependency = OutdatedDependency(name, package_name, priority,
+                                                info)
                 outdated_dependencies.append(dependency)
         return outdated_dependencies
 

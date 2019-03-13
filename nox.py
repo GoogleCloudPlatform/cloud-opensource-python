@@ -25,16 +25,10 @@ LOCAL_DEPS = ['compatibility_lib']
 
 @nox.session
 def lint(session):
-    """Run flake8.
-
-    Returns a failure if flake8 finds linting errors or sufficiently
-    serious code quality issues.
-    """
+    """Run yapf and return an error if yapf formatting is not used."""
     session.interpreter = 'python3.6'
-    session.install('flake8')
-    session.run('flake8',
-                '--exclude=--exclude=__pycache__,dist,.git,'
-                'build,.tox,.nox,.idea,mock_*,test_*,*_test')
+    session.install('yapf')
+    session.run('yapf', '--diff', '-r', 'badge_server', 'compatibility_lib', 'compatibility_server', 'dashboard', 'scripts', 'system_test')
 
 
 @nox.session

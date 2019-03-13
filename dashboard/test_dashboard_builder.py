@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Tests for dashboard_builder."""
 
 import mock
@@ -36,13 +35,13 @@ class _DeprecatedDepFinder(object):
         self.store = store
 
     def get_deprecated_deps(self, packages=None):
-        deprecated_deps = [
-            (('gsutil', ['gcs-oauth2-boto-plugin', 'oauth2client']),),
-            (('opencensus', []),),
-            (('package1', []),),
-            (('package2', []),),
-            (('package3', ['deprecated_dep1', 'deprecated_dep2']),),
-            (('gcloud', ['oauth2client']),)]
+        deprecated_deps = [(('gsutil',
+                             ['gcs-oauth2-boto-plugin', 'oauth2client']),),
+                           (('opencensus', []),), (('package1', []),),
+                           (('package2', []),),
+                           (('package3', ['deprecated_dep1',
+                                          'deprecated_dep2']),),
+                           (('gcloud', ['oauth2client']),)]
 
         return deprecated_deps
 
@@ -58,23 +57,30 @@ class _DependencyHighlighter(object):
         results = {
             'opencensus': [],
             'google-gax': [mock.Mock(name='ply', priority=2)],
-            'oauth2client': []}
+            'oauth2client': []
+        }
 
         return results
 
 
 class TestResultHolderGetResult(unittest.TestCase):
     """Tests for dashboard_builder._ResultHolder.get_result()."""
-    patch_finder = mock.patch('dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder', _DeprecatedDepFinder)
-    patch_highlighter = mock.patch('dashboard_builder.dependency_highlighter.DependencyHighlighter', _DependencyHighlighter)
+    patch_finder = mock.patch(
+        'dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder',
+        _DeprecatedDepFinder)
+    patch_highlighter = mock.patch(
+        'dashboard_builder.dependency_highlighter.DependencyHighlighter',
+        _DependencyHighlighter)
 
     def test_self_compatibility_success(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
 
         with self.patch_finder, self.patch_highlighter:
@@ -83,44 +89,47 @@ class TestResultHolderGetResult(unittest.TestCase):
 
         expected = {
             'status_type': 'self-success',
-            'self_compatibility_check': [
-                {'status': 'SUCCESS', 'self': True}],
+            'self_compatibility_check': [{
+                'status': 'SUCCESS',
+                'self': True
+            }],
             'pairwise_compatibility_check': []
         }
-        self.assertEqual(
-            rh.get_result(PACKAGE_1, PACKAGE_1),
-            expected)
+        self.assertEqual(rh.get_result(PACKAGE_1, PACKAGE_1), expected)
 
     def test_self_compatibility_error(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.INSTALL_ERROR,
-                details='Installation failure',
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.INSTALL_ERROR,
+                    details='Installation failure',
+                )
+            ]
         }
 
         with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results, pairwise_to_results={})
         expected = {
-            'status_type': 'self-install_error',
+            'status_type':
+            'self-install_error',
             'self_compatibility_check': [
-                {'status': 'INSTALL_ERROR',
-                 'self': True,
-                 'details': 'Installation failure'
-                 },
-                {'status': 'INSTALL_ERROR',
-                 'self': True,
-                 'details': 'Installation failure'
-                 },
+                {
+                    'status': 'INSTALL_ERROR',
+                    'self': True,
+                    'details': 'Installation failure'
+                },
+                {
+                    'status': 'INSTALL_ERROR',
+                    'self': True,
+                    'details': 'Installation failure'
+                },
             ],
             'pairwise_compatibility_check': []
         }
-        self.assertEqual(
-            rh.get_result(PACKAGE_1, PACKAGE_1),
-            expected)
+        self.assertEqual(rh.get_result(PACKAGE_1, PACKAGE_1), expected)
 
     def test_self_compatibility_no_entry(self):
         package_to_results = {PACKAGE_1: []}
@@ -132,26 +141,31 @@ class TestResultHolderGetResult(unittest.TestCase):
         expected = {
             'status_type': 'self-unknown',
             'self_compatibility_check': [
-                {'status': 'UNKNOWN', 'self': True},
+                {
+                    'status': 'UNKNOWN',
+                    'self': True
+                },
             ],
             'pairwise_compatibility_check': []
         }
-        self.assertEqual(
-            rh.get_result(PACKAGE_1, PACKAGE_1),
-            expected)
+        self.assertEqual(rh.get_result(PACKAGE_1, PACKAGE_1), expected)
 
     def test_pairwise_success(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): [
@@ -159,7 +173,8 @@ class TestResultHolderGetResult(unittest.TestCase):
                     packages=[PACKAGE_1, PACKAGE_2],
                     python_major_version=3,
                     status=compatibility_store.Status.SUCCESS,
-                )]
+                )
+            ]
         }
 
         with self.patch_finder, self.patch_highlighter:
@@ -170,26 +185,29 @@ class TestResultHolderGetResult(unittest.TestCase):
         expected = {
             'status_type': 'pairwise-success',
             'self_compatibility_check': [],
-            'pairwise_compatibility_check': [
-                {'status': 'SUCCESS', 'self': False}
-            ]
+            'pairwise_compatibility_check': [{
+                'status': 'SUCCESS',
+                'self': False
+            }]
         }
-        self.assertEqual(
-            rh.get_result(PACKAGE_1, PACKAGE_2),
-            expected)
+        self.assertEqual(rh.get_result(PACKAGE_1, PACKAGE_2), expected)
 
     def test_pairwise_error(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): [
@@ -198,7 +216,8 @@ class TestResultHolderGetResult(unittest.TestCase):
                     python_major_version=3,
                     status=compatibility_store.Status.INSTALL_ERROR,
                     details='Installation failure',
-                )]
+                )
+            ]
         }
 
         with self.patch_finder, self.patch_highlighter:
@@ -206,35 +225,35 @@ class TestResultHolderGetResult(unittest.TestCase):
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results)
         expected = {
-            'status_type': 'pairwise-install_error',
+            'status_type':
+            'pairwise-install_error',
             'self_compatibility_check': [],
-            'pairwise_compatibility_check': [
-                {'status': 'INSTALL_ERROR',
-                 'self': False,
-                 'details': 'Installation failure'
-                 }
-            ]
+            'pairwise_compatibility_check': [{
+                'status': 'INSTALL_ERROR',
+                'self': False,
+                'details': 'Installation failure'
+            }]
         }
-        self.assertEqual(
-            rh.get_result(PACKAGE_1, PACKAGE_2),
-            expected)
+        self.assertEqual(rh.get_result(PACKAGE_1, PACKAGE_2), expected)
 
     def test_pairwise_no_entry(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
-        pairwise_to_results = {
-            frozenset([PACKAGE_1, PACKAGE_2]): []
-        }
+        pairwise_to_results = {frozenset([PACKAGE_1, PACKAGE_2]): []}
 
         with self.patch_finder, self.patch_highlighter:
             rh = dashboard_builder._ResultHolder(
@@ -243,13 +262,12 @@ class TestResultHolderGetResult(unittest.TestCase):
         expected = {
             'status_type': 'pairwise-unknown',
             'self_compatibility_check': [],
-            'pairwise_compatibility_check': [
-                {'status': 'UNKNOWN', 'self': False}
-            ]
+            'pairwise_compatibility_check': [{
+                'status': 'UNKNOWN',
+                'self': False
+            }]
         }
-        self.assertEqual(
-            rh.get_result(PACKAGE_1, PACKAGE_2),
-            expected)
+        self.assertEqual(rh.get_result(PACKAGE_1, PACKAGE_2), expected)
 
     def test_get_package_details(self):
         package_with_dependency_info = {
@@ -263,35 +281,38 @@ class TestResultHolderGetResult(unittest.TestCase):
             }
         }
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
-        pairwise_to_results = {
-            frozenset([PACKAGE_1, PACKAGE_2]): []
-        }
+        pairwise_to_results = {frozenset([PACKAGE_1, PACKAGE_2]): []}
 
-        patch_pkg_list = mock.patch(
-            'dashboard_builder.configs.PKG_LIST', ['package1', 'package2'])
+        patch_pkg_list = mock.patch('dashboard_builder.configs.PKG_LIST',
+                                    ['package1', 'package2'])
 
         with self.patch_finder, self.patch_highlighter, patch_pkg_list:
             rh = dashboard_builder._ResultHolder(
                 package_to_results=package_to_results,
                 pairwise_to_results=pairwise_to_results,
-                package_with_dependency_info = package_with_dependency_info)
+                package_with_dependency_info=package_with_dependency_info)
             result = rh.get_package_details(PACKAGE_1)
 
         expected = {
             'self_conflict': False,
             'pairwise_conflict': ['package2'],
-            'latest_version': '1.2.0'}
+            'latest_version': '1.2.0'
+        }
         self.assertEqual(result, expected)
 
 
@@ -306,16 +327,20 @@ class TestResultHolderHasIssues(unittest.TestCase):
 
     def test_no_issues(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): [
@@ -323,7 +348,8 @@ class TestResultHolderHasIssues(unittest.TestCase):
                     packages=[PACKAGE_1, PACKAGE_2],
                     python_major_version=3,
                     status=compatibility_store.Status.SUCCESS,
-                )]
+                )
+            ]
         }
 
         with self.patch_finder, self.patch_highlighter:
@@ -335,17 +361,21 @@ class TestResultHolderHasIssues(unittest.TestCase):
 
     def test_self_issues(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.CHECK_WARNING,
-                details='Self Conflict',
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.CHECK_WARNING,
+                    details='Self Conflict',
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
         }
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): [
@@ -354,7 +384,8 @@ class TestResultHolderHasIssues(unittest.TestCase):
                     python_major_version=3,
                     status=compatibility_store.Status.CHECK_WARNING,
                     details='Conflict',
-                )],
+                )
+            ],
         }
 
         with self.patch_finder, self.patch_highlighter:
@@ -366,16 +397,20 @@ class TestResultHolderHasIssues(unittest.TestCase):
 
     def test_pairwise_issues(self):
         package_to_results = {
-            PACKAGE_1: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_1],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )],
-            PACKAGE_2: [compatibility_store.CompatibilityResult(
-                packages=[PACKAGE_2],
-                python_major_version=3,
-                status=compatibility_store.Status.SUCCESS,
-            )]
+            PACKAGE_1: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_1],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ],
+            PACKAGE_2: [
+                compatibility_store.CompatibilityResult(
+                    packages=[PACKAGE_2],
+                    python_major_version=3,
+                    status=compatibility_store.Status.SUCCESS,
+                )
+            ]
         }
         pairwise_to_results = {
             frozenset([PACKAGE_1, PACKAGE_2]): [
@@ -384,7 +419,8 @@ class TestResultHolderHasIssues(unittest.TestCase):
                     python_major_version=3,
                     status=compatibility_store.Status.INSTALL_ERROR,
                     details='Installation failure',
-                )]
+                )
+            ]
         }
 
         with self.patch_finder, self.patch_highlighter:
@@ -412,23 +448,19 @@ class TestGridBuilder(unittest.TestCase):
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1, PACKAGE_2],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
         ])
         with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
-            pairwise_to_results = store.get_compatibility_combinations(
-                packages)
+            pairwise_to_results = store.get_compatibility_combinations(packages)
             results = dashboard_builder._ResultHolder(package_to_results,
                                                       pairwise_to_results)
             builder = dashboard_builder.DashboardBuilder(packages, results)
@@ -443,19 +475,16 @@ class TestGridBuilder(unittest.TestCase):
                 packages=[PACKAGE_1],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                details="Installation failure"
-            ),
+                details="Installation failure"),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
         ])
 
         with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
-            pairwise_to_results = store.get_compatibility_combinations(
-                packages)
+            pairwise_to_results = store.get_compatibility_combinations(packages)
             results = dashboard_builder._ResultHolder(package_to_results,
                                                       pairwise_to_results)
             builder = dashboard_builder.DashboardBuilder(packages, results)
@@ -470,19 +499,16 @@ class TestGridBuilder(unittest.TestCase):
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
         ])
 
         with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
-            pairwise_to_results = store.get_compatibility_combinations(
-                packages)
+            pairwise_to_results = store.get_compatibility_combinations(packages)
             results = dashboard_builder._ResultHolder(package_to_results,
                                                       pairwise_to_results)
             builder = dashboard_builder.DashboardBuilder(packages, results)
@@ -496,14 +522,12 @@ class TestGridBuilder(unittest.TestCase):
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1, PACKAGE_2],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
         ])
 
         with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
-            pairwise_to_results = store.get_compatibility_combinations(
-                packages)
+            pairwise_to_results = store.get_compatibility_combinations(packages)
             results = dashboard_builder._ResultHolder(package_to_results,
                                                       pairwise_to_results)
             builder = dashboard_builder.DashboardBuilder(packages, results)
@@ -517,25 +541,21 @@ class TestGridBuilder(unittest.TestCase):
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_2],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1, PACKAGE_2],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                details="Installation failure"
-            ),
+                details="Installation failure"),
         ])
 
         with self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
-            pairwise_to_results = store.get_compatibility_combinations(
-                packages)
+            pairwise_to_results = store.get_compatibility_combinations(packages)
             results = dashboard_builder._ResultHolder(package_to_results,
                                                       pairwise_to_results)
             builder = dashboard_builder.DashboardBuilder(packages, results)
@@ -552,30 +572,26 @@ class TestGridBuilder(unittest.TestCase):
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1],
                 python_major_version=3,
-                status=compatibility_store.Status.SUCCESS
-            ),
+                status=compatibility_store.Status.SUCCESS),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_3],
                 python_major_version=3,
-                status=compatibility_store.Status.INSTALL_ERROR
-            ),
+                status=compatibility_store.Status.INSTALL_ERROR),
             compatibility_store.CompatibilityResult(
                 packages=[PACKAGE_1, PACKAGE_3],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                details="Installation failure"
-            ),
+                details="Installation failure"),
         ])
         patch = mock.patch(
             'compatibility_lib.configs.PKG_PY_VERSION_NOT_SUPPORTED', {
-            2: ['package4'],
-            3: ['package3'],
-        })
+                2: ['package4'],
+                3: ['package3'],
+            })
 
         with patch, self.patch_finder, self.patch_highlighter:
             package_to_results = store.get_self_compatibilities(packages)
-            pairwise_to_results = store.get_compatibility_combinations(
-                packages)
+            pairwise_to_results = store.get_compatibility_combinations(packages)
             results = dashboard_builder._ResultHolder(package_to_results,
                                                       pairwise_to_results)
 

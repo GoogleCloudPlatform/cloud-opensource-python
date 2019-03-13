@@ -13,7 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A fake implementation of pip whose behavior can be modified using flags."""
 
 import argparse
@@ -102,8 +101,7 @@ def main():
     elif command == 'uninstall':
         sys.exit(known.uninstall_returncode)
     else:
-        print('unexpected command: {}'.format(command),
-              end='', file=sys.stderr)
+        print('unexpected command: {}'.format(command), end='', file=sys.stderr)
         sys.exit(1)
 
 

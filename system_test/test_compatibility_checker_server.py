@@ -26,14 +26,14 @@ HOST_PORT = '0.0.0.0:8888'
 BASE_URL = 'http://0.0.0.0:8888/'
 PACKAGE_FOR_TEST = 'opencensus'
 
-RETRY_WAIT_PERIOD = 8000 # Wait 8 seconds between each retry
-RETRY_MAX_ATTEMPT = 10 # Retry 10 times
+RETRY_WAIT_PERIOD = 8000  # Wait 8 seconds between each retry
+RETRY_MAX_ATTEMPT = 10  # Retry 10 times
 
 
 def wait_app_to_start():
     """Wait the application to start running."""
-    url = '{}?package={}&python-version={}'.format(
-        BASE_URL, PACKAGE_FOR_TEST, 3)
+    url = '{}?package={}&python-version={}'.format(BASE_URL, PACKAGE_FOR_TEST,
+                                                   3)
     cmd = 'wget --retry-connrefused --tries=5 \'{}\''.format(url)
     subprocess.check_call(cmd, shell=True)
 
@@ -43,10 +43,7 @@ def run_application():
     cmd = 'python compatibility_server/compatibility_checker_server.py ' \
           '--host=\'0.0.0.0\' --port=8888'
     process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        shell=True,
-        preexec_fn=os.setsid)
+        cmd, stdout=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
     return process
 
 
@@ -63,17 +60,18 @@ class TestCompatibilityCheckerServer(unittest.TestCase):
         # Kill the flask application process
         os.killpg(os.getpgid(self.process.pid), signal.SIGTERM)
 
-    @retry(wait_fixed=RETRY_WAIT_PERIOD,
-           stop_max_attempt_number=RETRY_MAX_ATTEMPT)
+    @retry(
+        wait_fixed=RETRY_WAIT_PERIOD, stop_max_attempt_number=RETRY_MAX_ATTEMPT)
     def test_check_compatibility(self):
         response = requests.get('{}?package={}&python-version={}'.format(
             BASE_URL, PACKAGE_FOR_TEST, 3))
         status_code = response.status_code
         content = response.content.decode('utf-8')
 
-        content_dict = ast.literal_eval(content.replace(
-            'true', '"true"').replace(
-            'false', '"false"').replace('null', '"null"'))
+        content_dict = ast.literal_eval(
+            content.replace('true', '"true"').replace('false',
+                                                      '"false"').replace(
+                                                          'null', '"null"'))
 
         self.assertEqual(status_code, 200)
         self.assertEqual(content_dict['packages'], [PACKAGE_FOR_TEST])

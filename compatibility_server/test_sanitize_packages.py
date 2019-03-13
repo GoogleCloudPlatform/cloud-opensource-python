@@ -18,6 +18,7 @@ import logging
 import pip_checker
 import unittest
 
+
 class Test__sanitize_packages(unittest.TestCase):
 
     def test__sanitize_packages(self):
@@ -49,8 +50,9 @@ class Test__sanitize_packages(unittest.TestCase):
             ('python3', py3_pkgs),
         ]
         for command, packages in args:
-            pip_result = pip_checker.check(
-                [command, '-m', 'pip'], packages, clean=True)
+            pip_result = pip_checker.check([command, '-m', 'pip'],
+                                           packages,
+                                           clean=True)
             self.assertIsNotNone(pip_result)
 
             results = dict(
@@ -61,7 +63,7 @@ class Test__sanitize_packages(unittest.TestCase):
             if results['result'] == 'INSTALL_ERROR':
                 logging.warning(command)
                 logging.warning(results['description'])
-            self.assertFalse(results['result']=='INSTALL_ERROR')
+            self.assertFalse(results['result'] == 'INSTALL_ERROR')
 
     def test_nonwhitelisted_packages(self):
         packages = [

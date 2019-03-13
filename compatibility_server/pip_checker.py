@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Installs packages using pip and tests them for version compatibility.
 
 Conceptually, it runs:
@@ -71,15 +70,13 @@ class PipCheckerError(Exception):
 class PipError(PipCheckerError):
     """A pip command failed in an unexpected way."""
 
-    def __init__(self,
-                 error_msg: str,
-                 command: List[str],
-                 returncode: int):
+    def __init__(self, error_msg: str, command: List[str], returncode: int):
         command_string = ' '.join(shlex.quote(c) for c in command)
         super(PipError, self).__init__(
             'Pip command ({command_string}) failed with error [{returncode}]: '
             '{error_msg}'.format(
-                command_string=command_string, returncode=returncode,
+                command_string=command_string,
+                returncode=returncode,
                 error_msg=error_msg))
 
         self.command = command
@@ -165,17 +162,16 @@ class PipCheckResult:
     def __repr__(self):
         return ('PipCheckResult(packages={!r}, result_type={!r}, ' +
                 'result_text={!r}, dependency_info={!r})').format(
-            self.packages,
-            self.result_type,
-            self.result_text,
-            self.dependency_info)
+                    self.packages, self.result_type, self.result_text,
+                    self.dependency_info)
 
     def with_extra_attrs(self, dependency_info: Optional[str] = None):
         """Return a new PipCheckResult with extra attributes."""
-        return PipCheckResult(self.packages,
-                              self.result_type,
-                              self.result_text,
-                              dependency_info=dependency_info)
+        return PipCheckResult(
+            self.packages,
+            self.result_type,
+            self.result_text,
+            dependency_info=dependency_info)
 
     @property
     def packages(self) -> List[str]:
@@ -206,9 +202,7 @@ class _OneshotPipCheck():
     See https://pip.pypa.io/en/stable/user_guide/.
     """
 
-    def __init__(self,
-                 pip_command: List[str],
-                 packages: List[str],
+    def __init__(self, pip_command: List[str], packages: List[str],
                  stats: stats_module.Stats):
         """Initializes _OneshotPipCheck with the arguments needed to run pip.
 
@@ -260,7 +254,7 @@ class _OneshotPipCheck():
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
-                          "container. Error message: {}".format(e.explanation))
+                "container. Error message: {}".format(e.explanation))
         except IOError as e:
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
@@ -269,12 +263,11 @@ class _OneshotPipCheck():
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while starting a docker "
-                          "container. Error message: {}".format(e))
+                "container. Error message: {}".format(e))
 
         return container
 
-    def _cleanup_container(self,
-                           container: docker.models.containers.Container):
+    def _cleanup_container(self, container: docker.models.containers.Container):
         """Stop the container and remove it's associated storage."""
         try:
             container.stop(timeout=0)
@@ -283,7 +276,7 @@ class _OneshotPipCheck():
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="Error occurs when cleaning up docker container."
-                          "Container does not exist.")
+                "Container does not exist.")
         except IOError as e:
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
@@ -292,7 +285,7 @@ class _OneshotPipCheck():
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while stopping a docker"
-                          "container. Error message: {}".format(e))
+                "container. Error message: {}".format(e))
 
     def _run_command(
             self,
@@ -325,9 +318,9 @@ class _OneshotPipCheck():
             self._mmap.measure_int_put(views.DOCKER_ERROR_MEASURE, 1)
             self._mmap.record(self._tmap)
             raise PipCheckerError(error_msg="Error occurs when executing "
-                                            "commands in container."
-                                            "Error message: "
-                                            "{}".format(e.explanation))
+                                  "commands in container."
+                                  "Error message: "
+                                  "{}".format(e.explanation))
         except IOError as e:
             # TODO: Log the exception and monitor it after trying to decode
             # this into a requests.exception.* e.g. ReadTimeout. See:
@@ -336,7 +329,7 @@ class _OneshotPipCheck():
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="An error occurred while running the command {} in"
-                          "container. Error message: {}".format(command, e))
+                "container. Error message: {}".format(command, e))
 
         # Checking for cases where the command was killed by a signal.
         # If a process was killed by a signal, then it's exit code will be
@@ -348,13 +341,11 @@ class _OneshotPipCheck():
             self._mmap.record(self._tmap)
             raise PipCheckerError(
                 error_msg="The command {} was killed by signal {}. "
-                          "This likely means that the Docker container timed "
-                          "out. Error msg: {}".format(
-                            command, returncode - 128, output))
+                "This likely means that the Docker container timed "
+                "out. Error msg: {}".format(command, returncode - 128, output))
         elif returncode and raise_on_failure:
-            raise PipError(error_msg=output,
-                           command=command,
-                           returncode=returncode)
+            raise PipError(
+                error_msg=output, command=command, returncode=returncode)
 
         return returncode, output
 
@@ -369,8 +360,8 @@ class _OneshotPipCheck():
             with urllib.request.urlopen(r) as f:
                 result = json.loads(f.read().decode('utf-8'))
         except urllib.error.HTTPError:
-            logging.error('Package {} with version {} not found in Pypi'.
-                          format(pkg_name, pkg_version))
+            logging.error('Package {} with version {} not found in Pypi'.format(
+                pkg_name, pkg_version))
             return None
         return result
 
@@ -378,22 +369,20 @@ class _OneshotPipCheck():
         """Build pip commands."""
         return self._pip_command + subcommands
 
-    def _clone_repo(
-            self,
-            container: docker.models.containers.Container,
-            github_url: str):
+    def _clone_repo(self, container: docker.models.containers.Container,
+                    github_url: str):
         """Shallow clone the google-cloud-python repository."""
         # Create a temp directory
         _, directory = self._run_command(
-            container,
-            ['echo', '$mktemp -d'],
+            container, ['echo', '$mktemp -d'],
             stderr=False,
             stdout=True,
             raise_on_failure=True)
 
         directory = directory.strip()
-        shallow_clone_command = ['git', 'clone', '--depth', '1',
-                                 github_url, directory]
+        shallow_clone_command = [
+            'git', 'clone', '--depth', '1', github_url, directory
+        ]
 
         self._run_command(
             container,
@@ -424,8 +413,8 @@ class _OneshotPipCheck():
             # real	0m2.242s
             # user	0m0.472s
             # sys	0m0.357s
-            client_repo_directory = self._clone_repo(
-                container, CLIENTLIBS_GITHUB_URL)
+            client_repo_directory = self._clone_repo(container,
+                                                     CLIENTLIBS_GITHUB_URL)
 
         install_names = []
         for pkg in self._packages:
@@ -447,15 +436,14 @@ class _OneshotPipCheck():
 
         if returncode:
             # Checking for environment error
-            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(
-                output)
+            environment_error = PIP_ENVIRONMENT_ERROR_PATTERN.search(output)
             if environment_error:
-                raise PipError(error_msg=environment_error.group('error'),
-                               command=command,
-                               returncode=returncode)
+                raise PipError(
+                    error_msg=environment_error.group('error'),
+                    command=command,
+                    returncode=returncode)
             return PipCheckResult(self._packages,
-                                  PipCheckResultType.INSTALL_ERROR,
-                                  output)
+                                  PipCheckResultType.INSTALL_ERROR, output)
 
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
@@ -477,11 +465,10 @@ class _OneshotPipCheck():
             if not has_version_conflicts:
                 raise PipCheckerError(
                     error_msg="The docker container timed out before executing"
-                              "pip command. Error msg: {}".format(output))
+                    "pip command. Error msg: {}".format(output))
             else:
                 return PipCheckResult(self._packages,
-                                      PipCheckResultType.CHECK_WARNING,
-                                      output)
+                                      PipCheckResultType.CHECK_WARNING, output)
         return PipCheckResult(self._packages, PipCheckResultType.SUCCESS)
 
     def _list(self, container: docker.models.containers.Container):
@@ -532,7 +519,6 @@ class _OneshotPipCheck():
                 }
             }
         """
-
         """Use pypi json api to get the release date of the latest version."""
         pkg_version_date = {}
 
@@ -587,8 +573,7 @@ class _OneshotPipCheck():
             latest_version_time = None
             if result is not None:
                 if 'releases' in result:
-                    latest_release = result.get('releases').get(
-                        latest_version)
+                    latest_release = result.get('releases').get(latest_version)
                     installed_release = result.get('releases').get(
                         installed_version)
                     if latest_release:
@@ -634,8 +619,7 @@ class _OneshotPipCheck():
             self._cleanup_container(container)
 
 
-def check(pip_command: List[str],
-          packages: List[str],
+def check(pip_command: List[str], packages: List[str],
           stats: stats_module.Stats) -> PipCheckResult:
     """Runs a version compatibility check using the given packages.
 

@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """An in-memory key/value cache."""
 
 from typing import Any
 
 
 class FakeCache:
+
     def __init__(self):
         self._cache = {}
 

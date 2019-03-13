@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A HTTP server that wraps pip_checker.
 
 Requires Python 3.6 or later.
@@ -118,7 +117,7 @@ def _enable_exporter():
     """
     project_id = _get_project_id()
     exporter = stackdriver_exporter.new_stats_exporter(
-       stackdriver_exporter.Options(project_id=project_id))
+        stackdriver_exporter.Options(project_id=project_id))
     STATS.view_manager.register_exporter(exporter)
 
 
@@ -154,8 +153,7 @@ def check():
     if unsupported_packages:
         return flask.make_response(
             'Request contains unrecognized packages: {}'.format(
-                ', '.join(unsupported_packages)),
-            400)
+                ', '.join(unsupported_packages)), 400)
 
     python_version = flask.request.args.get('python-version')
     if not python_version:
@@ -164,13 +162,12 @@ def check():
     if python_version not in PYTHON_VERSION_TO_COMMAND:
         return flask.make_response(
             'Invalid Python version specified. Must be one of: {}'.format(
-                    ', '.join(PYTHON_VERSION_TO_COMMAND), 400))
+                ', '.join(PYTHON_VERSION_TO_COMMAND), 400))
 
     python_command = PYTHON_VERSION_TO_COMMAND[python_version]
 
     try:
-        pip_result = pip_checker.check(
-            python_command, packages, STATS)
+        pip_result = pip_checker.check(python_command, packages, STATS)
     except pip_checker.PipCheckerError as pip_error:
         return flask.make_response(pip_error.error_msg, 500)
 
@@ -184,11 +181,12 @@ def check():
 def main():
 
     class Handler(wsgiref.simple_server.WSGIRequestHandler):
+
         def log_message(self, format, *args):
             # Override the default log_message method to avoid logging
             # remote addresses.
-            sys.stderr.write("[%s] %s\n" % (self.log_date_time_string(),
-                                            format % args))
+            sys.stderr.write(
+                "[%s] %s\n" % (self.log_date_time_string(), format % args))
 
     parser = argparse.ArgumentParser(description='Process some integers.')
     parser.add_argument(
@@ -219,13 +217,10 @@ def main():
     logging.basicConfig(
         level=logging.INFO,
         format='%(levelname)-8s %(asctime)s ' +
-               '%(filename)s:%(lineno)s] %(message)s')
+        '%(filename)s:%(lineno)s] %(message)s')
 
     with wsgiref.simple_server.make_server(
-            args.host,
-            args.port,
-            app,
-            handler_class=Handler) as httpd:
+            args.host, args.port, app, handler_class=Handler) as httpd:
         httpd.serve_forever()
 
 

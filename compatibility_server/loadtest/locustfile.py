@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Perform a load test on the compatibility server. Usage:
 
 $ pip install locustio
@@ -22,7 +21,6 @@ import random
 import urllib.parse
 
 import locust
-
 
 PYTHON2_PACKAGES = [
     'apache-beam[gcp]',
@@ -43,18 +41,25 @@ PYTHON3_PACKAGES = [
 
 
 class CompatibilityCheck(locust.TaskSet):
+
     @locust.task
     def single_python2(self):
-        query = urllib.parse.urlencode(
-            {'python-version': '2',
-             'package': random.choice(PYTHON2_PACKAGES)})
+        query = urllib.parse.urlencode({
+            'python-version':
+            '2',
+            'package':
+            random.choice(PYTHON2_PACKAGES)
+        })
         self.client.get('/?%s' % query)
 
     @locust.task
     def single_python3(self):
-        query = urllib.parse.urlencode(
-            {'python-version': '3',
-             'package': random.choice(PYTHON3_PACKAGES)})
+        query = urllib.parse.urlencode({
+            'python-version':
+            '3',
+            'package':
+            random.choice(PYTHON3_PACKAGES)
+        })
         self.client.get('/?%s' % query)
 
     @locust.task

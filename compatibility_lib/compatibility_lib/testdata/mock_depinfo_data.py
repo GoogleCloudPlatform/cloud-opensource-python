@@ -11,12 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """mock data for testing"""
 
 # data taken from google-cloud-dataflow
-DEP_INFO = (
-	"""{
+DEP_INFO = ("""{
 	    "PyVCF": 
 	    {
 	        "installed_version": "0.6.8",
@@ -467,5 +465,4 @@ DEP_INFO = (
 	        "is_latest": true,
 	        "current_time": "2018-08-16 01:09:02.966368+00:00"
 	    }
-	}"""
-)
+	}""")
