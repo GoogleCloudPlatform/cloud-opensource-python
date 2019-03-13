@@ -28,9 +28,7 @@ def lint(session):
     """Run yapf and return an error if yapf formatting is not used."""
     session.interpreter = 'python3.6'
     session.install('yapf')
-    session.run('yapf', '--diff', '-r', '.',
-                '--exclude=__pycache__,venv,dist,.git,build,.tox,.nox,.idea,'
-                'mock_*,test_*,*_test')
+    session.run('yapf', '--diff', '-r', 'badge_server', 'compatibility_lib', 'compatibility_server', 'dashboard', 'scripts', 'system_test')
 
 
 @nox.session
