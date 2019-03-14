@@ -34,6 +34,15 @@ _RELEASE_TIME_FOR_DEPENDENCIES_TABLE_NAME = 'release_time_for_dependencies'
 
 
 class Status(enum.Enum):
+    UNKNOWN_PACKAGE = 'lightgrey'
+    INTERNAL_ERROR = 'lightgrey'
+    MISSING_DATA = 'lightgrey'
+    SELF_INCOMPATIBLE = 'red'
+    INCOMPATIBLE = 'red'
+    OUTDATED_DEPENDENCY = 'orange'
+    SUCCESS = 'green'
+
+    # TODO: deprecate the following:
     UNKNOWN = "UNKNOWN"
     SUCCESS = "SUCCESS"
     INSTALL_ERROR = "INSTALL_ERROR"

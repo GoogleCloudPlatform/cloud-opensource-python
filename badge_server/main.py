@@ -275,7 +275,7 @@ def _format_badge_name(package_name, badge_name, commit_number):
     if 'github.com' in package_name:
         return 'compatibility check (master)'
     else:
-        return 'compatibility check (pypi)'
+        return 'compatibility check (PyPI)'
 
 
 @app.route('/one_badge_image')
