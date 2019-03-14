@@ -76,6 +76,21 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     return result_dict
 
 
+def _get_other_package_from_set(name: str,
+                                package_set: frozenset) -> package.Package:
+    """Returns the other package.
+
+    Args:
+        name: a string, the given package name
+    Returns:
+        The Package object that doesn't correspond to the give package name
+    """
+    first, second = package_set
+    if first.install_name == name:
+        return second
+    return first
+
+
 def _get_pair_compatibility_dict(package_name: str) -> dict:
     """Get the pairwise dependency compatibility check result for a package.
 
@@ -105,13 +120,11 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         }
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
+    unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
-        _, other_package = pair
-        if package_name == other_package.install_name:
-            other_package, _ = pair
-        unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
+        other_package = _get_other_package_from_set(package_name, pair)
 
         for res in compatibility_results:
             version = res.python_major_version            # eg. '2', '3'
