@@ -40,7 +40,7 @@ class Status(enum.Enum):
     SELF_INCOMPATIBLE = 'red'
     INCOMPATIBLE = 'red'
     OUTDATED_DEPENDENCY = 'orange'
-    SUCCESS = 'green'
+    # SUCCESS = 'green'
 
     # TODO: deprecate the following:
     UNKNOWN = "UNKNOWN"
