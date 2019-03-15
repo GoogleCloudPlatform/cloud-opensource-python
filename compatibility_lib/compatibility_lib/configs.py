@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Common configs for compatibility_lib."""
+"""Common configs for compatibility_lib and compatibility_server.
+
+Note that a unit test exists for checking that the configs.py file in
+compatibility_lib is the same as the configs.py file in compatibility_server.
+
+The reason for this set up is that these modules need to be isolated from
+each other, but there also needs to be consistency in the objects and data
+in this file since they exist in the same workflow.
+"""
 
 
 import enum
