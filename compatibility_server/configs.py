@@ -27,7 +27,19 @@ import enum
 
 
 class PackageStatus(enum.Enum):
-    """ """
+    """Represents a package's compatibility status
+
+    The status is based on the results of running 'pip install' and
+    'pip check' on the compatibility server
+
+    UNKNOWN_PACKAGE: package not in whitelist
+    INTERNAL_ERROR: unexpected internal error
+    MISSING_DATA: missing package data from package store
+    SELF_INCOMPATIBLE: pip error when installing self
+    INCOMPATIBLE: pip error when installed with another package
+    OUTDATED_DEPENDENCY: package has an outdated dependency
+    SUCCESS: No issues
+    """
     UNKNOWN_PACKAGE = 'lightgrey'
     INTERNAL_ERROR = 'lightgrey'
     MISSING_DATA = 'lightgrey'
