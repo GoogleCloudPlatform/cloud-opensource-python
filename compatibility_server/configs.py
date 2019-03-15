@@ -27,7 +27,7 @@ import enum
 
 
 class PackageStatus(enum.Enum):
-    """Represents a package's compatibility status
+    """Represents a package's compatibility status.
 
     The status is based on the results of running 'pip install' and
     'pip check' on the compatibility server
