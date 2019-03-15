@@ -87,6 +87,7 @@ class PipError(PipCheckerError):
         self.command_string = command_string
 
 
+# TODO: deprecate the following:
 @enum.unique
 class PipCheckResultType(enum.Enum):
     """The combined results of "pip install" and "pip check".

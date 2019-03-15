@@ -15,6 +15,20 @@
 """Common configs for compatibility_lib."""
 
 
+import enum
+
+
+class PackageStatus(enum.Enum):
+    """ """
+    UNKNOWN_PACKAGE = 'lightgrey'
+    INTERNAL_ERROR = 'lightgrey'
+    MISSING_DATA = 'lightgrey'
+    SELF_INCOMPATIBLE = 'red'
+    INCOMPATIBLE = 'red'
+    OUTDATED_DEPENDENCY = 'orange'
+    SUCCESS = 'green'
+
+
 def _format_url(repo_name, setuppy_path=''):
     url = 'git+git://github.com/{}.git'.format(repo_name)
     if setuppy_path != '':
