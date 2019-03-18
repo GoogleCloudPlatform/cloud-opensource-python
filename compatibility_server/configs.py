@@ -40,13 +40,24 @@ class PackageStatus(enum.Enum):
     OUTDATED_DEPENDENCY: package has an outdated dependency
     SUCCESS: No issues
     """
-    UNKNOWN_PACKAGE = 'lightgrey'
-    INTERNAL_ERROR = 'lightgrey'
-    MISSING_DATA = 'lightgrey'
-    SELF_INCOMPATIBLE = 'red'
-    INCOMPATIBLE = 'red'
-    OUTDATED_DEPENDENCY = 'orange'
-    SUCCESS = 'green'
+    UNKNOWN_PACKAGE = 'UNKNOWN_PACKAGE'
+    INTERNAL_ERROR = 'INTERNAL_ERROR'
+    MISSING_DATA = 'MISSING_DATA'
+    SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
+    INCOMPATIBLE = 'INCOMPATIBLE'
+    OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
+    SUCCESS = 'SUCCESS'
+
+
+PACKAGE_STATUS_TO_COLOR = {
+    PackageStatus.UNKNOWN_PACKAGE: 'lightgrey',
+    PackageStatus.INTERNAL_ERROR: 'lightgrey',
+    PackageStatus.MISSING_DATA: 'lightgrey',
+    PackageStatus.SELF_INCOMPATIBLE: 'red',
+    PackageStatus.INCOMPATIBLE: 'red',
+    PackageStatus.OUTDATED_DEPENDENCY: 'orange',
+    PackageStatus.SUCCESS: 'green',
+}
 
 
 def _format_url(repo_name, setuppy_path=''):
