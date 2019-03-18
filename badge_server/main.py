@@ -42,6 +42,7 @@ import utils as badge_utils
 from compatibility_lib import utils as compat_utils
 from compatibility_lib import configs
 from compatibility_lib import package
+from typing import FrozenSet
 
 app = flask.Flask(__name__)
 
@@ -77,7 +78,7 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
 
 
 def _get_other_package_from_set(name: str,
-                                package_set: frozenset[package.Package]
+                                package_set: FrozenSet[package.Package]
                                 ) -> package.Package:
     """Returns the package that does *not* have the given name.
 
