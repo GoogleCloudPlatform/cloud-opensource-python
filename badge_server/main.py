@@ -77,13 +77,16 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
 
 
 def _get_other_package_from_set(name: str,
-                                package_set: frozenset) -> package.Package:
-    """Returns the other package.
+                                package_set: frozenset[package.Package]
+                                ) -> package.Package:
+    """Returns the package that does *not* have the given name.
 
     Args:
-        name: a string, the given package name
+        name: The name of the package not to return.
+        package_set: A set of two unsorted packages, one has the given name.
+
     Returns:
-        The Package object that doesn't correspond to the give package name
+        The Package object that doesn't correspond to the give package name.
     """
     first, second = package_set
     if first.install_name == name:
