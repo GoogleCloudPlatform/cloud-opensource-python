@@ -111,14 +111,6 @@ class TestPipChecker(unittest.TestCase):
         for view in views.ALL_VIEWS:
             self._stats.view_manager.register_view(view)
 
-    def test__package_status_match(self):
-        from compatibility_lib import compatibility_store
-        other_status_members = compatibility_store.PackageStatus.__members__
-        member_names = [member.name for member in pip_checker.PackageStatus]
-        for name in member_names:
-            other_member = other_status_members.get(name)
-            self.assertIsNotNone(other_member)
-
     def test__run_command_success(self):
         checker = pip_checker._OneshotPipCheck(
             ['python3', '-m', 'pip'], packages=['six'], stats=self._stats)
