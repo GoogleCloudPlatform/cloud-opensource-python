@@ -87,6 +87,21 @@ class PipError(PipCheckerError):
         self.command_string = command_string
 
 
+@enum.unique
+class PackageStatus(enum.Enum):
+    """Represents the combined results of "pip install" and "pip check".
+
+    INTERNAL_ERROR: an unexpected internal error occurred.
+    SELF_INCOMPATIBLE: pip install error occurred when installing one package.
+    INCOMPATIBLE: pip install error occurred when installing two packages.
+    SUCCESS: "pip install <packages> && pip check" completed successfully.
+    """
+    INTERNAL_ERROR = 'INTERNAL_ERROR'
+    SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
+    INCOMPATIBLE = 'INCOMPATIBLE'
+    SUCCESS = 'SUCCESS'
+
+
 # TODO: deprecate the following:
 @enum.unique
 class PipCheckResultType(enum.Enum):
