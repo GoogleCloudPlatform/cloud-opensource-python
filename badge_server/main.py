@@ -84,7 +84,8 @@ def _get_other_package_from_set(name: str,
 
     Args:
         name: The name of the package not to return.
-        package_set: A set of two unsorted packages, one has the given name.
+        package_set: A set of two unsorted packages, one of which has the
+            given name.
 
     Returns:
         The Package object that doesn't correspond to the give package name.
