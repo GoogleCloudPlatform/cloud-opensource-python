@@ -16,6 +16,14 @@
 
 Requires Python 3.6 or later.
 
+Url format for package check:
+http://<hostname>:<port>/?python-version=<version>&package=<package>
+
+Note that you can check multi package installation compatibility by adding
+extra "&package=<package>" statements:
+http://<hostname>:<port>/?python-version=<version>&package=<package1>&package=<package2>&...&package=<packageN>
+
+
 Example usage:
 
 $ python3 compatibility_checker_server.py
