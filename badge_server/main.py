@@ -47,6 +47,41 @@ from typing import FrozenSet
 app = flask.Flask(__name__)
 
 
+@enum.unique
+class BadgeStatus(enum.Enum):
+    """Represents a package's badge status.
+
+    The status is based on the results of running 'pip install' and
+    'pip check' on the compatibility server.
+
+    UNKNOWN_PACKAGE: package not in whitelist
+    INTERNAL_ERROR: unexpected internal error
+    MISSING_DATA: missing package data from package store
+    SELF_INCOMPATIBLE: pip error when installing self
+    INCOMPATIBLE: pip error when installed with another package
+    OUTDATED_DEPENDENCY: package has an outdated dependency
+    SUCCESS: No issues
+    """
+    UNKNOWN_PACKAGE = 'UNKNOWN_PACKAGE'
+    INTERNAL_ERROR = 'INTERNAL_ERROR'
+    MISSING_DATA = 'MISSING_DATA'
+    SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
+    INCOMPATIBLE = 'INCOMPATIBLE'
+    OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
+    SUCCESS = 'SUCCESS'
+
+
+PACKAGE_STATUS_TO_COLOR = {
+    BadgeStatus.UNKNOWN_PACKAGE: 'lightgrey',
+    BadgeStatus.INTERNAL_ERROR: 'lightgrey',
+    BadgeStatus.MISSING_DATA: 'lightgrey',
+    BadgeStatus.SELF_INCOMPATIBLE: 'red',
+    BadgeStatus.INCOMPATIBLE: 'red',
+    BadgeStatus.OUTDATED_DEPENDENCY: 'orange',
+    BadgeStatus.SUCCESS: 'green',
+}
+
+
 def _get_self_compatibility_dict(package_name: str) -> dict:
     """Returns a dict containing self compatibility status and details.
 
