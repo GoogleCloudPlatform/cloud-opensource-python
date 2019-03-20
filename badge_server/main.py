@@ -35,6 +35,7 @@ Example Usage:
     http://0.0.0.0:8080/one_badge_target?package=tensorflow
 """
 
+import enum
 import flask
 import pybadges
 
