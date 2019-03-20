@@ -251,7 +251,8 @@ class CompatibilityStore:
             p: The package to check internal compatibility for.
 
         Yields:
-            One CompatibilityResult per Python version.
+            A (possibly empty) list of CompatibilityResults, one per Python
+            version.
         """
         return self.get_self_compatibilities([p])[p]
 

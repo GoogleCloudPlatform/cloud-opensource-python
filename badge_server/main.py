@@ -35,6 +35,7 @@ Example Usage:
     http://0.0.0.0:8080/one_badge_target?package=tensorflow
 """
 
+import enum
 import flask
 import pybadges
 
@@ -42,8 +43,44 @@ import utils as badge_utils
 from compatibility_lib import utils as compat_utils
 from compatibility_lib import configs
 from compatibility_lib import package
+from typing import FrozenSet
 
 app = flask.Flask(__name__)
+
+
+@enum.unique
+class BadgeStatus(enum.Enum):
+    """Represents a package's badge status.
+
+    The status is based on the results of running 'pip install' and
+    'pip check' on the compatibility server.
+
+    UNKNOWN_PACKAGE: package not in whitelist
+    INTERNAL_ERROR: unexpected internal error
+    MISSING_DATA: missing package data from package store
+    SELF_INCOMPATIBLE: pip error when installing self
+    INCOMPATIBLE: pip error when installed with another package
+    OUTDATED_DEPENDENCY: package has an outdated dependency
+    SUCCESS: No issues
+    """
+    UNKNOWN_PACKAGE = 'UNKNOWN_PACKAGE'
+    INTERNAL_ERROR = 'INTERNAL_ERROR'
+    MISSING_DATA = 'MISSING_DATA'
+    SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
+    INCOMPATIBLE = 'INCOMPATIBLE'
+    OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
+    SUCCESS = 'SUCCESS'
+
+
+PACKAGE_STATUS_TO_COLOR = {
+    BadgeStatus.UNKNOWN_PACKAGE: 'lightgrey',
+    BadgeStatus.INTERNAL_ERROR: 'lightgrey',
+    BadgeStatus.MISSING_DATA: 'lightgrey',
+    BadgeStatus.SELF_INCOMPATIBLE: 'red',
+    BadgeStatus.INCOMPATIBLE: 'red',
+    BadgeStatus.OUTDATED_DEPENDENCY: 'orange',
+    BadgeStatus.SUCCESS: 'green',
+}
 
 
 def _get_self_compatibility_dict(package_name: str) -> dict:
@@ -76,6 +113,25 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     return result_dict
 
 
+def _get_other_package_from_set(name: str,
+                                package_set: FrozenSet[package.Package]
+                                ) -> package.Package:
+    """Returns the package that does *not* have the given name.
+
+    Args:
+        name: The name of the package not to return.
+        package_set: A set of two unsorted packages, one of which has the
+            given name.
+
+    Returns:
+        The Package object that doesn't correspond to the give package name.
+    """
+    first, second = package_set
+    if first.install_name == name:
+        return second
+    return first
+
+
 def _get_pair_compatibility_dict(package_name: str) -> dict:
     """Get the pairwise dependency compatibility check result for a package.
 
@@ -105,13 +161,11 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         }
     """
     result_dict = badge_utils._build_default_result(status='SUCCESS')
+    unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
-        _, other_package = pair
-        if package_name == other_package.install_name:
-            other_package, _ = pair
-        unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
+        other_package = _get_other_package_from_set(package_name, pair)
 
         for res in compatibility_results:
             version = res.python_major_version            # eg. '2', '3'
@@ -262,7 +316,7 @@ def _format_badge_name(package_name, badge_name, commit_number):
     if 'github.com' in package_name:
         return 'compatibility check (master)'
     else:
-        return 'compatibility check (pypi)'
+        return 'compatibility check (PyPI)'
 
 
 @app.route('/one_badge_image')
