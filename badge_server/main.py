@@ -41,6 +41,9 @@ import pybadges
 
 import utils as badge_utils
 from compatibility_lib import utils as compat_utils
+from compatibility_lib.compatibility_store import Status as PackageStatus
+from compatibility_lib.dependency_highlighter import PriorityLevel
+
 from compatibility_lib import configs
 from compatibility_lib import package
 from typing import FrozenSet
@@ -59,27 +62,44 @@ class BadgeStatus(enum.Enum):
     INTERNAL_ERROR: unexpected internal error
     MISSING_DATA: missing package data from package store
     SELF_INCOMPATIBLE: pip error when installing self
-    INCOMPATIBLE: pip error when installed with another package
-    OUTDATED_DEPENDENCY: package has an outdated dependency
+    PAIR_INCOMPATIBLE: pip error when installed with another package
+    OBSOLETE_DEPENDENCY: package has a high priority outdated dependency
+    OUTDATED_DEPENDENCY: package has a low priority outdated dependency
     SUCCESS: No issues
     """
     UNKNOWN_PACKAGE = 'UNKNOWN_PACKAGE'
     INTERNAL_ERROR = 'INTERNAL_ERROR'
     MISSING_DATA = 'MISSING_DATA'
     SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
-    INCOMPATIBLE = 'INCOMPATIBLE'
+    PAIR_INCOMPATIBLE = 'INCOMPATIBLE'
+    OBSOLETE_DEPENDENCY = 'OBSOLETE_DEPENDENCY'
     OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
     SUCCESS = 'SUCCESS'
 
 
-PACKAGE_STATUS_TO_COLOR = {
+BADGE_STATUS_TO_COLOR = {
     BadgeStatus.UNKNOWN_PACKAGE: 'lightgrey',
     BadgeStatus.INTERNAL_ERROR: 'lightgrey',
     BadgeStatus.MISSING_DATA: 'lightgrey',
     BadgeStatus.SELF_INCOMPATIBLE: 'red',
-    BadgeStatus.INCOMPATIBLE: 'red',
-    BadgeStatus.OUTDATED_DEPENDENCY: 'orange',
-    BadgeStatus.SUCCESS: 'green',
+    BadgeStatus.PAIR_INCOMPATIBLE: 'red',
+    BadgeStatus.OBSOLETE_DEPENDENCY: 'red',
+    BadgeStatus.OUTDATED_DEPENDENCY: 'yellowgreen',
+    BadgeStatus.SUCCESS: 'brightgreen',
+}
+
+PACKAGE_STATUS_TO_BADGE_STATUS = {
+    PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
+    PackageStatus.CHECK_WARNING: BadgeStatus.INTERNAL_ERROR,
+    PackageStatus.SUCCESS: BadgeStatus.SUCCESS,
+    PackageStatus.INSTALL_ERROR: None
+}
+
+
+DEPENDENCY_STATUS_TO_BADGE_STATUS = {
+    PriorityLevel.UP_TO_DATE: BadgeStatus.SUCCESS,
+    PriorityLevel.LOW_PRIORITY: BadgeStatus.OUTDATED_DEPENDENCY,
+    PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
 }
 
 
