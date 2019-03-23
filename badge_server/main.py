@@ -318,12 +318,13 @@ def _get_check_results(package_name: str, commit_number: str = None):
     Returns a 3 tuple: self compatibility, pair compatibility, dependency dicts
     that are used to generate badge images and badge target pages.
     """
+    default_status = BadgeStatus.UNKNOWN_PACKAGE
     self_compat_res = badge_utils._build_default_result(
-        status=BadgeStatus.UNKNOWN_PACKAGE, details={})
+        status=default_status, details={})
     google_compat_res = badge_utils._build_default_result(
-        status=BadgeStatus.UNKNOWN_PACKAGE, details={})
+        status=default_status, details={})
     dependency_res = badge_utils._build_default_result(
-        status=BadgeStatus.UNKNOWN_PACKAGE, include_pyversion=False, details={})
+        status=default_status, include_pyversion=False, details={})
 
     # If a package is not whitelisted, return defaults
     if not compat_utils._is_package_in_whitelist([package_name]):
