@@ -280,7 +280,7 @@ def _get_dependency_dict(package_name: str) -> dict:
 def _get_badge_status(
         self_compat_res: dict,
         google_compat_res: dict,
-        dependency_res: dict) -> str:
+        dependency_res: dict) -> BadgeStatus:
     """Get the badge status.
 
     The badge status will determine the right hand text and the color of
@@ -291,8 +291,8 @@ def _get_badge_status(
             status for py2 and py3. See _get_self_compatibility_dict().
         google_compat_res: a dict containing a package's pair compatibility
             status for py2 and py3. See _get_pair_compatibility_dict().
-        dependency_res: a dict containing a package's dependency status
-            for py2 and py3. See _get_dependency_dict().
+        dependency_res: a dict containing a package's dependency status.
+            See _get_dependency_dict().
 
     Returns:
         The cumulative badge status.
