@@ -88,6 +88,7 @@ BADGE_STATUS_TO_COLOR = {
     BadgeStatus.SUCCESS: 'brightgreen',
 }
 
+
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
     PackageStatus.CHECK_WARNING: BadgeStatus.INTERNAL_ERROR,
@@ -115,18 +116,20 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
         self incompatibilities. The dict will be formatted like the following:
 
         {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': BadgeStatus.SUCCESS, 'details': {} },
         }
     """
     pkg = package.Package(package_name)
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
     result_dict = badge_utils._build_default_result(
-        status='SUCCESS',
+        status=BadgeStatus.SUCCESS,
         details='The package does not support this version of python.')
     for res in compatibility_results:
         pyver = badge_utils.PY_VER_MAPPING[res.python_major_version]
-        result_dict[pyver]['status'] = res.status.value
+        badge_status = PACKAGE_STATUS_TO_BADGE_STATUS.get(
+            res.status) or BadgeStatus.SELF_INCOMPATIBLE
+        result_dict[pyver]['status'] = badge_status
         result_dict[pyver]['details'] = res.details
         if res.details is None:
             result_dict[pyver]['details'] = badge_utils.EMPTY_DETAILS
@@ -175,12 +178,12 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         or another dict. The returned dict will be formatted like the
         following:
         {
-            'py2': {'status': 'INSTALL_ERROR',
+            'py2': {'status': BadgeStatus.PAIR_INCOMPATIBLE,
                     'details': {'apache-beam[gcp]': 'NO DETAILS'}},
-            'py3': {'status': 'SUCCESS', 'details': {}}
+            'py3': {'status': BadgeStatus.SUCCESS, 'details': {}}
         }
     """
-    result_dict = badge_utils._build_default_result(status='SUCCESS')
+    result_dict = badge_utils._build_default_result(status=BadgeStatus.SUCCESS)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
@@ -196,7 +199,7 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
 
             # Only look at a check failure status
             # Ignore the unsupported and non self compatible packages
-            if res.status.value == 'SUCCESS':
+            if res.status == PackageStatus.SUCCESS:
                 continue
 
             # Not all packages are supported in both Python 2 and Python 3. If
@@ -211,11 +214,13 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             # conflict within it's own dependencies) then skip the result since
             # the `other_package` will be incompatible with all other packages.
             self_compat_res = _get_self_compatibility_dict(other_package_name)
-            if self_compat_res[pyver]['status'] != 'SUCCESS':
+            if self_compat_res[pyver]['status'] != BadgeStatus.SUCCESS:
                 continue
 
             details = res.details or badge_utils.EMPTY_DETAILS
-            result_dict[pyver]['status'] = res.status.value
+            badge_status = PACKAGE_STATUS_TO_BADGE_STATUS.get(
+                res.status) or BadgeStatus.PAIR_INCOMPATIBLE
+            result_dict[pyver]['status'] = badge_status
             result_dict[pyver]['details'][other_package_name] = details
 
     return result_dict
@@ -233,7 +238,7 @@ def _get_dependency_dict(package_name: str) -> dict:
         outdated dependencies. Note that details maps to a dict that may be
         nested. The returned dict will be formatted like the following:
         {
-            'status': 'HIGH_PRIORITY',
+            'status': BadgeStatus.OBSOLETE_DEPENDENCY,
             'details': {
                 'google-cloud-bigquery': {
                     'installed_version': '1.6.1',
@@ -246,7 +251,7 @@ def _get_dependency_dict(package_name: str) -> dict:
         }
     """
     result_dict = badge_utils._build_default_result(
-        status='UP_TO_DATE', include_pyversion=False, details={})
+        status=BadgeStatus.SUCCESS, include_pyversion=False, details={})
 
     outdated_deps = badge_utils.highlighter.check_package(package_name)
     _deps_list = badge_utils.finder.get_deprecated_dep(package_name)[1]
@@ -264,7 +269,8 @@ def _get_dependency_dict(package_name: str) -> dict:
         dep_detail['priority'] = dep.priority.level.name
         dep_detail['detail'] = dep.priority.details
         outdated_depencdency_name_to_details[dep.name] = dep_detail
-    result_dict['status'] = max_level.name
+    badge_status = DEPENDENCY_STATUS_TO_BADGE_STATUS[max_level]
+    result_dict['status'] = badge_status
     result_dict['details'] = outdated_depencdency_name_to_details
     result_dict['deprecated_deps'] = deprecated_deps
 
@@ -274,28 +280,36 @@ def _get_dependency_dict(package_name: str) -> dict:
 def _get_badge_status(
         self_compat_res: dict,
         google_compat_res: dict,
-        dependency_res: dict) -> str:
+        dependency_res: dict) -> BadgeStatus:
     """Get the badge status.
 
     The badge status will determine the right hand text and the color of
     the badge.
 
-    See badge_utils.STATUS_COLOR_MAPPING.
-    """
-    dep_status = dependency_res['status']
-    dep_status = 'SUCCESS' if dep_status == 'UP_TO_DATE' else dep_status
+    Args:
+        self_compat_res: a dict containing a package's self compatibility
+            status for py2 and py3. See _get_self_compatibility_dict().
+        google_compat_res: a dict containing a package's pair compatibility
+            status for py2 and py3. See _get_pair_compatibility_dict().
+        dependency_res: a dict containing a package's dependency status.
+            See _get_dependency_dict().
 
+    Returns:
+        The cumulative badge status.
+    """
     statuses = []
     for pyver in ['py2', 'py3']:
         statuses.append(self_compat_res[pyver]['status'])
         statuses.append(google_compat_res[pyver]['status'])
-    statuses.append(dep_status)
+    statuses.append(dependency_res['status'])
 
-    if all(status == 'SUCCESS' for status in statuses):
-        return 'SUCCESS'
-    elif 'UNKNOWN' in statuses:
-        return 'UNKNOWN'
-    return 'CHECK_WARNING'
+    if all(status == BadgeStatus.SUCCESS for status in statuses):
+        return BadgeStatus.SUCCESS
+
+    # This works because the enums are stored in an ordered dict.
+    for status in BadgeStatus.__members__.values():
+        if status != BadgeStatus.SUCCESS and status in statuses:
+            return status
 
 
 def _get_check_results(package_name: str, commit_number: str = None):
@@ -304,12 +318,13 @@ def _get_check_results(package_name: str, commit_number: str = None):
     Returns a 3 tuple: self compatibility, pair compatibility, dependency dicts
     that are used to generate badge images and badge target pages.
     """
+    default_status = BadgeStatus.UNKNOWN_PACKAGE
     self_compat_res = badge_utils._build_default_result(
-        status='UNKNOWN', details={})
+        status=default_status, details={})
     google_compat_res = badge_utils._build_default_result(
-        status='UNKNOWN', details={})
+        status=default_status, details={})
     dependency_res = badge_utils._build_default_result(
-        status='UNKNOWN', include_pyversion=False, details={})
+        status=default_status, include_pyversion=False, details={})
 
     # If a package is not whitelisted, return defaults
     if not compat_utils._is_package_in_whitelist([package_name]):
@@ -348,7 +363,7 @@ def one_badge_image():
     commit_number = badge_utils._calculate_commit_number(package_name)
     self, google, dependency = _get_check_results(package_name)
     status = _get_badge_status(self, google, dependency)
-    color = badge_utils.STATUS_COLOR_MAPPING[status]
+    color = BADGE_STATUS_TO_COLOR[status]
     badge_name = _format_badge_name(package_name, badge_name, commit_number)
     details_link = '{}{}'.format(
         flask.request.url_root[:-1],

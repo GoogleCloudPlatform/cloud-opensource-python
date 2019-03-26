@@ -39,9 +39,9 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': {'status': 'SUCCESS', 'details':
+            'py2': {'status': main.BadgeStatus.SUCCESS, 'details':
                     'The package does not support this version of python.'},
-            'py3': {'status': 'SUCCESS', 'details': 'NO DETAILS'},
+            'py3': {'status': main.BadgeStatus.SUCCESS, 'details': 'NO DETAILS'},
         }
 
         PACKAGE = package.Package('tensorflow')
@@ -59,8 +59,8 @@ class TestBadgeServer(unittest.TestCase):
 
     def test__get_pair_compatibility_dict_success(self):
         expected = {
-            'py2': {'status': 'SUCCESS', 'details': None},
-            'py3': {'status': 'SUCCESS', 'details': None}
+            'py2': {'status': main.BadgeStatus.SUCCESS, 'details': None},
+            'py3': {'status': main.BadgeStatus.SUCCESS, 'details': None}
         }
 
         pkgs = ['google-api-core', 'google-api-python-client']
@@ -75,9 +75,9 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': {'status': 'CHECK_WARNING',
+            'py2': {'status': main.BadgeStatus.INTERNAL_ERROR,
                     'details': {'package2': 'NO DETAILS'} },
-            'py3': {'status': 'CHECK_WARNING',
+            'py3': {'status': main.BadgeStatus.INTERNAL_ERROR,
                     'details': {'package2': 'NO DETAILS'} },
         }
 
@@ -97,8 +97,8 @@ class TestBadgeServer(unittest.TestCase):
 
         mock_self_res = mock.Mock()
         self_res = {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
@@ -120,8 +120,8 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
         }
 
         PACKAGE_1 = package.Package("package1")
@@ -154,8 +154,8 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
         }
 
         PACKAGE_1 = package.Package("package1")
@@ -194,14 +194,14 @@ class TestBadgeServer(unittest.TestCase):
 
     def test__get_check_results_success(self):
         expected_self_res = {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
         }
         expected_google_res = {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
         }
-        expected_dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
+        expected_dep_res = { 'status': main.BadgeStatus.SUCCESS, 'details': {}, }
 
         mock_self_res = mock.Mock()
         mock_self_res.return_value = expected_self_res
@@ -226,18 +226,18 @@ class TestBadgeServer(unittest.TestCase):
         self.assertEqual(self_res, expected_self_res)
         self.assertEqual(google_res, expected_google_res)
         self.assertEqual(dep_res, expected_dep_res)
-        self.assertEqual(status, 'SUCCESS')
+        self.assertEqual(status, main.BadgeStatus.SUCCESS)
 
     def test__get_check_results_unknown(self):
         expected_self_res = {
-            'py2': { 'status': 'UNKNOWN', 'details': {} },
-            'py3': { 'status': 'UNKNOWN', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
         }
         expected_google_res = {
-            'py2': { 'status': 'UNKNOWN', 'details': {} },
-            'py3': { 'status': 'UNKNOWN', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
         }
-        expected_dep_res = { 'status': 'UNKNOWN', 'details': {}, }
+        expected_dep_res = { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {}, }
 
         mock_self_res = mock.Mock()
         mock_self_res.return_value = expected_self_res
@@ -262,18 +262,18 @@ class TestBadgeServer(unittest.TestCase):
         self.assertEqual(self_res, expected_self_res)
         self.assertEqual(google_res, expected_google_res)
         self.assertEqual(dep_res, expected_dep_res)
-        self.assertEqual(status, 'UNKNOWN')
+        self.assertEqual(status, main.BadgeStatus.UNKNOWN_PACKAGE)
 
     def test__get_check_results_check_warning(self):
         expected_self_res = {
-            'py2': { 'status': 'CHECK_WARNING', 'details': {} },
-            'py3': { 'status': 'CHECK_WARNING', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
         }
         expected_google_res = {
-            'py2': { 'status': 'SUCCESS', 'details': {} },
-            'py3': { 'status': 'SUCCESS', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
         }
-        expected_dep_res = { 'status': 'UP_TO_DATE', 'details': {}, }
+        expected_dep_res = { 'status': main.BadgeStatus.SUCCESS, 'details': {}, }
 
         mock_self_res = mock.Mock()
         mock_self_res.return_value = expected_self_res
@@ -298,4 +298,4 @@ class TestBadgeServer(unittest.TestCase):
         self.assertEqual(self_res, expected_self_res)
         self.assertEqual(google_res, expected_google_res)
         self.assertEqual(dep_res, expected_dep_res)
-        self.assertEqual(status, 'CHECK_WARNING')
+        self.assertEqual(status, main.BadgeStatus.INTERNAL_ERROR)
