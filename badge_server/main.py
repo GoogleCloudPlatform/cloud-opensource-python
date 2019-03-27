@@ -235,7 +235,9 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             'py3': {'status': BadgeStatus.SUCCESS, 'details': {}}
         }
     """
-    result_dict = badge_utils._build_default_result(status=BadgeStatus.SUCCESS)
+    default_details = 'The package does not support this version of python.'
+    result_dict = badge_utils._build_default_result(
+        status=BadgeStatus.SUCCESS, details=default_details)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
     supported_versions = _get_supported_versions(package_name)
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
@@ -254,25 +256,25 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             version = res.python_major_version            # eg. '2', '3'
             pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
-            if result_dict[pyver]['details'] is None:
+            # Not all packages are supported in both Python 2 and Python 3. If
+            # either package is not supported in the Python version being
+            # checked then skip the check.
+            unsupported_packages = unsupported_package_mapping.get(version)
+            if any([pkg.install_name in unsupported_packages for pkg in pair]):
+                continue
+
+            if result_dict[pyver]['details'] == default_details:
                 result_dict[pyver]['details'] = {}
 
-            # Only look at a check failure status
-            # Ignore the unsupported and non self compatible packages
+            # The logic after this point only handles non SUCCESS statuses.
             if res.status == PackageStatus.SUCCESS:
                 continue
 
-            # Not all packages are supported in both Python 2 and Python 3. If
-            # `other_package` is not supported in the Python version being
-            # checked then skip the result.
-            unsupported_packages = unsupported_package_mapping.get(version)
-            other_package_name = other_package.install_name
-            if other_package_name in unsupported_packages:
-                continue
-
             # If `other_package` is not self compatible (meaning that it has a
-            # conflict within it's own dependencies) then skip the result since
-            # the `other_package` will be incompatible with all other packages.
+            # conflict within it's own dependencies) then skip the check since
+            # a pairwise comparison is only significant if both packages are
+            # self_compatible.
+            other_package_name = other_package.install_name
             self_compat_res = _get_self_compatibility_dict(other_package_name)
             if self_compat_res[pyver]['status'] != BadgeStatus.SUCCESS:
                 continue

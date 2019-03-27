@@ -73,8 +73,10 @@ class TestBadgeServer(unittest.TestCase):
 
     def test__get_pair_compatibility_dict_success(self):
         expected = {
-            'py2': {'status': main.BadgeStatus.SUCCESS, 'details': None},
-            'py3': {'status': main.BadgeStatus.SUCCESS, 'details': None}
+            'py2': {'status': main.BadgeStatus.SUCCESS,
+                    'details': 'The package does not support this version of python.'},
+            'py3': {'status': main.BadgeStatus.SUCCESS,
+                    'details': 'The package does not support this version of python.'}
         }
 
         pkgs = ['google-api-core', 'google-api-python-client']
@@ -84,7 +86,7 @@ class TestBadgeServer(unittest.TestCase):
 
         self.assertEqual(result_dict, expected)
 
-    def test__get_pair_compatibility_dict_warning(self):
+    def test__get_pair_compatibility_dict_internal_error(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
@@ -134,8 +136,9 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
-            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py2': {'status': main.BadgeStatus.SUCCESS,
+                    'details': 'The package does not support this version of python.'},
+            'py3': {'status': main.BadgeStatus.SUCCESS, 'details': {}},
         }
 
         PACKAGE_1 = package.Package("package1")
@@ -168,8 +171,9 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
-            'py3': { 'status': main.BadgeStatus.SUCCESS, 'details': {} },
+            'py2': {'status': main.BadgeStatus.SUCCESS,
+                    'details': 'The package does not support this version of python.'},
+            'py3': {'status': main.BadgeStatus.SUCCESS, 'details': {}},
         }
 
         PACKAGE_1 = package.Package("package1")
