@@ -92,7 +92,7 @@ class BadgeStatus(enum.Enum):
             contained INTERNAL_ERROR and OUTDATED_DEPENDENCY.
 
         Raises:
-            ValueError if no BadgeStatus exists. For example, if the length of
+            ValueError: If no BadgeStatus exists. For example, if the length of
                 `statuses` is 0, an error is raised.
         """
         for status in cls.__members__.values():
