@@ -46,7 +46,7 @@ from compatibility_lib.dependency_highlighter import PriorityLevel
 
 from compatibility_lib import configs
 from compatibility_lib import package
-from typing import FrozenSet, Iterable
+from typing import FrozenSet, List
 
 app = flask.Flask(__name__)
 
@@ -104,7 +104,7 @@ DEPENDENCY_STATUS_TO_BADGE_STATUS = {
 }
 
 
-def _get_supported_versions(package_name: str) -> Iterable[int]:
+def _get_supported_versions(package_name: str) -> List[int]:
     """Gets the given package's supported python versions
 
     Args:
