@@ -34,6 +34,20 @@ class TestBadgeServer(unittest.TestCase):
         self.patch_store = mock.patch(
             'main.badge_utils.store', self.fake_store)
 
+    def test__get_supported_versions(self):
+        from compatibility_lib import configs
+        for package_name in configs.WHITELIST_PKGS:
+            supported = main._get_supported_versions(package_name)
+            expected = [2, 3]
+            if package_name in ('tensorflow'):
+                expected = [3]
+            if package_name in ('apache-beam[gcp]', 'gsutil'):
+                expected = [2]
+            self.assertEqual(expected, supported)
+
+        res = main._get_supported_versions('unsupported')
+        self.assertEqual([], res)
+
     def test__get_self_compatibility_dict(self):
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
@@ -149,7 +163,7 @@ class TestBadgeServer(unittest.TestCase):
 
     def test__get_pair_compatibility_dict_self_conflict(self):
         # If the pair package is not self compatible, the package being checked
-        # should not be marked as CHECK_WARNING.
+        # should not be marked as `INTERNAL_ERROR`.
         from compatibility_lib import compatibility_store
         from compatibility_lib import package
 
@@ -174,8 +188,8 @@ class TestBadgeServer(unittest.TestCase):
 
         mock_self_res = mock.Mock()
         self_res = {
-            'py2': { 'status': 'CHECK_WARNING', 'details': {} },
-            'py3': { 'status': 'CHECK_WARNING', 'details': {} },
+            'py2': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
@@ -264,7 +278,7 @@ class TestBadgeServer(unittest.TestCase):
         self.assertEqual(dep_res, expected_dep_res)
         self.assertEqual(status, main.BadgeStatus.UNKNOWN_PACKAGE)
 
-    def test__get_check_results_check_warning(self):
+    def test__get_check_results_internal_error(self):
         expected_self_res = {
             'py2': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
             'py3': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },

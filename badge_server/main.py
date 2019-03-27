@@ -46,7 +46,7 @@ from compatibility_lib.dependency_highlighter import PriorityLevel
 
 from compatibility_lib import configs
 from compatibility_lib import package
-from typing import FrozenSet
+from typing import FrozenSet, Iterable
 
 app = flask.Flask(__name__)
 
@@ -103,6 +103,25 @@ DEPENDENCY_STATUS_TO_BADGE_STATUS = {
     PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
 }
 
+def _get_supported_versions(package_name: str) -> Iterable[int]:
+    """Gets the given package's supported python versions
+
+    Args:
+        package_name: The package name.
+
+    Returns:
+        A list of supported python versions.
+    """
+    supported = []
+    if not compat_utils._is_package_in_whitelist([package_name]):
+        return supported
+    unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
+    for version in (2, 3):
+        unsupported_packages = unsupported_package_mapping[version]
+        if package_name not in unsupported_packages:
+            supported.append(version)
+    return supported
+
 
 def _get_self_compatibility_dict(package_name: str) -> dict:
     """Returns a dict containing self compatibility status and details.
@@ -122,6 +141,14 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     """
     pkg = package.Package(package_name)
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
+    supported = _get_supported_versions(package_name)
+    if len(compatibility_results) < len(supported):
+        missing_details ='Missing data for python version(s) {}.'.format(
+            ' and '.join(supported))
+        result_dict = badge_utils._build_default_result(
+            status=BadgeStatus.MISSING_DATA, details=missing_details)
+        return result_dict
+
     result_dict = badge_utils._build_default_result(
         status=BadgeStatus.SUCCESS,
         details='The package does not support this version of python.')
@@ -185,9 +212,17 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
     """
     result_dict = badge_utils._build_default_result(status=BadgeStatus.SUCCESS)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
+    supported_versions = _get_supported_versions(package_name)
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
+        if len(compatibility_results) < len(supported_versions):
+            missing_details ='Missing data for python version(s) {}.'.format(
+                ' and '.join(supported_versions))
+            result_dict = badge_utils._build_default_result(
+                status=BadgeStatus.MISSING_DATA, details=missing_details)
+            return result_dict
+
         other_package = _get_other_package_from_set(package_name, pair)
 
         for res in compatibility_results:
