@@ -103,6 +103,7 @@ DEPENDENCY_STATUS_TO_BADGE_STATUS = {
     PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
 }
 
+
 def _get_supported_versions(package_name: str) -> Iterable[int]:
     """Gets the given package's supported python versions
 
@@ -143,7 +144,7 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
     supported = _get_supported_versions(package_name)
     if len(compatibility_results) < len(supported):
-        missing_details ='Missing data for python version(s) {}.'.format(
+        missing_details = 'Missing data for python version(s) {}.'.format(
             ' and '.join(supported))
         result_dict = badge_utils._build_default_result(
             status=BadgeStatus.MISSING_DATA, details=missing_details)
@@ -217,7 +218,7 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         package_name)
     for pair, compatibility_results in pair_mapping.items():
         if len(compatibility_results) < len(supported_versions):
-            missing_details ='Missing data for python version(s) {}.'.format(
+            missing_details = 'Missing data for python version(s) {}.'.format(
                 ' and '.join(supported_versions))
             result_dict = badge_utils._build_default_result(
                 status=BadgeStatus.MISSING_DATA, details=missing_details)
