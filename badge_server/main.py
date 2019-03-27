@@ -132,7 +132,7 @@ def _get_supported_versions(package_name: str) -> List[int]:
     """Gets the given package's supported python versions
 
     Args:
-        package_name: The package name.
+        package_name: The name of the package to look up, e.g. "tensorflow".
 
     Returns:
         A list of supported python versions.
