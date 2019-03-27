@@ -86,14 +86,14 @@ class BadgeStatus(enum.Enum):
         Args:
             statuses: A list of BadgeStatuses.
 
-        Raises:
-            ValueError if no BadgeStatus exists. For example, if the length of
-                `statuses` is 0, an error is raised.
-
         Returns:
             The BadgeStatus found in `statuses` that has the highest priority.
             For example, INTERNAL_ERROR would be returned if `statuses`
             contained INTERNAL_ERROR and OUTDATED_DEPENDENCY.
+
+        Raises:
+            ValueError if no BadgeStatus exists. For example, if the length of
+                `statuses` is 0, an error is raised.
         """
         for status in cls.__members__.values():
             if status in statuses:
