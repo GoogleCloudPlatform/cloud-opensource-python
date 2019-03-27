@@ -46,7 +46,7 @@ from compatibility_lib.dependency_highlighter import PriorityLevel
 
 from compatibility_lib import configs
 from compatibility_lib import package
-from typing import FrozenSet
+from typing import FrozenSet, Iterable
 
 app = flask.Flask(__name__)
 
@@ -56,7 +56,8 @@ class BadgeStatus(enum.Enum):
     """Represents a package's badge status.
 
     The status is based on the results of running 'pip install' and
-    'pip check' on the compatibility server.
+    'pip check' on the compatibility server. Statuses are defined in
+    descending priority level.
 
     UNKNOWN_PACKAGE: package not in whitelist
     INTERNAL_ERROR: unexpected internal error
@@ -75,6 +76,29 @@ class BadgeStatus(enum.Enum):
     OBSOLETE_DEPENDENCY = 'OBSOLETE_DEPENDENCY'
     OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
     SUCCESS = 'SUCCESS'
+
+    @classmethod
+    def get_highest_status(cls, statuses: Iterable[enum.Enum]):
+        """Gets the highest BadgeStatus.
+
+        This method works because `cls.__members__` is an ordered dict.
+
+        Args:
+            statuses: A list of BadgeStatuses.
+
+        Returns:
+            The BadgeStatus found in `statuses` that has the highest priority.
+            For example, INTERNAL_ERROR would be returned if `statuses`
+            contained INTERNAL_ERROR and OUTDATED_DEPENDENCY.
+
+        Raises:
+            ValueError: If no BadgeStatus exists. For example, if the length of
+                `statuses` is 0, an error is raised.
+        """
+        for status in cls.__members__.values():
+            if status in statuses:
+                return status
+        raise ValueError("'statuses' did not contain a valid BadgeStatus")
 
 
 BADGE_STATUS_TO_COLOR = {
@@ -302,14 +326,7 @@ def _get_badge_status(
         statuses.append(self_compat_res[pyver]['status'])
         statuses.append(google_compat_res[pyver]['status'])
     statuses.append(dependency_res['status'])
-
-    if all(status == BadgeStatus.SUCCESS for status in statuses):
-        return BadgeStatus.SUCCESS
-
-    # This works because the enums are stored in an ordered dict.
-    for status in BadgeStatus.__members__.values():
-        if status != BadgeStatus.SUCCESS and status in statuses:
-            return status
+    return BadgeStatus.get_highest_status(statuses)
 
 
 def _get_check_results(package_name: str, commit_number: str = None):
