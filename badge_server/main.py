@@ -114,12 +114,13 @@ BADGE_STATUS_TO_COLOR = {
 
 
 # Note: An INSTALL_ERROR occurs when pip_check yields an
-# PipCheckResultType.INSTALL_ERROR. Technically, this could happen when querying
-# the compatibility server if the input had an unrecognized package or a
-# given package does not support the given python version, both of which are not
-# internal errors. However, since we handle for those cases, we should never get
-# an INSTALL_ERROR for either of those reasons. An INSTALL_ERROR *could* occur
-# when a github repo subdirectory is moved or some error is thrown in code.
+# PipCheckResultType.INSTALL_ERROR. Technically, this could happen when
+# querying the compatibility server if the input had an unrecognized package
+# or a given package does not support the given python version, both of which
+# are not internal errors. However, since we handle for those cases, we should
+# never get an INSTALL_ERROR for either of those reasons. An INSTALL_ERROR
+# *could* occur when a github repo subdirectory is moved or some error is
+# thrown in code.
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
     PackageStatus.SUCCESS: BadgeStatus.SUCCESS,
@@ -396,10 +397,11 @@ def _get_check_results(package_name: str, commit_number: str = None):
         dependency_res = _get_dependency_dict(package_name)
     except Exception:
         error_status = BadgeStatus.INTERNAL_ERROR
-        self_compat_res = badge_utils._build_default_result(status=error_status)
-        google_compat_res = badge_utils._build_default_result(status=error_status)
-        dependency_res = badge_utils._build_default_result(
-            status=error_status, include_pyversion=False)
+        self_compat_res, google_compat_res, dependency_res = (
+            badge_utils._build_default_result(status=error_status),
+            badge_utils._build_default_result(status=error_status),
+            badge_utils._build_default_result(
+                status=error_status, include_pyversion=False))
 
     return (self_compat_res, google_compat_res, dependency_res)
 
