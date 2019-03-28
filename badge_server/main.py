@@ -113,11 +113,18 @@ BADGE_STATUS_TO_COLOR = {
 }
 
 
+# Note: An INSTALL_ERROR occurs when pip_check yields an
+# PipCheckResultType.INSTALL_ERROR. Technically, this could happen when querying
+# the compatibility server if the input had an unrecognized package or a
+# given package does not support the given python version, both of which are not
+# internal errors. However, since we handle for those cases, we should never get
+# an INSTALL_ERROR for either of those reasons. An INSTALL_ERROR *could* occur
+# when a github repo subdirectory is moved or some error is thrown in code.
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
-    PackageStatus.CHECK_WARNING: BadgeStatus.INTERNAL_ERROR,
     PackageStatus.SUCCESS: BadgeStatus.SUCCESS,
-    PackageStatus.INSTALL_ERROR: None
+    PackageStatus.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
+    PackageStatus.CHECK_WARNING: None
 }
 
 
@@ -254,7 +261,7 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             version = res.python_major_version            # eg. '2', '3'
             pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
-            if result_dict[pyver]['details'] is None:
+            if result_dict[pyver]['details'] is badge_utils.EMPTY_DETAILS:
                 result_dict[pyver]['details'] = {}
 
             # Only look at a check failure status
@@ -383,9 +390,16 @@ def _get_check_results(package_name: str, commit_number: str = None):
     if not compat_utils._is_package_in_whitelist([package_name]):
         return (self_compat_res, google_compat_res, dependency_res)
 
-    self_compat_res = _get_self_compatibility_dict(package_name)
-    google_compat_res = _get_pair_compatibility_dict(package_name)
-    dependency_res = _get_dependency_dict(package_name)
+    try:
+        self_compat_res = _get_self_compatibility_dict(package_name)
+        google_compat_res = _get_pair_compatibility_dict(package_name)
+        dependency_res = _get_dependency_dict(package_name)
+    except Exception:
+        error_status = BadgeStatus.INTERNAL_ERROR
+        self_compat_res = badge_utils._build_default_result(status=error_status)
+        google_compat_res = badge_utils._build_default_result(status=error_status)
+        dependency_res = badge_utils._build_default_result(
+            status=error_status, include_pyversion=False)
 
     return (self_compat_res, google_compat_res, dependency_res)
 
