@@ -106,7 +106,7 @@ def initialize_cache():
 def _build_default_result(
         status: str,
         include_pyversion: bool = True,
-        details: Optional = None) -> dict:
+        details: Optional = EMPTY_DETAILS) -> dict:
     """Build the default result for different conditions."""
     # Dependency badge
     if not include_pyversion:
