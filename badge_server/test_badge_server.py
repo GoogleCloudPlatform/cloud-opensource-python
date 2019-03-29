@@ -43,10 +43,10 @@ class TestBadgeServer(unittest.TestCase):
                 expected = [3]
             if package_name in ('apache-beam[gcp]', 'gsutil'):
                 expected = [2]
-            self.assertEqual(expected, supported)
+            self.assertEqual(supported, expected)
 
         res = main._get_supported_versions('unsupported')
-        self.assertEqual([], res)
+        self.assertEqual(res, [])
 
     def test__get_self_compatibility_dict(self):
         from compatibility_lib import compatibility_store
@@ -72,6 +72,7 @@ class TestBadgeServer(unittest.TestCase):
         self.assertEqual(result_dict, expected)
 
     def test__get_pair_compatibility_dict_success(self):
+        success_status = main.BadgeStatus.SUCCESS
         expected = {
             'py2': {'status': main.BadgeStatus.SUCCESS,
                     'details': 'The package does not support this version of python.'},
@@ -91,9 +92,9 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': {'status': main.BadgeStatus.INTERNAL_ERROR,
+            'py2': {'status': main.BadgeStatus.PAIR_INCOMPATIBLE,
                     'details': {'package2': 'NO DETAILS'} },
-            'py3': {'status': main.BadgeStatus.INTERNAL_ERROR,
+            'py3': {'status': main.BadgeStatus.PAIR_INCOMPATIBLE,
                     'details': {'package2': 'NO DETAILS'} },
         }
 
@@ -192,8 +193,8 @@ class TestBadgeServer(unittest.TestCase):
 
         mock_self_res = mock.Mock()
         self_res = {
-            'py2': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
-            'py3': { 'status': main.BadgeStatus.INTERNAL_ERROR, 'details': {} },
+            'py2': { 'status': main.BadgeStatus.SELF_INCOMPATIBLE, 'details': {} },
+            'py3': { 'status': main.BadgeStatus.SELF_INCOMPATIBLE, 'details': {} },
         }
         mock_self_res.return_value = self_res
         patch_self_status = mock.patch(
