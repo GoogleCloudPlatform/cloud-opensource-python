@@ -93,9 +93,14 @@ class PipCheckResultType(enum.Enum):
 
     SUCCESS: Indicates that "pip install <packages> && pip check" completed
         successfully.
-    INSTALL_ERROR: Indicates that "pip install <packages>" failed.
+    INSTALL_ERROR: Indicates that "pip install <packages>" completed with a
+        non-zero exit code. This indicates that the install failed e.g. the
+        package could not be loaded, does not support the current Python
+        version, etc. Incompatible requirements will *not* cause a non-zero
+        return.
     CHECK_WARNING: Indicates that "pip check" completed with a non-zero exit
-        code.
+        code. This indicates that there are incompatible requirements e.g.
+        "pkg-A 1.0 has requirement pkg-B<2, but you'll have pkg-B 2.01".        
     """
     SUCCESS = 'success'
     INSTALL_ERROR = 'install_error'
