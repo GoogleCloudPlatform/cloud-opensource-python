@@ -41,6 +41,7 @@ import pybadges
 
 import utils as badge_utils
 from compatibility_lib import utils as compat_utils
+from compatibility_lib.compatibility_store import CompatibilityResult
 from compatibility_lib.compatibility_store import Status as PackageStatus
 from compatibility_lib.dependency_highlighter import PriorityLevel
 
@@ -136,24 +137,44 @@ DEPENDENCY_STATUS_TO_BADGE_STATUS = {
 }
 
 
-def _get_supported_versions(package_name: str) -> List[int]:
-    """Gets the given package's supported python versions
+def _get_missing_details(package_names: List[str],
+                         results: Iterable[CompatibilityResult]) -> str:
+    """Gets the details for any missing data (if there is any)
 
     Args:
-        package_name: The name of the package to look up, e.g. "tensorflow".
+        package_names: A list of length 1 or 2 of the package name(s) to look
+            up, e.g. ["tensorflow"], ["tensorflow", "opencensus"].
+        results: A list of length 1 or 2 of the `CompatibilityResults` for the
+            given package(s).
 
     Returns:
-        A list of supported python versions.
+        None if there is no missing data; a description of the version(s)
+        missing otherwise, e.g. "Missing data for python version(s): 2".
     """
-    supported = []
-    if not compat_utils._is_package_in_whitelist([package_name]):
-        return supported
+    if not compat_utils._is_package_in_whitelist(package_names):
+        return None
+
+    versions = (2, 3)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
-    for version in (2, 3):
-        unsupported_packages = unsupported_package_mapping[version]
-        if package_name not in unsupported_packages:
-            supported.append(version)
-    return supported
+    expected = {version: all([name not in unsupported_package_mapping[version]
+                              for name in package_names])
+                for version in versions}
+
+    actual = {version: False for version in versions}
+    for result in results:
+        actual[result.python_major_version] = True
+
+    missing_versions = []
+    for version in versions:
+        if expected[version] and not actual[version]:
+            missing_versions.append(version)
+
+    if len(missing_versions) == 0:
+        return None
+
+    missing_details = 'Missing data for python version(s): {}'.format(
+        ' and '.join(missing_versions))
+    return missing_details
 
 
 def _get_self_compatibility_dict(package_name: str) -> dict:
@@ -174,10 +195,9 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     """
     pkg = package.Package(package_name)
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
-    supported = _get_supported_versions(package_name)
-    if len(compatibility_results) < len(supported):
-        missing_details = 'Missing data for python version(s) {}.'.format(
-            ' and '.join(supported))
+    missing_details = _get_missing_details(
+        [package_name], compatibility_results)
+    if missing_details:
         result_dict = badge_utils._build_default_result(
             status=BadgeStatus.MISSING_DATA, details=missing_details)
         return result_dict
@@ -247,13 +267,12 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
     result_dict = badge_utils._build_default_result(
         status=BadgeStatus.SUCCESS, details=default_details)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
-    supported_versions = _get_supported_versions(package_name)
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
-        if len(compatibility_results) < len(supported_versions):
-            missing_details = 'Missing data for python version(s) {}.'.format(
-                ' and '.join(supported_versions))
+        missing_details = _get_missing_details(
+            [pkg.install_name for pkg in pair], compatibility_results)
+        if missing_details:
             result_dict = badge_utils._build_default_result(
                 status=BadgeStatus.MISSING_DATA, details=missing_details)
             return result_dict
@@ -441,7 +460,7 @@ def one_badge_image():
         flask.url_for('one_badge_target', package=package_name))
     badge = pybadges.badge(
         left_text=badge_name,
-        right_text=status,
+        right_text=status.value,
         right_color=color,
         whole_link=details_link)
 

@@ -65,7 +65,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="status {{ self_compat_res.py2.status | lower }}">{{ self_compat_res.py2.status }}</span>
+                                                <span class="status {{ self_compat_res.py2.status.value | lower }}">{{ self_compat_res.py2.status.value }}</span>
                                             </td>
                                             <td>
                                                <span class="table-data__info">{{ self_compat_res.py2.details }}</span>
@@ -78,7 +78,7 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <span class="status {{ self_compat_res.py3.status | lower }}">{{ self_compat_res.py3.status }}</span>
+                                                <span class="status {{ self_compat_res.py3.status.value | lower }}">{{ self_compat_res.py3.status.value }}</span>
                                             </td>
                                             <td>
                                                <span class="table-data__info">{{ self_compat_res.py3.details }}</span>
@@ -98,10 +98,10 @@
                     <div class="container">
                         <div class="user-data m-b-30">
                             <h3 class="title-3 m-b-30">
-                                <i class="zmdi zmdi-account-calendar"></i>Dependency Check Result: <span class="status {{ dependency_res.status | lower }}">{{ dependency_res.status }}</span>
+                                <i class="zmdi zmdi-account-calendar"></i>Dependency Check Result: <span class="status {{ dependency_res.status.value | lower }}">{{ dependency_res.status.value }}</span>
                             </h3>
                             <div class="table-responsive table-data">
-                                {% if dependency_res.status in ['LOW_PRIORITY', 'HIGH_PRIORITY'] %}
+                                {% if dependency_res.status.value in ['LOW_PRIORITY', 'HIGH_PRIORITY'] %}
                                     <table class="table">
                                         <thead>
                                             <tr>
@@ -140,7 +140,7 @@
                                             {% endfor %}
                                         </tbody>
                                     </table>
-                                {% elif dependency_res.status == 'UP_TO_DATE' %}
+                                {% elif dependency_res.status.value == 'UP_TO_DATE' %}
                                     <h4 class="title-3 m-b-30">All dependencies are up to date!</h4>
                                 {% endif %}
                             </div>
@@ -173,14 +173,14 @@
                         <ul class="nav nav-tabs" id="myTab" role="tablist">
                             <li class="nav-item">
                                 <a class="nav-link active" id="py2-tab" data-toggle="tab" href="#py2" role="tab" aria-controls="py2" aria-selected="true">Python 2
-                                {% if google_compat_res.py2.status == "CHECK_WARNING" %}
+                                {% if "INCOMPATIBLE" in google_compat_res.py2.status.value %}
                                     <span class="badge badge-warning">Warning</span>
                                 {% endif %}
                                 </a>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" id="py3-tab" data-toggle="tab" href="#py3" role="tab" aria-controls="py3" aria-selected="false">Python 3
-                                {% if google_compat_res.py3.status == "CHECK_WARNING" %}
+                                {% if "INCOMPATIBLE" in google_compat_res.py3.status.value %}
                                     <span class="badge badge-warning">Warning</span>
                                 {% endif %}
                                 </a>
@@ -189,7 +189,7 @@
                         <div class="tab-content pl-3 p-1" id="myTabContent">
                             <div class="tab-pane fade show active" id="py2" role="tabpanel" aria-labelledby="py2-tab">
                                 <div class="user-data m-b-30">
-                                    <h4>Check Result: <span class="status {{ google_compat_res.py2.status | lower }}">{{ google_compat_res.py2.status }}</span></h4>
+                                    <h4>Check Result: <span class="status {{ google_compat_res.py2.status.value | lower }}">{{ google_compat_res.py2.status.value }}</span></h4>
                                     <div class="table-responsive table-data">
                                         <table class="table">
                                             <thead>
@@ -218,7 +218,7 @@
                             </div>
                             <div class="tab-pane fade" id="py3" role="tabpanel" aria-labelledby="py3-tab">
                                 <div class="user-data m-b-30">
-                                    <h4>Check Result: <span class="status {{ google_compat_res.py3.status | lower }}">{{ google_compat_res.py3.status }}</span></h4>
+                                    <h4>Check Result: <span class="status {{ google_compat_res.py3.status.value | lower }}">{{ google_compat_res.py3.status.value }}</span></h4>
                                     <div class="table-responsive table-data">
                                         <table class="table">
                                             <thead>
