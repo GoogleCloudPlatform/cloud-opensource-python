@@ -100,7 +100,7 @@ class PipCheckResultType(enum.Enum):
         return.
     CHECK_WARNING: Indicates that "pip check" completed with a non-zero exit
         code. This indicates that there are incompatible requirements e.g.
-        "pkg-A 1.0 has requirement pkg-B<2, but you'll have pkg-B 2.01".        
+        "pkg-A 1.0 has requirement pkg-B<2, but you'll have pkg-B 2.01".
     """
     SUCCESS = 'success'
     INSTALL_ERROR = 'install_error'
