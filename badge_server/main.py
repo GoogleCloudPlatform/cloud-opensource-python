@@ -112,6 +112,17 @@ BADGE_STATUS_TO_COLOR = {
     BadgeStatus.SUCCESS: 'brightgreen',
 }
 
+BADGE_STATUS_TO_TEXT = {
+    BadgeStatus.UNKNOWN_PACKAGE: 'unknown package',
+    BadgeStatus.INTERNAL_ERROR: 'internal error',
+    BadgeStatus.MISSING_DATA: 'missing data',
+    BadgeStatus.SELF_INCOMPATIBLE: 'self incompatible',
+    BadgeStatus.PAIR_INCOMPATIBLE: 'incompatible',
+    BadgeStatus.OBSOLETE_DEPENDENCY: 'obsolete dependency',
+    BadgeStatus.OUTDATED_DEPENDENCY: 'old dependency',
+    BadgeStatus.SUCCESS: 'success',
+}
+
 
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
@@ -365,6 +376,10 @@ def _get_badge_status(
     return BadgeStatus.get_highest_status(statuses)
 
 
+def _badge_status_to_text(status: BadgeStatus) -> str:
+    return BADGE_STATUS_TO_TEXT[status]
+
+
 def _get_check_results(package_name: str, commit_number: str = None):
     """Gets the compatibility and dependency check results.
 
@@ -423,7 +438,7 @@ def one_badge_image():
         flask.url_for('one_badge_target', package=package_name))
     badge = pybadges.badge(
         left_text=badge_name,
-        right_text=status,
+        right_text=_badge_status_to_text(status),
         right_color=color,
         whole_link=details_link)
 
