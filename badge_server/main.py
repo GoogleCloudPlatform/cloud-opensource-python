@@ -113,11 +113,19 @@ BADGE_STATUS_TO_COLOR = {
 }
 
 
+# Note: An INSTALL_ERROR occurs when pip_check yields an
+# PipCheckResultType.INSTALL_ERROR. Technically, this could happen when
+# querying the compatibility server if the input had an unrecognized package
+# or a given package does not support the given python version, both of which
+# are not internal errors. However, since we handle for those cases, we should
+# never get an INSTALL_ERROR for either of those reasons. An INSTALL_ERROR
+# *could* occur when a github repo subdirectory is moved or some error is
+# thrown in code.
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
-    PackageStatus.CHECK_WARNING: BadgeStatus.INTERNAL_ERROR,
     PackageStatus.SUCCESS: BadgeStatus.SUCCESS,
-    PackageStatus.INSTALL_ERROR: None
+    PackageStatus.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
+    PackageStatus.CHECK_WARNING: None
 }
 
 
@@ -235,7 +243,9 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             'py3': {'status': BadgeStatus.SUCCESS, 'details': {}}
         }
     """
-    result_dict = badge_utils._build_default_result(status=BadgeStatus.SUCCESS)
+    default_details = 'The package does not support this version of python.'
+    result_dict = badge_utils._build_default_result(
+        status=BadgeStatus.SUCCESS, details=default_details)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
     supported_versions = _get_supported_versions(package_name)
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
@@ -254,25 +264,25 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             version = res.python_major_version            # eg. '2', '3'
             pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
-            if result_dict[pyver]['details'] is None:
+            # Not all packages are supported in both Python 2 and Python 3. If
+            # either package is not supported in the Python version being
+            # checked then skip the check.
+            unsupported_packages = unsupported_package_mapping.get(version)
+            if any([pkg.install_name in unsupported_packages for pkg in pair]):
+                continue
+
+            if result_dict[pyver]['details'] == default_details:
                 result_dict[pyver]['details'] = {}
 
-            # Only look at a check failure status
-            # Ignore the unsupported and non self compatible packages
+            # The logic after this point only handles non SUCCESS statuses.
             if res.status == PackageStatus.SUCCESS:
                 continue
 
-            # Not all packages are supported in both Python 2 and Python 3. If
-            # `other_package` is not supported in the Python version being
-            # checked then skip the result.
-            unsupported_packages = unsupported_package_mapping.get(version)
-            other_package_name = other_package.install_name
-            if other_package_name in unsupported_packages:
-                continue
-
             # If `other_package` is not self compatible (meaning that it has a
-            # conflict within it's own dependencies) then skip the result since
-            # the `other_package` will be incompatible with all other packages.
+            # conflict within it's own dependencies) then skip the check since
+            # a pairwise comparison is only significant if both packages are
+            # self_compatible.
+            other_package_name = other_package.install_name
             self_compat_res = _get_self_compatibility_dict(other_package_name)
             if self_compat_res[pyver]['status'] != BadgeStatus.SUCCESS:
                 continue
@@ -389,9 +399,17 @@ def _get_check_results(package_name: str, commit_number: str = None):
     if not compat_utils._is_package_in_whitelist([package_name]):
         return (self_compat_res, google_compat_res, dependency_res)
 
-    self_compat_res = _get_self_compatibility_dict(package_name)
-    google_compat_res = _get_pair_compatibility_dict(package_name)
-    dependency_res = _get_dependency_dict(package_name)
+    try:
+        self_compat_res = _get_self_compatibility_dict(package_name)
+        google_compat_res = _get_pair_compatibility_dict(package_name)
+        dependency_res = _get_dependency_dict(package_name)
+    except Exception:
+        error_status = BadgeStatus.INTERNAL_ERROR
+        self_compat_res, google_compat_res, dependency_res = (
+            badge_utils._build_default_result(status=error_status),
+            badge_utils._build_default_result(status=error_status),
+            badge_utils._build_default_result(
+                status=error_status, include_pyversion=False))
 
     return (self_compat_res, google_compat_res, dependency_res)
 
