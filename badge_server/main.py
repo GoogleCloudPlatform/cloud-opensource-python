@@ -68,14 +68,14 @@ class BadgeStatus(enum.Enum):
     OUTDATED_DEPENDENCY: package has a low priority outdated dependency
     SUCCESS: No issues
     """
-    UNKNOWN_PACKAGE = 'UNKNOWN_PACKAGE'
-    INTERNAL_ERROR = 'INTERNAL_ERROR'
-    MISSING_DATA = 'MISSING_DATA'
-    SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
-    PAIR_INCOMPATIBLE = 'INCOMPATIBLE'
-    OBSOLETE_DEPENDENCY = 'OBSOLETE_DEPENDENCY'
-    OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
-    SUCCESS = 'SUCCESS'
+    UNKNOWN_PACKAGE = 'unknown package'
+    INTERNAL_ERROR = 'internal error'
+    MISSING_DATA = 'missing data'
+    SELF_INCOMPATIBLE = 'self incompatible'
+    PAIR_INCOMPATIBLE = 'incompatible'
+    OBSOLETE_DEPENDENCY = 'obsolete dependency'
+    OUTDATED_DEPENDENCY = 'old dependency'
+    SUCCESS = 'success'
 
     @classmethod
     def get_highest_status(cls, statuses: Iterable[enum.Enum]):
@@ -110,17 +110,6 @@ BADGE_STATUS_TO_COLOR = {
     BadgeStatus.OBSOLETE_DEPENDENCY: 'red',
     BadgeStatus.OUTDATED_DEPENDENCY: 'yellowgreen',
     BadgeStatus.SUCCESS: 'brightgreen',
-}
-
-BADGE_STATUS_TO_TEXT = {
-    BadgeStatus.UNKNOWN_PACKAGE: 'unknown package',
-    BadgeStatus.INTERNAL_ERROR: 'internal error',
-    BadgeStatus.MISSING_DATA: 'missing data',
-    BadgeStatus.SELF_INCOMPATIBLE: 'self incompatible',
-    BadgeStatus.PAIR_INCOMPATIBLE: 'incompatible',
-    BadgeStatus.OBSOLETE_DEPENDENCY: 'obsolete dependency',
-    BadgeStatus.OUTDATED_DEPENDENCY: 'old dependency',
-    BadgeStatus.SUCCESS: 'success',
 }
 
 
@@ -377,7 +366,9 @@ def _get_badge_status(
 
 
 def _badge_status_to_text(status: BadgeStatus) -> str:
-    return BADGE_STATUS_TO_TEXT[status]
+    # TODO: Include the "(updating...)" or "(old") suffix if the results
+    # are old.
+    return status.value
 
 
 def _get_check_results(package_name: str, commit_number: str = None):
@@ -450,7 +441,6 @@ def one_badge_image():
     # the image is frequently updated, caching is explicitly disabled to force
     # the client/cache to refetch the content on every request.
     response.headers['Cache-Control'] = 'no-cache'
-
     return response
 
 
