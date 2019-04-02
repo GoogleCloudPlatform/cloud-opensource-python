@@ -36,7 +36,7 @@ PACKAGE_1_PY2_OLD_CR = compatibility_store.CompatibilityResult(
     packages=[PACKAGE_1],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime(2018, 1, 1, tzinfo=datetime.timezone.utc),
+    timestamp=datetime.datetime(2018, 1, 1),
 )
 
 PACKAGE_1_PY3_CR = compatibility_store.CompatibilityResult(
@@ -79,7 +79,7 @@ PACKAGE_1_AND_2_PY2_OLD_CR = compatibility_store.CompatibilityResult(
     packages=[PACKAGE_1, PACKAGE_2],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime(2018, 1, 1, tzinfo=datetime.timezone.utc),
+    timestamp=datetime.datetime(2018, 1, 1),
 )
 
 PACKAGE_1_AND_2_PY3_CR = compatibility_store.CompatibilityResult(

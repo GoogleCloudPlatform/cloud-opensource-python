@@ -339,7 +339,7 @@ class DashboardBuilder():
 
     def build_dashboard(self, template_name) -> str:
         """Returns a web page compatibility grid given a list of packages."""
-        current_timestamp = datetime.datetime.now().strftime(
+        current_timestamp = datetime.datetime.utcnow().strftime(
             '%Y-%m-%d %H:%M:%S')
         template = _JINJA2_ENVIRONMENT.get_template(template_name)
         return template.render(

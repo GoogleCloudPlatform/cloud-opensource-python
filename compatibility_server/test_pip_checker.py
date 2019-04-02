@@ -176,7 +176,7 @@ class TestPipChecker(unittest.TestCase):
         mock_datetime = mock.Mock()
         mock_now = mock.Mock()
         mock_now.isoformat.return_value = '2018-06-13T16:13:33.744591'
-        mock_datetime.datetime.now.return_value = mock_now
+        mock_datetime.datetime.utcnow.return_value = mock_now
 
         patch = mock.patch('pip_checker.datetime', mock_datetime)
 
@@ -256,7 +256,7 @@ class TestPipChecker(unittest.TestCase):
         mock_datetime = mock.Mock()
         mock_now = mock.Mock()
         mock_now.isoformat.return_value = '2018-06-13T16:13:33.744591'
-        mock_datetime.datetime.now.return_value = mock_now
+        mock_datetime.datetime.utcnow.return_value = mock_now
 
         patch = mock.patch('pip_checker.datetime', mock_datetime)
 
