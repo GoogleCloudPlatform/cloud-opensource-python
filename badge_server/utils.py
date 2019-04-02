@@ -186,7 +186,7 @@ def _is_github_cache_valid(cache_timestamp_str=None):
 
     cache_timestamp = datetime.datetime.strptime(
         cache_timestamp_str, TIMESTAMP_FORMAT)
-    current_timestamp = datetime.datetime.now()
+    current_timestamp = datetime.datetime.utcnow()
     seconds_diff = (current_timestamp - cache_timestamp).seconds
 
     if seconds_diff > GITHUB_CACHE_TIME:
