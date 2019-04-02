@@ -607,7 +607,7 @@ class _OneshotPipCheck():
                 'installed_version': installed_version,
                 'installed_version_time': installed_version_time,
                 'latest_version': latest_version,
-                'current_time': datetime.datetime.now().isoformat(),
+                'current_time': datetime.datetime.utcnow().isoformat(),
                 'latest_version_time': latest_version_time,
                 'is_latest': is_latest,
             }

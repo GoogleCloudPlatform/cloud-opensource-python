@@ -70,7 +70,7 @@ class CompatibilityResult:
         if timestamp:
             self._timestamp = timestamp
         else:
-            self._timestamp = datetime.datetime.now(datetime.timezone.utc)
+            self._timestamp = datetime.datetime.utcnow()
 
     def __repr__(self):
         return ('CompatibilityResult({}, {}, {}, {}, {}, {})'.format(
