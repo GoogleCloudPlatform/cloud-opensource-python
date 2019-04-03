@@ -16,6 +16,7 @@
 
 import datetime
 import unittest
+from unittest import mock
 
 from compatibility_lib import compatibility_store
 from compatibility_lib import fake_compatibility_store
@@ -89,6 +90,12 @@ PACKAGE_1_AND_2_PY3_CR = compatibility_store.CompatibilityResult(
 )
 
 
+@mock.patch('compatibility_lib.fake_compatibility_store.configs.PKG_LIST',
+            [
+               'package1',
+               'package2',
+               'package3',
+               'package4',])
 class TestCompatibilityStore(unittest.TestCase):
 
     def setUp(self):
@@ -158,6 +165,31 @@ class TestCompatibilityStore(unittest.TestCase):
         self.assertFalse(
             frozenset(
                 self._store.get_pair_compatibility([PACKAGE_1, PACKAGE_3])))
+
+    def test_get_pairwise_compatibility_for_package(self):
+        crs = [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
+               PACKAGE_1_AND_2_PY3_CR]
+        self._store.save_compatibility_statuses(crs)
+
+        actual_results = self._store.get_pairwise_compatibility_for_package(
+            'package1')
+        expected_results = {
+            frozenset([PACKAGE_1, PACKAGE_2]):
+                [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]}
+        self.assertEqual(actual_results.keys(), expected_results.keys())
+
+        for actual_key, actual_results in actual_results.items():
+            self.assertEqual(frozenset(actual_results),
+                             frozenset(expected_results[actual_key]))
+
+    def test_get_pairwise_compatibility_for_package_no_results(self):
+        crs = [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
+               PACKAGE_1_AND_2_PY3_CR, PACKAGE_3_PY2_CR, PACKAGE_3_PY3_CR]
+        self._store.save_compatibility_statuses(crs)
+
+        actual_results = self._store.get_pairwise_compatibility_for_package(
+            'package3')
+        self.assertFalse(actual_results)
 
     def test_get_compatibility_combinations(self):
         crs = [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY2_OLD_CR,
