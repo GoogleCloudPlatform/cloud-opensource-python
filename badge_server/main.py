@@ -69,14 +69,14 @@ class BadgeStatus(enum.Enum):
     OUTDATED_DEPENDENCY: package has a low priority outdated dependency
     SUCCESS: No issues
     """
-    UNKNOWN_PACKAGE = 'UNKNOWN_PACKAGE'
-    INTERNAL_ERROR = 'INTERNAL_ERROR'
-    MISSING_DATA = 'MISSING_DATA'
-    SELF_INCOMPATIBLE = 'SELF_INCOMPATIBLE'
-    PAIR_INCOMPATIBLE = 'INCOMPATIBLE'
-    OBSOLETE_DEPENDENCY = 'OBSOLETE_DEPENDENCY'
-    OUTDATED_DEPENDENCY = 'OUTDATED_DEPENDENCY'
-    SUCCESS = 'SUCCESS'
+    UNKNOWN_PACKAGE = 'unknown package'
+    INTERNAL_ERROR = 'internal error'
+    MISSING_DATA = 'missing data'
+    SELF_INCOMPATIBLE = 'self incompatible'
+    PAIR_INCOMPATIBLE = 'incompatible'
+    OBSOLETE_DEPENDENCY = 'obsolete dependency'
+    OUTDATED_DEPENDENCY = 'old dependency'
+    SUCCESS = 'success'
 
     @classmethod
     def get_highest_status(cls, statuses: Iterable[enum.Enum]):
@@ -403,6 +403,12 @@ def _get_badge_status(
     return BadgeStatus.get_highest_status(statuses)
 
 
+def _badge_status_to_text(status: BadgeStatus) -> str:
+    # TODO: Include the "(updating...)" or "(old") suffix if the results
+    # are old.
+    return status.value
+
+
 def _get_check_results(package_name: str, commit_number: str = None):
     """Gets the compatibility and dependency check results.
 
@@ -469,7 +475,7 @@ def one_badge_image():
         flask.url_for('one_badge_target', package=package_name))
     badge = pybadges.badge(
         left_text=badge_name,
-        right_text=status.value,
+        right_text=_badge_status_to_text(status),
         right_color=color,
         whole_link=details_link)
 
@@ -481,7 +487,6 @@ def one_badge_image():
     # the image is frequently updated, caching is explicitly disabled to force
     # the client/cache to refetch the content on every request.
     response.headers['Cache-Control'] = 'no-cache'
-
     return response
 
 
