@@ -172,7 +172,7 @@ class TestCompatibilityStore(unittest.TestCase):
         self._store.save_compatibility_statuses(crs)
 
         actual_results = self._store.get_pairwise_compatibility_for_package(
-            'package1')
+            PACKAGE_1.install_name)
         expected_results = {
             frozenset([PACKAGE_1, PACKAGE_2]):
                 [PACKAGE_1_AND_2_PY2_CR, PACKAGE_1_AND_2_PY3_CR]}
@@ -188,7 +188,7 @@ class TestCompatibilityStore(unittest.TestCase):
         self._store.save_compatibility_statuses(crs)
 
         actual_results = self._store.get_pairwise_compatibility_for_package(
-            'package3')
+            PACKAGE_3.install_name)
         self.assertFalse(actual_results)
 
     def test_get_compatibility_combinations(self):

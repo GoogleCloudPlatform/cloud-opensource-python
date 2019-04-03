@@ -115,15 +115,13 @@ class CompatibilityStore:
                frozenset([p1, p4]): [CompatibilityResult...],
             }.
         """
-        package_pairs = [frozenset([package.Package(package_name), package.Package(name)])
+        package_pairs = [frozenset([package.Package(package_name),
+                                    package.Package(name)])
                          for name in configs.PKG_LIST
                          if package_name != name]
-        print('package_pairs:', package_pairs)
         results = {pair: self.get_pair_compatibility(pair)
                    for pair in package_pairs
                    if self.get_pair_compatibility(pair)}
-        from pprint import pprint
-        pprint(results)
         return results
 
     def get_compatibility_combinations(self,
