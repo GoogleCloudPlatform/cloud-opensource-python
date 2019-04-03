@@ -37,6 +37,7 @@ Example Usage:
 
 import enum
 import flask
+import logging
 import pybadges
 
 import utils as badge_utils
@@ -404,6 +405,8 @@ def _get_check_results(package_name: str, commit_number: str = None):
         google_compat_res = _get_pair_compatibility_dict(package_name)
         dependency_res = _get_dependency_dict(package_name)
     except Exception:
+        logging.exception(
+            'Exception checking results for "{}"'.format(package_name))
         error_status = BadgeStatus.INTERNAL_ERROR
         self_compat_res, google_compat_res, dependency_res = (
             badge_utils._build_default_result(status=error_status),
