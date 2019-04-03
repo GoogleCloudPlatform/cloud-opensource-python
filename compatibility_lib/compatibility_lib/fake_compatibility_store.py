@@ -116,7 +116,7 @@ class CompatibilityStore:
             }.
         """
         package_pairs = [[package.Package(package_name), package.Package(name)]
-                         for name in configs.PKG_LIST]
+                         for name in configs.PKG_LIST if name != package_name]
         results = {frozenset(pair): self.get_pair_compatibility(pair)
                    for pair in package_pairs}
         return results

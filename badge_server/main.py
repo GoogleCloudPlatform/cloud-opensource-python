@@ -151,8 +151,17 @@ def _get_missing_details(package_names: List[str],
         None if there is no missing data; a description of the version(s)
         missing otherwise, e.g. "Missing data for python version(s): 2".
     """
+    expected_lengths = (1, 2)
+    bad_list_length = 'package_names: Expected length of 1 or 2, got %s'
+    not_whitelisted = 'One of the packages in %s is not whitelisted'
+
+    if len(package_names) not in expected_lengths:
+        # This should not happen
+        raise ValueError(bad_list_length % len(package_names))
+
     if not compat_utils._is_package_in_whitelist(package_names):
-        return None
+        # This should not happen
+        raise ValueError(not_whitelisted % str(package_names))
 
     versions = (2, 3)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
@@ -167,7 +176,7 @@ def _get_missing_details(package_names: List[str],
     missing_versions = []
     for version in versions:
         if expected[version] and not actual[version]:
-            missing_versions.append(version)
+            missing_versions.append(str(version))
 
     if len(missing_versions) == 0:
         return None
