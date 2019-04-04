@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Add tests for the badge server image end-point."""
 
 import datetime
@@ -105,6 +104,7 @@ GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.Compa
 
 
 class TestBadgeServer(unittest.TestCase):
+
     def setUp(self):
         self.fake_store = fake_compatibility_store.CompatibilityStore()
         self.dependency_highlighter_stub = dependency_highlighter_stub.DependencyHighlighterStub(
@@ -113,15 +113,26 @@ class TestBadgeServer(unittest.TestCase):
         )
         self.client = main.app.test_client()
 
-        utils.store = self.fake_store
-        utils.highlighter = self.dependency_highlighter_stub
-        utils.finder = self.deprecated_dep_finder_stub
-        main.configs.PKG_LIST = [
+        self._store_patch = unittest.mock.patch('utils.store', self.fake_store)
+        self._highlighter_patch = unittest.mock.patch(
+            'utils.highlighter', self.dependency_highlighter_stub)
+        self._finder_patch = unittest.mock.patch(
+            'utils.finder', self.deprecated_dep_finder_stub)
+        self._pkg_list_patch = unittest.mock.patch('main.configs.PKG_LIST', [
             'apache-beam[gcp]',
             'google-api-core',
             'google-api-python-client',
             'tensorflow',
-        ]
+        ])
+
+        self._store_patch.start()
+        self.addCleanup(self._store_patch.stop)
+        self._highlighter_patch.start()
+        self.addCleanup(self._highlighter_patch.stop)
+        self._finder_patch.start()
+        self.addCleanup(self._finder_patch.stop)
+        self._pkg_list_patch.start()
+        self.addCleanup(self._pkg_list_patch.stop)
 
     def _get_image(self, package):
         return self.client.get(
