@@ -455,13 +455,12 @@ def one_badge_image():
         right_color=color,
         whole_link=details_link)
 
-    if flask.request.accept_mimetypes.best_match(
-            ['image/svg', 'text/plain']) == 'image/svg':
+    if flask.current_app.config['TESTING']:
+        response = flask.json.jsonify(**badge_args)
+    else:
         badge = pybadges.badge(**badge_args)
         response = flask.make_response(badge)
         response.content_type = badge_utils.SVG_CONTENT_TYPE
-    else:
-        response = flask.json.jsonify(**badge_args)
 
     # https://tools.ietf.org/html/rfc2616#section-13.4 allows success responses
     # to be cached if no `Cache-Control` header is set. Since the content of

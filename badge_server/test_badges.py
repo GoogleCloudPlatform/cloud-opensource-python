@@ -111,6 +111,8 @@ class TestBadgeServer(unittest.TestCase):
         )
         self.deprecated_dep_finder_stub = deprecated_dep_finder_stub.DeprecatedDepFinderStub(
         )
+
+        main.app.config['TESTING'] = True
         self.client = main.app.test_client()
 
         self._store_patch = unittest.mock.patch('utils.store', self.fake_store)
