@@ -48,7 +48,7 @@ from compatibility_lib.dependency_highlighter import PriorityLevel
 
 from compatibility_lib import configs
 from compatibility_lib import package
-from typing import FrozenSet, Iterable, List
+from typing import FrozenSet, Iterable, List, Optional
 
 app = flask.Flask(__name__)
 
@@ -139,52 +139,53 @@ DEPENDENCY_STATUS_TO_BADGE_STATUS = {
 
 
 def _get_missing_details(package_names: List[str],
-                         results: Iterable[CompatibilityResult]) -> str:
+                         results: Iterable[CompatibilityResult]
+                         ) -> Optional[str]:
     """Gets the details for any missing data (if there is any)
 
     Args:
         package_names: A list of length 1 or 2 of the package name(s) to look
             up, e.g. ["tensorflow"], ["tensorflow", "opencensus"].
         results: A list of length 1 or 2 of the `CompatibilityResults` for the
-            given package(s).
+            given package(s). Results should come from datastore.
 
     Returns:
         None if there is no missing data; a description of the version(s)
         missing otherwise, e.g. "Missing data for python version(s): 2".
     """
     expected_lengths = (1, 2)
-    bad_list_length = 'package_names: Expected length of 1 or 2, got %s'
-    not_whitelisted = 'One of the packages in %s is not whitelisted'
+    bad_list_length = 'package_names: Expected length of 1 or 2, got {}'
+    not_whitelisted = 'One of the packages in {} is not whitelisted'
 
-    if len(package_names) not in expected_lengths:
-        # This should not happen
-        raise ValueError(bad_list_length % len(package_names))
+    assert len(package_names) in expected_lengths, bad_list_length.format(
+        len(package_names))
 
-    if not compat_utils._is_package_in_whitelist(package_names):
-        # This should not happen
-        raise ValueError(not_whitelisted % str(package_names))
+    assert compat_utils._is_package_in_whitelist(
+        package_names), not_whitelisted.format(str(package_names))
 
-    versions = (2, 3)
-    unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
-    expected = {version: all([name not in unsupported_package_mapping[version]
-                              for name in package_names])
-                for version in versions}
+    all_versions = (2, 3)
 
-    actual = {version: False for version in versions}
-    for result in results:
-        actual[result.python_major_version] = True
+    versions_supported = set(version for version in all_versions)
+    for version in all_versions:
+        for package_name in package_names:
+            if package_name in configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
+                versions_supported.discard(version)
 
-    missing_versions = []
-    for version in versions:
-        if expected[version] and not actual[version]:
-            missing_versions.append(str(version))
+    versions_seen = {result.python_major_version for result in results}
 
-    if len(missing_versions) == 0:
+    if versions_seen.issuperset(versions_supported):
         return None
 
-    missing_details = 'Missing data for python version(s): {}'.format(
-        ' and '.join(missing_versions))
+    missing_versions = [v for v in versions_supported - versions_seen]
+    missing_details = 'Missing data for packages={}, versions={}'.format(
+        package_names, missing_versions)
     return missing_details
+
+    missing_details = 'Missing data for python version(s): {}'.format(
+        ' and '.join([str(v) for v in versions_supported - versions_seen]))
+    return missing_details
+
+
 
 
 def _get_self_compatibility_dict(package_name: str) -> dict:
