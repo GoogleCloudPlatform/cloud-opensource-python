@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A HTTP server that generates badges for google python projects
 
 Requires Python 3.6 or later.
@@ -113,7 +112,6 @@ BADGE_STATUS_TO_COLOR = {
     BadgeStatus.SUCCESS: 'brightgreen',
 }
 
-
 # Note: An INSTALL_ERROR occurs when pip_check yields an
 # PipCheckResultType.INSTALL_ERROR. Technically, this could happen when
 # querying the compatibility server if the input had an unrecognized package
@@ -128,7 +126,6 @@ PACKAGE_STATUS_TO_BADGE_STATUS = {
     PackageStatus.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
     PackageStatus.CHECK_WARNING: None
 }
-
 
 DEPENDENCY_STATUS_TO_BADGE_STATUS = {
     PriorityLevel.UP_TO_DATE: BadgeStatus.SUCCESS,
@@ -197,9 +194,8 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     return result_dict
 
 
-def _get_other_package_from_set(name: str,
-                                package_set: FrozenSet[package.Package]
-                                ) -> package.Package:
+def _get_other_package_from_set(
+        name: str, package_set: FrozenSet[package.Package]) -> package.Package:
     """Returns the package that does *not* have the given name.
 
     Args:
@@ -262,8 +258,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         other_package = _get_other_package_from_set(package_name, pair)
 
         for res in compatibility_results:
-            version = res.python_major_version            # eg. '2', '3'
-            pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
+            version = res.python_major_version  # eg. '2', '3'
+            pyver = badge_utils.PY_VER_MAPPING[version]  # eg. 'py2', 'py3'
 
             # Not all packages are supported in both Python 2 and Python 3. If
             # either package is not supported in the Python version being
@@ -348,10 +344,8 @@ def _get_dependency_dict(package_name: str) -> dict:
     return result_dict
 
 
-def _get_badge_status(
-        self_compat_res: dict,
-        google_compat_res: dict,
-        dependency_res: dict) -> BadgeStatus:
+def _get_badge_status(self_compat_res: dict, google_compat_res: dict,
+                      dependency_res: dict) -> BadgeStatus:
     """Get the badge status.
 
     The badge status will determine the right hand text and the color of
@@ -448,14 +442,20 @@ def one_badge_image():
     details_link = '{}{}'.format(
         flask.request.url_root[:-1],
         flask.url_for('one_badge_target', package=package_name))
-    badge = pybadges.badge(
+
+    badge_args = dict(
         left_text=badge_name,
         right_text=_badge_status_to_text(status),
         right_color=color,
         whole_link=details_link)
 
-    response = flask.make_response(badge)
-    response.content_type = badge_utils.SVG_CONTENT_TYPE
+    if flask.request.accept_mimetypes.best_match(
+            ['image/svg', 'text/plain']) == 'image/svg':
+        badge = pybadges.badge(**badge_args)
+        response = flask.make_response(badge)
+        response.content_type = badge_utils.SVG_CONTENT_TYPE
+    else:
+        response = flask.json.jsonify(**badge_args)
 
     # https://tools.ietf.org/html/rfc2616#section-13.4 allows success responses
     # to be cached if no `Cache-Control` header is set. Since the content of
