@@ -262,8 +262,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
         other_package = _get_other_package_from_set(package_name, pair)
 
         for res in compatibility_results:
-            version = res.python_major_version           # eg. '2', '3'
-            pyver = badge_utils.PY_VER_MAPPING[version]  # eg. 'py2', 'py3'
+            version = res.python_major_version            # eg. '2', '3'
+            pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
             # Not all packages are supported in both Python 2 and Python 3. If
             # either package is not supported in the Python version being
