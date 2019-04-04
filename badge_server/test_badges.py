@@ -139,8 +139,7 @@ class TestBadgeServer(unittest.TestCase):
             '/one_badge_image', query_string={'package': package})
 
     def _get_image_json(self, package):
-        response = self._get_image(package)
-        return json.loads(response.data)
+        return self._get_image(package).get_json()
 
     @unittest.skip
     def test_pypi_success(self):
