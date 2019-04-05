@@ -51,7 +51,14 @@ class CompatibilityResult:
         details: A text description of the compatibility check. Will be None
             if the check succeeded.
         dependency_info: The dict contains the dependency version info and
-            release time info.
+            release time info. For example:
+            'six':
+              {'current_time': datetime.datetime(...),
+               'installed_version': '1.13.0',
+               'installed_version_time': datetime.datetime(...),
+               'is_latest': 1,
+               'latest_version': '1.13.0',
+               'latest_version_time': datetime.datetime(...)},
         timestamp: The time at which the compatibility check was performed.
     """
 
@@ -252,7 +259,8 @@ class CompatibilityStore:
 
         Yields:
             A (possibly empty) list of CompatibilityResults, one per Python
-            version.
+            version. The returned CompatibilityResults do not include
+            a set `dependency_info`.            
         """
         return self.get_self_compatibilities([p])[p]
 
@@ -266,7 +274,8 @@ class CompatibilityStore:
 
         Returns:
             A mapping between the given packages and a (possibly empty)
-            list of CompatibilityResults for each one.
+            list of CompatibilityResults for each one. The returned
+            CompatibilityResults do not include a set `dependency_info`.
         """
 
         install_name_to_package = {p.install_name: p for p in packages}
@@ -297,7 +306,8 @@ class CompatibilityStore:
                 length of exactly 2.
 
         Yields:
-            One CompatibilityResult per Python version.
+            One CompatibilityResult per Python version. The returned
+            CompatibilityResult does not include a set `dependency_info`.
         """
         if len(packages) != 2:
             raise ValueError(
@@ -326,7 +336,8 @@ class CompatibilityStore:
             packages: The packages to check compatibility for.
         Returns:
             A mapping between every combination of input packages and their
-            CompatibilityResults. For example:
+            CompatibilityResults. The returned CompatibilityResults do not
+            include a set `dependency_info`.For example:
             get_compatibility_combinations(packages = [p1, p2, p3]) =>
             {
                frozenset([p1, p2]): [CompatibilityResult...],
@@ -369,7 +380,9 @@ class CompatibilityStore:
         Returns:
             A mapping between every pairing between the given package with
             each google cloud python package (found in configs.PKG_LIST) and
-            their pairwise CompatibilityResults. For example:
+            their pairwise CompatibilityResults. The returned
+            CompatibilityResults do not include a set `dependency_info`.
+            For example:
             Given package_name = 'p1', configs.PKG_LIST = [p2, p3, p4] =>
             {
                frozenset([p1, p2]): [CompatibilityResult...],
@@ -533,7 +546,7 @@ class CompatibilityStore:
         raise ValueError('missing version information for {}'.format(
             install_name_sanitized))
 
-    def get_dependency_info(self, package_name):
+    def get_dependency_info(self, package_name: str):
         """Returns dependency info for an indicated Google OSS package.
 
         Args:
@@ -541,6 +554,23 @@ class CompatibilityStore:
 
         Returns:
             A mapping between the dependency names and the info (dict).
+            For example:
+            {
+                'six':
+                  {'current_time': datetime.datetime(...),
+                   'installed_version': '1.13.0',
+                   'installed_version_time': datetime.datetime(...),
+                   'is_latest': 1,
+                   'latest_version': '1.13.0',
+                   'latest_version_time': datetime.datetime(...)},
+                'protobuf': 
+                  {'current_time': datetime.datetime(...),
+                   'installed_version': '3.7.1',
+                   'installed_version_time': datetime.datetime(...),
+                   'is_latest': 1,
+                   'latest_version': '3.7.1',
+                   'latest_version_time': datetime.datetime(...)},
+            }
         """
         query = ("SELECT * FROM release_time_for_dependencies "
                  "WHERE install_name=%s")
