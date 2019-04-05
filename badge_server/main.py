@@ -168,6 +168,7 @@ def _get_missing_details(package_names: List[str],
         for package_name in package_names:
             if package_name in configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
                 versions_supported.discard(version)
+                break
 
     versions_seen = {result.python_major_version for result in results}
 
@@ -266,7 +267,9 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             'py3': {'status': BadgeStatus.SUCCESS, 'details': {}}
         }
     """
-    default_details = 'The package does not support this version of python.'
+    default_details = {
+        package_name: 'The package does not support this version of python.'
+    }
     result_dict = badge_utils._build_default_result(
         status=BadgeStatus.SUCCESS, details=default_details)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
