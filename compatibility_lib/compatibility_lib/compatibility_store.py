@@ -260,7 +260,7 @@ class CompatibilityStore:
         Yields:
             A (possibly empty) list of CompatibilityResults, one per Python
             version. The returned CompatibilityResults do not include
-            a set `dependency_info`.            
+            a set `dependency_info`.
         """
         return self.get_self_compatibilities([p])[p]
 
@@ -563,7 +563,7 @@ class CompatibilityStore:
                    'is_latest': 1,
                    'latest_version': '1.13.0',
                    'latest_version_time': datetime.datetime(...)},
-                'protobuf': 
+                'protobuf':
                   {'current_time': datetime.datetime(...),
                    'installed_version': '3.7.1',
                    'installed_version_time': datetime.datetime(...),
