@@ -147,20 +147,24 @@ def _get_missing_details(package_names: List[str],
         package_names: A list of length 1 or 2 of the package name(s) to look
             up, e.g. ["tensorflow"], ["tensorflow", "opencensus"].
         results: A list of length 1 or 2 of the `CompatibilityResults` for the
-            given package(s). Results should come from datastore.
+            given package(s). The package names in the `CompatibilityResults`
+            should match the package_names argument.
 
     Returns:
-        None if there is no missing data; a description of the version(s)
-        missing otherwise, e.g. "Missing data for python version(s): 2".
+        None if there is no missing data; a description of the package(s) and
+        version(s) missing otherwise.
+        For example, if package_names=['opencensus'], and given that
+        `opencensus` is compatible with both python versions 2 and 3, if
+        `results` only contained a result for 3, this would be returned:
+        "Missing data for packages=['opencensus'], versions=[2]".
     """
-    bad_list_length = 'package_names: Expected length of 1 or 2, got {}'
-    not_whitelisted = 'One of the packages in {} is not whitelisted'
-
-    assert len(package_names) in (1, 2), bad_list_length.format(
+    message = 'package_names: Expected length of 1 or 2, got {}'.format(
         len(package_names))
+    assert len(package_names) in (1, 2), message
 
-    assert compat_utils._is_package_in_whitelist(
-        package_names), not_whitelisted.format(str(package_names))
+    message = 'One of the packages in {} is not whitelisted'.format(
+        str(package_names))
+    assert compat_utils._is_package_in_whitelist(package_names), message
 
     all_versions = (2, 3)
     versions_supported = set(all_versions)
