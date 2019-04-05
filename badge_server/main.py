@@ -291,6 +291,9 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             version = res.python_major_version            # eg. '2', '3'
             pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
+            if result_dict[pyver]['details'] is default_details:
+                result_dict[pyver]['details'] = {}
+
             # Not all packages are supported in both Python 2 and Python 3. If
             # either package is not supported in the Python version being
             # checked then skip the check.
