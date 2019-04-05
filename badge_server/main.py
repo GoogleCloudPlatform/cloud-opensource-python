@@ -153,19 +153,17 @@ def _get_missing_details(package_names: List[str],
         None if there is no missing data; a description of the version(s)
         missing otherwise, e.g. "Missing data for python version(s): 2".
     """
-    expected_lengths = (1, 2)
     bad_list_length = 'package_names: Expected length of 1 or 2, got {}'
     not_whitelisted = 'One of the packages in {} is not whitelisted'
 
-    assert len(package_names) in expected_lengths, bad_list_length.format(
+    assert len(package_names) in (1, 2), bad_list_length.format(
         len(package_names))
 
     assert compat_utils._is_package_in_whitelist(
         package_names), not_whitelisted.format(str(package_names))
 
     all_versions = (2, 3)
-
-    versions_supported = set(version for version in all_versions)
+    versions_supported = set(all_versions)
     for version in all_versions:
         for package_name in package_names:
             if package_name in configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
@@ -176,16 +174,10 @@ def _get_missing_details(package_names: List[str],
     if versions_seen.issuperset(versions_supported):
         return None
 
-    missing_versions = [v for v in versions_supported - versions_seen]
+    missing_versions = list(versions_supported - versions_seen)
     missing_details = 'Missing data for packages={}, versions={}'.format(
         package_names, missing_versions)
     return missing_details
-
-    missing_details = 'Missing data for python version(s): {}'.format(
-        ' and '.join([str(v) for v in versions_supported - versions_seen]))
-    return missing_details
-
-
 
 
 def _get_self_compatibility_dict(package_name: str) -> dict:

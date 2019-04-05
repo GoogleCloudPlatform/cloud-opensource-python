@@ -47,24 +47,24 @@ class TestBadgeServer(unittest.TestCase):
             python_major_version=3,
             status=compatibility_store.Status.SUCCESS)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             package_names = []
             results = []
             main._get_missing_details(package_names, results)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             package_names = []
             results = [TENSORFLOW_RESULT_PY2]
             main._get_missing_details(package_names, results)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             package_names = []
             results = [TENSORFLOW_RESULT_PY2, TENSORFLOW_RESULT_PY3]
             main._get_missing_details(package_names, results)
 
     def test__get_missing_details_too_many_inputs(self):
         from compatibility_lib import compatibility_store
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             package_names = ['tensorflow', 'opencensus', 'compatibility-lib']
             results = []
             main._get_missing_details(package_names, results)
@@ -83,12 +83,12 @@ class TestBadgeServer(unittest.TestCase):
             python_major_version=3,
             status=compatibility_store.Status.UNKNOWN)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             package_names = [UNSUPPORTED]
             results = [UNSUPPORTED_RESULT_PY2]
             main._get_missing_details(package_names, results)
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AssertionError):
             package_names = [TENSORFLOW, UNSUPPORTED]
             results = [PAIR_RESULT_PY3]
             main._get_missing_details(package_names, results)
@@ -136,9 +136,12 @@ class TestBadgeServer(unittest.TestCase):
     def test__get_missing_details_self_fail(self):
         from compatibility_lib import compatibility_store
         expected = {
-            'opencensus': 'Missing data for python version(s): 2 and 3',
-            'apache-beam[gcp]': 'Missing data for python version(s): 2',
-            'tensorflow': 'Missing data for python version(s): 3',}
+            'opencensus':
+                "Missing data for packages=['opencensus'], versions=[2, 3]",
+            'apache-beam[gcp]':
+                "Missing data for packages=['apache-beam[gcp]'], versions=[2]",
+            'tensorflow':
+                "Missing data for packages=['tensorflow'], versions=[3]",}
 
         for name, expected_details in expected.items():
             package_names = [name]
@@ -155,7 +158,8 @@ class TestBadgeServer(unittest.TestCase):
             python_major_version=2,
             status=compatibility_store.Status.SUCCESS)]
         details = main._get_missing_details(package_names, results)
-        expected_details = 'Missing data for python version(s): 3'
+        expected_details = ("Missing data for packages=['opencensus', "
+                            "'compatibility-lib'], versions=[3]")
         self.assertEqual(details, expected_details)
 
     def test__get_self_compatibility_dict(self):
