@@ -42,10 +42,9 @@ import pybadges
 
 import utils as badge_utils
 from compatibility_lib import utils as compat_utils
-from compatibility_lib.compatibility_store import CompatibilityResult
-from compatibility_lib.compatibility_store import Status as PackageStatus
-from compatibility_lib.dependency_highlighter import PriorityLevel
+from compatibility_lib import dependency_highlighter as highlighter
 
+from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import package
 from typing import FrozenSet, Iterable, List, Optional
@@ -124,22 +123,23 @@ BADGE_STATUS_TO_COLOR = {
 # *could* occur when a github repo subdirectory is moved or some error is
 # thrown in code.
 PACKAGE_STATUS_TO_BADGE_STATUS = {
-    PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
-    PackageStatus.SUCCESS: BadgeStatus.SUCCESS,
-    PackageStatus.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
-    PackageStatus.CHECK_WARNING: None
+    compatibility_store.Status.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
+    compatibility_store.Status.SUCCESS: BadgeStatus.SUCCESS,
+    compatibility_store.Status.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
+    compatibility_store.Status.CHECK_WARNING: None
 }
 
 
 DEPENDENCY_STATUS_TO_BADGE_STATUS = {
-    PriorityLevel.UP_TO_DATE: BadgeStatus.SUCCESS,
-    PriorityLevel.LOW_PRIORITY: BadgeStatus.OUTDATED_DEPENDENCY,
-    PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
+    highlighter.PriorityLevel.UP_TO_DATE: BadgeStatus.SUCCESS,
+    highlighter.PriorityLevel.LOW_PRIORITY: BadgeStatus.OUTDATED_DEPENDENCY,
+    highlighter.PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
 }
 
 
 def _get_missing_details(package_names: List[str],
-                         results: Iterable[CompatibilityResult]
+                         results: Iterable[
+                             compatibility_store.CompatibilityResult]
                          ) -> Optional[str]:
     """Gets the details for any missing data (if there is any)
 
@@ -302,7 +302,7 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
                 continue
 
             # The logic after this point only handles non SUCCESS statuses.
-            if res.status == PackageStatus.SUCCESS:
+            if res.status == compatibility_store.Status.SUCCESS:
                 continue
 
             # If `other_package` is not self compatible (meaning that it has a
