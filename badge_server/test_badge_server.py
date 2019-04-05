@@ -188,10 +188,8 @@ class TestBadgeServer(unittest.TestCase):
     def test__get_pair_compatibility_dict_success(self):
         success_status = main.BadgeStatus.SUCCESS
         expected = {
-            'py2': {'status': main.BadgeStatus.SUCCESS,
-                    'details': 'The package does not support this version of python.'},
-            'py3': {'status': main.BadgeStatus.SUCCESS,
-                    'details': 'The package does not support this version of python.'}
+            'py2': {'status': main.BadgeStatus.SUCCESS, 'details': {}},
+            'py3': {'status': main.BadgeStatus.SUCCESS, 'details': {}},
         }
 
         pkgs = ['tensorflow', 'apache-beam[gcp]']
@@ -281,8 +279,8 @@ class TestBadgeServer(unittest.TestCase):
         from compatibility_lib import package
 
         expected = {
-            'py2': {'status': main.BadgeStatus.SUCCESS,
-                    'details': 'The package does not support this version of python.'},
+            'py2': {
+                'status': main.BadgeStatus.SUCCESS, 'details': {}},
             'py3': {'status': main.BadgeStatus.SUCCESS, 'details': {}},
         }
 

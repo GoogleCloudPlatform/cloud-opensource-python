@@ -262,8 +262,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
 
     Returns:
         A dict containing the pair compatibility status and details for any
-        pair incompatibilities. Note that details can map to None, a string,
-        or another dict. The returned dict will be formatted like the
+        pair incompatibilities. Note that details must map to another dict.
+        The returned dict will be formatted like the
         following:
         {
             'py2': {'status': BadgeStatus.PAIR_INCOMPATIBLE,
@@ -271,9 +271,7 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             'py3': {'status': BadgeStatus.SUCCESS, 'details': {}}
         }
     """
-    default_details = {
-        package_name: 'The package does not support this version of python.'
-    }
+    default_details = {}
     result_dict = badge_utils._build_default_result(
         status=BadgeStatus.SUCCESS, details=default_details)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
@@ -299,9 +297,6 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             unsupported_packages = unsupported_package_mapping.get(version)
             if any([pkg.install_name in unsupported_packages for pkg in pair]):
                 continue
-
-            if result_dict[pyver]['details'] == default_details:
-                result_dict[pyver]['details'] = {}
 
             # The logic after this point only handles non SUCCESS statuses.
             if res.status == PackageStatus.SUCCESS:
