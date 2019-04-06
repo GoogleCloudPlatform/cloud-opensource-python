@@ -28,7 +28,6 @@ from compatibility_lib import package
 import main
 import utils
 
-
 APACHE_BEAM_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]')],
     python_major_version=2,
