@@ -42,12 +42,12 @@ import pybadges
 
 import utils as badge_utils
 from compatibility_lib import utils as compat_utils
-from compatibility_lib.compatibility_store import Status as PackageStatus
-from compatibility_lib.dependency_highlighter import PriorityLevel
+from compatibility_lib import dependency_highlighter as highlighter
 
+from compatibility_lib import compatibility_store
 from compatibility_lib import configs
 from compatibility_lib import package
-from typing import FrozenSet, Iterable, List
+from typing import FrozenSet, Iterable, List, Optional
 
 app = flask.Flask(__name__)
 
@@ -123,38 +123,66 @@ BADGE_STATUS_TO_COLOR = {
 # *could* occur when a github repo subdirectory is moved or some error is
 # thrown in code.
 PACKAGE_STATUS_TO_BADGE_STATUS = {
-    PackageStatus.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
-    PackageStatus.SUCCESS: BadgeStatus.SUCCESS,
-    PackageStatus.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
-    PackageStatus.CHECK_WARNING: None
+    compatibility_store.Status.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
+    compatibility_store.Status.SUCCESS: BadgeStatus.SUCCESS,
+    compatibility_store.Status.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
+    compatibility_store.Status.CHECK_WARNING: None
 }
 
 
 DEPENDENCY_STATUS_TO_BADGE_STATUS = {
-    PriorityLevel.UP_TO_DATE: BadgeStatus.SUCCESS,
-    PriorityLevel.LOW_PRIORITY: BadgeStatus.OUTDATED_DEPENDENCY,
-    PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
+    highlighter.PriorityLevel.UP_TO_DATE: BadgeStatus.SUCCESS,
+    highlighter.PriorityLevel.LOW_PRIORITY: BadgeStatus.OUTDATED_DEPENDENCY,
+    highlighter.PriorityLevel.HIGH_PRIORITY: BadgeStatus.OBSOLETE_DEPENDENCY,
 }
 
 
-def _get_supported_versions(package_name: str) -> List[int]:
-    """Gets the given package's supported python versions
+def _get_missing_details(package_names: List[str],
+                         results: Iterable[
+                             compatibility_store.CompatibilityResult]
+                         ) -> Optional[str]:
+    """Gets the details for any missing data (if there is any)
 
     Args:
-        package_name: The name of the package to look up, e.g. "tensorflow".
+        package_names: A list of length 1 or 2 of the package name(s) to look
+            up, e.g. ["tensorflow"], ["tensorflow", "opencensus"].
+        results: A list of length 1 or 2 of the `CompatibilityResults` for the
+            given package(s). The package names in the `CompatibilityResults`
+            should match the package_names argument.
 
     Returns:
-        A list of supported python versions.
+        None if there is no missing data; a description of the package(s) and
+        version(s) missing otherwise.
+        For example, if package_names=['opencensus'], and given that
+        `opencensus` is compatible with both python versions 2 and 3, if
+        `results` only contained a result for 3, this would be returned:
+        "Missing data for packages=['opencensus'], versions=[2]".
     """
-    supported = []
-    if not compat_utils._is_package_in_whitelist([package_name]):
-        return supported
-    unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
-    for version in (2, 3):
-        unsupported_packages = unsupported_package_mapping[version]
-        if package_name not in unsupported_packages:
-            supported.append(version)
-    return supported
+    message = 'package_names: Expected length of 1 or 2, got {}'.format(
+        len(package_names))
+    assert len(package_names) in (1, 2), message
+
+    message = 'One of the packages in {} is not whitelisted'.format(
+        str(package_names))
+    assert compat_utils._is_package_in_whitelist(package_names), message
+
+    all_versions = (2, 3)
+    versions_supported = set(all_versions)
+    for version in all_versions:
+        for package_name in package_names:
+            if package_name in configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
+                versions_supported.discard(version)
+                break
+
+    versions_seen = {result.python_major_version for result in results}
+
+    if versions_seen.issuperset(versions_supported):
+        return None
+
+    missing_versions = list(versions_supported - versions_seen)
+    missing_details = 'Missing data for packages={}, versions={}'.format(
+        package_names, missing_versions)
+    return missing_details
 
 
 def _get_self_compatibility_dict(package_name: str) -> dict:
@@ -175,10 +203,9 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
     """
     pkg = package.Package(package_name)
     compatibility_results = badge_utils.store.get_self_compatibility(pkg)
-    supported = _get_supported_versions(package_name)
-    if len(compatibility_results) < len(supported):
-        missing_details = 'Missing data for python version(s) {}.'.format(
-            ' and '.join(supported))
+    missing_details = _get_missing_details(
+        [package_name], compatibility_results)
+    if missing_details:
         result_dict = badge_utils._build_default_result(
             status=BadgeStatus.MISSING_DATA, details=missing_details)
         return result_dict
@@ -235,8 +262,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
 
     Returns:
         A dict containing the pair compatibility status and details for any
-        pair incompatibilities. Note that details can map to None, a string,
-        or another dict. The returned dict will be formatted like the
+        pair incompatibilities. Note that details must map to another dict.
+        The returned dict will be formatted like the
         following:
         {
             'py2': {'status': BadgeStatus.PAIR_INCOMPATIBLE,
@@ -244,17 +271,16 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             'py3': {'status': BadgeStatus.SUCCESS, 'details': {}}
         }
     """
-    default_details = 'The package does not support this version of python.'
+    default_details = {}
     result_dict = badge_utils._build_default_result(
         status=BadgeStatus.SUCCESS, details=default_details)
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
-    supported_versions = _get_supported_versions(package_name)
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
-        if len(compatibility_results) < len(supported_versions):
-            missing_details = 'Missing data for python version(s) {}.'.format(
-                ' and '.join(supported_versions))
+        missing_details = _get_missing_details(
+            [pkg.install_name for pkg in pair], compatibility_results)
+        if missing_details:
             result_dict = badge_utils._build_default_result(
                 status=BadgeStatus.MISSING_DATA, details=missing_details)
             return result_dict
@@ -265,6 +291,9 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             version = res.python_major_version            # eg. '2', '3'
             pyver = badge_utils.PY_VER_MAPPING[version]   # eg. 'py2', 'py3'
 
+            if result_dict[pyver]['details'] is default_details:
+                result_dict[pyver]['details'] = {}
+
             # Not all packages are supported in both Python 2 and Python 3. If
             # either package is not supported in the Python version being
             # checked then skip the check.
@@ -272,11 +301,8 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             if any([pkg.install_name in unsupported_packages for pkg in pair]):
                 continue
 
-            if result_dict[pyver]['details'] == default_details:
-                result_dict[pyver]['details'] = {}
-
             # The logic after this point only handles non SUCCESS statuses.
-            if res.status == PackageStatus.SUCCESS:
+            if res.status == compatibility_store.Status.SUCCESS:
                 continue
 
             # If `other_package` is not self compatible (meaning that it has a
