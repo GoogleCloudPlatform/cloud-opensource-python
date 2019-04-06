@@ -60,7 +60,7 @@ GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
 
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
-    python_major_version=2,
+    python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
@@ -70,26 +70,58 @@ TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
-    [package.Package('google-api-core'),
-     package.Package('apache-beam[gcp]')],
-    python_major_version=2,
+TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+    [package.Package('git+git://github.com/google/tensorflow.git')],
+    python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
-    [
-        package.Package('google-api-core'),
-        package.Package('git+git://github.com/google/api-core.git')
-    ],
+APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+    [package.Package('apache-beam[gcp]'),
+     package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
-        package.Package('google-api-python-client'),
-        package.Package('apache-beam[gcp]')
+        package.Package('apache-beam[gcp]'),
+        package.Package('google-api-python-client')
+    ],
+    python_major_version=2,
+    status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+    [package.Package('git+git://github.com/google/apache-beam.git'),
+     package.Package('google-api-core')],
+    python_major_version=2,
+    status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+
+APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('git+git://github.com/google/apache-beam.git'),
+        package.Package('google-api-python-client')
+    ],
+    python_major_version=2,
+    status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('apache-beam[gcp]'),
+        package.Package('git+git://github.com/google/api-core.git')
+    ],
+    python_major_version=2,
+    status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('apache-beam[gcp]'),
+        package.Package('git+git://github.com/google/api-python-client.git')
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
@@ -164,9 +196,13 @@ RECENT_SUCCESS_DATA = [
     GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2,
     GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3,
     TENSORFLOW_RECENT_SUCCESS_3,
+    TENSORFLOW_GIT_RECENT_SUCCESS_3,
     APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2,
+    APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_2,
     APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2,
+    APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_GIT_RECENT_SUCCESS_2,
     APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2,
+    APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2,
     GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2,
     GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3,
     GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2,
@@ -178,6 +214,7 @@ RECENT_SUCCESS_DATA = [
 
 
 class BadgeImageTestCase(unittest.TestCase):
+    """Base class for tests of badge images."""
 
     def setUp(self):
         self.fake_store = fake_compatibility_store.CompatibilityStore()
@@ -222,20 +259,22 @@ class BadgeImageTestCase(unittest.TestCase):
         self.addCleanup(self._whitelist_urls_patch.stop)
 
     def get_image_json(self, package):
+        """Return the calculated badge data for a package as a dict."""
         return self.client.get(
             '/one_badge_image', query_string={
                 'package': package
             }).get_json()
 
     def assertLinkUrl(self, package, actual_url):
+        """Assert that the link for the badge image is correct for a package."""
         o = urllib.parse.urlparse(actual_url)
         params = urllib.parse.parse_qs(o.query)
         self.assertEqual([package], params['package'])
 
 
 class TestBadgeImageSuccess(BadgeImageTestCase):
+    """Tests for the cases where the badge image displays 'success.'"""
 
-    @unittest.skip
     def test_pypi_py2py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package = 'google-api-core'
@@ -246,7 +285,6 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], 'brightgreen')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    @unittest.skip
     def test_git_py2py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package = 'git+git://github.com/google/api-core.git'
@@ -257,7 +295,6 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], 'brightgreen')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    @unittest.skip
     def test_pypi_py2_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package = 'apache-beam[gcp]'
@@ -268,7 +305,6 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], 'brightgreen')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    @unittest.skip
     def test_git_py2_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package = 'git+git://github.com/google/apache-beam.git'
@@ -279,7 +315,6 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], 'brightgreen')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    @unittest.skip
     def test_pypi_py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package = 'tensorflow'
@@ -290,19 +325,19 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], 'brightgreen')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    @unittest.skip
     def test_git_py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package = 'git+git://github.com/google/tensorflow.git'
         json_response = self.get_image_json(package)
         self.assertEqual(json_response['left_text'],
-                         'compatibility check (PyPI)')
+                         'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], 'brightgreen')
         self.assertLinkUrl(package, json_response['whole_link'])
 
 
 class TestBadgeImageUnknownPackage(BadgeImageTestCase):
+    """Tests for the cases where the badge image displays 'unknown package.'"""
 
     def test_pypi_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
