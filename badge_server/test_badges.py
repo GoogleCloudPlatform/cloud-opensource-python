@@ -241,10 +241,10 @@ class BadgeImageTestCase(unittest.TestCase):
         self._whitelist_urls_patch = unittest.mock.patch(
             'compatibility_lib.configs.WHITELIST_URLS', {
                 'git+git://github.com/google/apache-beam.git':
-                'apache-beam[gcp]',
+                    'apache-beam[gcp]',
                 'git+git://github.com/google/api-core.git': 'google-api-core',
                 'git+git://github.com/google/api-python-client.git':
-                'google-api-python-client',
+                    'google-api-python-client',
                 'git+git://github.com/google/tensorflow.git': 'tensorflow',
             })
         self._store_patch.start()
@@ -267,8 +267,8 @@ class BadgeImageTestCase(unittest.TestCase):
 
     def assertLinkUrl(self, package, actual_url):
         """Assert that the link for the badge image is correct for a package."""
-        o = urllib.parse.urlparse(actual_url)
-        params = urllib.parse.parse_qs(o.query)
+        parsed_url = urllib.parse.urlparse(actual_url)
+        params = urllib.parse.parse_qs(parsed_url.query)
         self.assertEqual([package], params['package'])
 
 
