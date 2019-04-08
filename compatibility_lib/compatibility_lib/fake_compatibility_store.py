@@ -14,6 +14,7 @@
 
 """In memory storage for package compatibility information."""
 
+import collections
 import itertools
 from typing import Iterable, FrozenSet, List, Mapping
 
@@ -153,22 +154,20 @@ class CompatibilityStore:
                 compatibility_store.CompatibilityResult]):
         """Save the given CompatibilityStatuses"""
 
-        install_name_to_compatibility_result = {}
+        name_to_compatibility_results = collections.defaultdict(list)
         for cr in compatibility_statuses:
             self._packages_to_compatibility_result.setdefault(
                 frozenset(cr.packages), []).append(cr)
 
             if len(cr.packages) == 1:
                 install_name = cr.packages[0].install_name
-                latest_compatibility_result = (
-                    compatibility_store.get_latest_compatibility_result_by_version(
-                        [install_name_to_compatibility_result.get(install_name),
-                        cr]))
-                install_name_to_compatibility_result[
-                    install_name] = latest_compatibility_result
+                name_to_compatibility_results[install_name].append(cr)
 
-        for install_name, compatibility_result in (
-                install_name_to_compatibility_result.items()):
+        for install_name, compatibility_results in (
+                name_to_compatibility_results.items()):
+            compatibility_result = (
+                compatibility_store.get_latest_compatibility_result_by_version(
+                    compatibility_results))
             if compatibility_result.dependency_info:
                 self._package_to_dependency_info[
                     install_name] = compatibility_result.dependency_info

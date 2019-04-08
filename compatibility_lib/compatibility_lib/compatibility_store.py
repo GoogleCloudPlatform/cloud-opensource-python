@@ -561,20 +561,20 @@ class CompatibilityStore:
         # was accidentally released for Python 3, from having it's dependencies
         # stored. It will also make sure that the Python 3 version of package
         # dependencies are stored when Python 2 releases stop happening.
-        install_name_to_compatibility_result = {}
+        name_to_compatibility_result = {}
         for cs in compatibility_statuses:
             if len(cs.packages) == 1:
                 install_name = cs.packages[0].install_name
                 latest_compatibility_result = (
                     get_latest_compatibility_result_by_version(
-                        [install_name_to_compatibility_result.get(install_name),
+                        [name_to_compatibility_result.get(install_name),
                         cs]))
-                install_name_to_compatibility_result[
+                name_to_compatibility_result[
                     install_name] = latest_compatibility_result
 
         dependency_rows = itertools.chain(
             *[self._compatibility_status_to_release_time_rows(cs)
-              for cs in install_name_to_compatibility_result.values()
+              for cs in name_to_compatibility_result.values()
               if cs])
 
         # Insert the dependency rows in a stable order to make testing more
