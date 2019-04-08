@@ -103,14 +103,14 @@ class BadgeStatus(enum.Enum):
 
 
 BADGE_STATUS_TO_COLOR = {
-    BadgeStatus.UNKNOWN_PACKAGE: 'lightgrey',
-    BadgeStatus.INTERNAL_ERROR: 'lightgrey',
-    BadgeStatus.MISSING_DATA: 'lightgrey',
-    BadgeStatus.SELF_INCOMPATIBLE: 'red',
-    BadgeStatus.PAIR_INCOMPATIBLE: 'red',
-    BadgeStatus.OBSOLETE_DEPENDENCY: 'red',
-    BadgeStatus.OUTDATED_DEPENDENCY: 'yellowgreen',
-    BadgeStatus.SUCCESS: 'brightgreen',
+    BadgeStatus.UNKNOWN_PACKAGE: '#9F9F9F',       # lightgrey
+    BadgeStatus.INTERNAL_ERROR: '#9F9F9F',
+    BadgeStatus.MISSING_DATA: '#9F9F9F',
+    BadgeStatus.SELF_INCOMPATIBLE: '#E05D44',     # red
+    BadgeStatus.PAIR_INCOMPATIBLE: '#E05D44',
+    BadgeStatus.OBSOLETE_DEPENDENCY: '#E05D44',
+    BadgeStatus.OUTDATED_DEPENDENCY: '#A4A61D',   # yellowgreen
+    BadgeStatus.SUCCESS: '#44CC44',               # brightgreen
 }
 
 
@@ -417,8 +417,11 @@ def _get_check_results(package_name: str, commit_number: str = None):
     that are used to generate badge images and badge target pages.
     """
     default_status = BadgeStatus.UNKNOWN_PACKAGE
+    unknown_details = ('This package is not a whitelisted google python '
+                       'package; to whitelist a package, contact the python '
+                       'team.')
     self_compat_res = badge_utils._build_default_result(
-        status=default_status, details={})
+        status=default_status, details=unknown_details)
     google_compat_res = badge_utils._build_default_result(
         status=default_status, details={})
     dependency_res = badge_utils._build_default_result(
@@ -510,6 +513,7 @@ def one_badge_target():
         self_compat_res=self,
         google_compat_res=google,
         dependency_res=dependency,
+        badge_status_to_color=BADGE_STATUS_TO_COLOR,
         commit_number=commit_number)
     return target
 

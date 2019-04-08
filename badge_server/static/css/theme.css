@@ -157,27 +157,6 @@
     transform: scale(0);
 }
 
-.more {
-    display: inline-block;
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-    background: #e5e5e5;
-    -webkit-border-radius: 100%;
-    -moz-border-radius: 100%;
-    border-radius: 100%;
-    position: relative;
-    -webkit-transition: all 0.4s ease;
-    -o-transition: all 0.4s ease;
-    -moz-transition: all 0.4s ease;
-    transition: all 0.4s ease;
-    -webkit-transform: scale(0);
-    -moz-transform: scale(0);
-    -ms-transform: scale(0);
-    -o-transform: scale(0);
-    transform: scale(0);
-}
-
 .more i {
     font-size: 20px;
     color: #808080;
@@ -200,6 +179,7 @@
     margin-bottom: 0;
 }
 
+/* Clear browser cache: cmd + shift + R  */
 .status {
     display: inline-block;
     line-height: 30px;
@@ -210,40 +190,5 @@
     -moz-border-radius: 3px;
     border-radius: 3px;
     text-transform: capitalize;
-}
-
-.status.unknown {
-    background-color: #A569BD;
-}
-
-.status.calculating {
-    background-color: #3498DB;
-}
-
-.status.success {
-    background-color: #2ECC71;
-}
-
-.status.install_error {
-    background-color: #F4D03F;
-}
-
-.status.check_warning {
-    background-color: #E74C3C;
-}
-
-.status.conversion_error {
-    background-color: #A569BD;
-}
-
-.status.high_priority {
-    background-color: #E74C3C;
-}
-
-.status.low_priority {
-    background-color: #F4D03F;
-}
-
-.status.up_to_date {
-    background-color: #2ECC71;
+    white-space: nowrap;
 }
