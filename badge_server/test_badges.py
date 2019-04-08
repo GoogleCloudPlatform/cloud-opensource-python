@@ -14,7 +14,6 @@
 """Add tests for the badge server image end-point."""
 
 import datetime
-import json
 import unittest
 import unittest.mock
 import urllib.parse
@@ -282,7 +281,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'success')
-        self.assertEqual(json_response['right_color'], 'brightgreen')
+        self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
     def test_git_py2py3_fresh_nodeps(self):
@@ -292,7 +291,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'success')
-        self.assertEqual(json_response['right_color'], 'brightgreen')
+        self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
     def test_pypi_py2_fresh_nodeps(self):
@@ -302,7 +301,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'success')
-        self.assertEqual(json_response['right_color'], 'brightgreen')
+        self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
     def test_git_py2_fresh_nodeps(self):
@@ -312,7 +311,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'success')
-        self.assertEqual(json_response['right_color'], 'brightgreen')
+        self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
     def test_pypi_py3_fresh_nodeps(self):
@@ -322,7 +321,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'success')
-        self.assertEqual(json_response['right_color'], 'brightgreen')
+        self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
     def test_git_py3_fresh_nodeps(self):
@@ -332,7 +331,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'success')
-        self.assertEqual(json_response['right_color'], 'brightgreen')
+        self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
 
@@ -346,7 +345,7 @@ class TestBadgeImageUnknownPackage(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'unknown package')
-        self.assertEqual(json_response['right_color'], 'lightgrey')
+        self.assertEqual(json_response['right_color'], '#9F9F9F')
         self.assertLinkUrl(package, json_response['whole_link'])
 
     def test_github_unknown_package(self):
@@ -356,5 +355,5 @@ class TestBadgeImageUnknownPackage(BadgeImageTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'unknown package')
-        self.assertEqual(json_response['right_color'], 'lightgrey')
+        self.assertEqual(json_response['right_color'], '#9F9F9F')
         self.assertLinkUrl(package, json_response['whole_link'])

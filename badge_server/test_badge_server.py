@@ -355,9 +355,13 @@ class TestBadgeServer(unittest.TestCase):
         self.assertEqual(status, main.BadgeStatus.SUCCESS)
 
     def test__get_check_results_unknown(self):
+        msg = ('This package is not a whitelisted google python package; to '
+               'whitelist a package, contact the python team.')
         expected_self_res = {
-            'py2': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
-            'py3': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
+            'py2': {'status': main.BadgeStatus.UNKNOWN_PACKAGE,
+                    'details': msg },
+            'py3': {'status': main.BadgeStatus.UNKNOWN_PACKAGE,
+                    'details': msg },
         }
         expected_google_res = {
             'py2': { 'status': main.BadgeStatus.UNKNOWN_PACKAGE, 'details': {} },
