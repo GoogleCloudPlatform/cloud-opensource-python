@@ -17,7 +17,9 @@ import unittest
 import mock
 
 from compatibility_lib import deprecated_dep_finder
+from compatibility_lib import compatibility_store
 from compatibility_lib import fake_compatibility_store
+from compatibility_lib import package
 
 
 class TestDeprecatedDepFinder(unittest.TestCase):
@@ -131,9 +133,19 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         self.assertEqual(development_status, expected_development_status)
 
     def test_get_deprecated_dep(self):
+        # TODO: use a more convincing mock that doesn't say that *all* packages
+        # are deprecated.
         mock_call_pypi_json_api = mock.Mock(autospec=True)
         mock_call_pypi_json_api.return_value = self.PKG_INFO
 
+        self.fake_store.save_compatibility_statuses([
+            compatibility_store.CompatibilityResult(
+                packages=[package.Package('opencencus')],
+                python_major_version='3',
+                status=compatibility_store.Status.SUCCESS,
+                details=None,
+                dependency_info=self.DEP_INFO),
+        ])
         patch_utils = mock.patch(
             'compatibility_lib.deprecated_dep_finder.utils.call_pypi_json_api',
             mock_call_pypi_json_api)
@@ -141,7 +153,7 @@ class TestDeprecatedDepFinder(unittest.TestCase):
         with patch_utils:
             finder = deprecated_dep_finder.DeprecatedDepFinder(
                 checker=self.mock_checker, store=self.fake_store)
-            deprecated_deps = finder.get_deprecated_dep('opencensus')
+            deprecated_deps = finder.get_deprecated_dep('opencencus')
 
-        expected_deprecated_deps = set(['dep1', 'dep2', 'dep3'])
-        self.assertSetEqual(set(deprecated_deps[1]), expected_deprecated_deps)
+        expected_deprecated_deps = set(['dep1', 'dep2'])
+        self.assertEqual(set(deprecated_deps[1]), expected_deprecated_deps)
