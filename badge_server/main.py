@@ -170,6 +170,8 @@ def _get_missing_details(package_names: List[str],
     versions_supported = set(all_versions)
     for version in all_versions:
         for package_name in package_names:
+            if 'github.com' in package_name:
+                package_name = configs.WHITELIST_URLS[package_name]
             if package_name in configs.PKG_PY_VERSION_NOT_SUPPORTED[version]:
                 versions_supported.discard(version)
                 break
