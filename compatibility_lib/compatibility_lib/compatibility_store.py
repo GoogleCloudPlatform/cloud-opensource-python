@@ -568,7 +568,7 @@ class CompatibilityStore:
                 latest_compatibility_result = (
                     get_latest_compatibility_result_by_version(
                         [name_to_compatibility_result.get(install_name),
-                        cs]))
+                         cs]))
                 name_to_compatibility_result[
                     install_name] = latest_compatibility_result
 
