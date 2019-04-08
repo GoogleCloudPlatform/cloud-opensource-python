@@ -17,6 +17,13 @@
 
     <!-- Main CSS-->
     <link href="{{ url_for('static',filename='css/theme.css') }}" rel="stylesheet" media="all">
+    <style>
+        {% for badge_status, badge_color in badge_status_to_color.items() %}
+        .status.{{ badge_status.name | lower }} {
+            background-color: {{ badge_color }} ;
+        }
+        {% endfor %}
+    </style>
 
 </head>
 
