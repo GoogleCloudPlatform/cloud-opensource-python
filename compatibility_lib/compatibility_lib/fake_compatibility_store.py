@@ -27,6 +27,7 @@ class CompatibilityStore:
 
     def __init__(self):
         self._packages_to_compatibility_result = {}
+        self._package_to_dependency_info = {}
 
     def get_packages(self) -> Iterable[package.Package]:
         """Returns all packages tracked by the system."""
@@ -152,35 +153,25 @@ class CompatibilityStore:
                 compatibility_store.CompatibilityResult]):
         """Save the given CompatibilityStatuses"""
 
+        install_name_to_compatibility_result = {}
         for cr in compatibility_statuses:
             self._packages_to_compatibility_result.setdefault(
                 frozenset(cr.packages), []).append(cr)
 
+            if len(cr.packages) == 1:
+                install_name = cr.packages[0].install_name
+                latest_compatibility_result = (
+                    compatibility_store.get_latest_compatibility_result_by_version(
+                        [install_name_to_compatibility_result.get(install_name),
+                        cr]))
+                install_name_to_compatibility_result[
+                    install_name] = latest_compatibility_result
+
+        for install_name, compatibility_result in (
+                install_name_to_compatibility_result.items()):
+            if compatibility_result.dependency_info:
+                self._package_to_dependency_info[
+                    install_name] = compatibility_result.dependency_info
+
     def get_dependency_info(self, package_name):
-        dep_info = {
-            "dep1": {
-                "installed_version": '0.1.0',
-                "installed_version_time": "2017-02-01 19:15:09+00:00",
-                "latest_version": "0.2.8.2",
-                "latest_version_time": "2018-06-22 22:12:44+00:00",
-                "is_latest": "false",
-                "current_time": "2018-08-16 01:08:59.193692+00:00"
-            },
-            "dep2": {
-                "installed_version": "1.0.2",
-                "installed_version_time": "2016-04-25 22:22:05+00:00",
-                "latest_version": "1.0.2",
-                "latest_version_time": "2016-04-25 22:22:05+00:00",
-                "is_latest": "true",
-                "current_time": "2018-08-16 01:08:59.490506+00:00"
-            },
-            "dep3": {
-                "installed_version": "0.16.0",
-                "installed_version_time": "2016-10-27 20:07:22+00:00",
-                "latest_version": "0.16.0",
-                "latest_version_time": "2016-10-27 20:07:22+00:00",
-                "is_latest": "true",
-                "current_time": "2018-08-16 01:08:59.554068+00:00"
-            },
-        }
-        return dep_info
+        return self._package_to_dependency_info.get(package_name, {})

@@ -109,6 +109,9 @@ class TestDependencyInfo(unittest.TestCase):
             dep_info_getter._get_from_endpoint('pkg_not_in_config')
 
     def test_get_dependency_info_compatibility_store(self):
+        self.fake_store.save_compatibility_statuses(
+            compatibility_store
+        )
         dep_info_getter = utils.DependencyInfo(
             checker=self.mock_checker, store=self.fake_store)
         dep_info = dep_info_getter.get_dependency_info('opencensus')

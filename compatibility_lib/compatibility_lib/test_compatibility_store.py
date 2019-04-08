@@ -228,7 +228,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_save_compatibility_statuses_pair(self):
         packages = [PACKAGE_1, PACKAGE_2]
         status = compatibility_store.Status.SUCCESS
-        comp_status = mock.Mock(
+        comp_status = compatibility_store.CompatibilityResult(
             packages=packages,
             python_major_version='3',
             status=status,
@@ -260,7 +260,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_save_compatibility_statuses_self(self):
         packages = [PACKAGE_1]
         status = compatibility_store.Status.SUCCESS
-        comp_status = mock.Mock(
+        comp_status = compatibility_store.CompatibilityResult(
             packages=packages,
             python_major_version='3',
             status=status,
@@ -290,7 +290,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_save_compatibility_statuses_release_time(self):
         packages = [PACKAGE_1]
         status = compatibility_store.Status.SUCCESS
-        comp_status = mock.Mock(
+        comp_status = compatibility_store.CompatibilityResult(
             packages=packages,
             python_major_version='3',
             status=status,
@@ -330,7 +330,7 @@ class TestCompatibilityStore(unittest.TestCase):
         packages = [PACKAGE_4]
         timestamp = '2018-07-17 03:01:06.11693 UTC'
         status = compatibility_store.Status.SUCCESS
-        comp_status_py2 = mock.Mock(
+        comp_status_py2 = compatibility_store.CompatibilityResult(
             packages=packages,
             python_major_version='2',
             status=status,
@@ -344,7 +344,7 @@ class TestCompatibilityStore(unittest.TestCase):
                 'is_latest': True,
             }},
             timestamp=timestamp)
-        comp_status_py3 = mock.Mock(
+        comp_status_py3 = compatibility_store.CompatibilityResult(
             packages=packages,
             python_major_version='3',
             status=status,
@@ -384,7 +384,7 @@ class TestCompatibilityStore(unittest.TestCase):
     def test_save_compatibility_statuses_release_time_for_latest_many_packages(
             self):
         status = compatibility_store.Status.SUCCESS
-        apache_beam_py2 = mock.Mock(
+        apache_beam_py2 = compatibility_store.CompatibilityResult(
             packages=[package.Package('apache-beam[gcp]')],
             python_major_version='2',
             status=status,
@@ -407,7 +407,7 @@ class TestCompatibilityStore(unittest.TestCase):
                 'is_latest': True,
             }},
             timestamp=None)
-        apache_beam_py3 = mock.Mock(
+        apache_beam_py3 = compatibility_store.CompatibilityResult(
             packages=[package.Package('apache-beam[gcp]')],
             python_major_version='3',
             status=status,
@@ -421,7 +421,7 @@ class TestCompatibilityStore(unittest.TestCase):
                 'is_latest': False,
             }},
             timestamp=None)
-        google_api_core_py2 = mock.Mock(
+        google_api_core_py2 = compatibility_store.CompatibilityResult(
             packages=[package.Package('google-api-core')],
             python_major_version='2',
             status=status,
@@ -436,7 +436,7 @@ class TestCompatibilityStore(unittest.TestCase):
                     'is_latest': True,
                 }},
             timestamp=None)
-        google_api_core_py3 = mock.Mock(
+        google_api_core_py3 = compatibility_store.CompatibilityResult(
             packages=[package.Package('google-api-core')],
             python_major_version='3',
             status=status,
@@ -486,6 +486,7 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_cursor.executemany.assert_called_with(
             sql, [apache_beam_row, six_row, google_api_core_row])
 
+    def
 class MockClient(object):
 
     def __init__(self, project=None):
