@@ -486,7 +486,7 @@ class TestCompatibilityStore(unittest.TestCase):
         mock_cursor.executemany.assert_called_with(
             sql, [apache_beam_row, six_row, google_api_core_row])
 
-    def
+
 class MockClient(object):
 
     def __init__(self, project=None):
