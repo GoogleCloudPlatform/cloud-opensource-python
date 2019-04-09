@@ -510,12 +510,12 @@ def all_badges():
             package = package.split('[')[0]
         return 'https://pypi.org/project/{}'.format(package)
 
-    pypi_packages=[
+    pypi_packages = [
         {'name': package,
          'url': package,
          'website_url': format_pypi_package(package)}
         for package in configs.PKG_LIST]
-    github_packages=[
+    github_packages = [
         {'name': package_name,
          'url': package_url,
          'website_url': package_url.replace('git+git', 'https')}
