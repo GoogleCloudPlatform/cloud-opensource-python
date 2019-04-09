@@ -82,6 +82,13 @@ APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibility
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
+APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+    [package.Package('apache-beam[gcp]'),
+     package.Package('google-api-core')],
+    python_major_version=3,
+    status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
 APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
         package.Package('apache-beam[gcp]'),
@@ -159,6 +166,13 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_st
         package.Package('google-api-python-client')
     ],
     python_major_version=3,
+    status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+    [package.Package('google-api-core'),
+     package.Package('tensorflow')],
+    python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
@@ -330,6 +344,19 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         json_response = self.get_image_json(package)
         self.assertEqual(json_response['left_text'],
                          'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'success')
+        self.assertEqual(json_response['right_color'], '#44CC44')
+        self.assertLinkUrl(package, json_response['whole_link'])
+
+    def test_pypi_mix_fresh_nodeps(self):
+        RECENT_SUCCESS_DATA_EXTRA = RECENT_SUCCESS_DATA + [
+            APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_3,
+            GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_2]
+        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
+        package = 'google-api-core'
+        json_response = self.get_image_json(package)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
