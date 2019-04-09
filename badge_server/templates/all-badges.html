@@ -1,0 +1,35 @@
+<html>
+<head>
+  <title>All Compatibility Badges</title>
+</head>
+<body>
+  <h2>PyPI packages</h2>
+  <table>
+    {% for package in pypi_packages | sort(attribute='name') %}
+    <tr>
+      <td>
+        <a href="{{ package.website_url }}">{{ package.name }}</a>
+      </td>
+      <td>
+        <a href="/one_badge_target?package={{ package.url | urlencode}}">
+          <img src="/one_badge_image?package={{ package.url | urlencode}}">
+        </a>
+      </td>
+    {% endfor %}
+  </table>
+  <h2>Github packages</h2>
+  <table>
+    {% for package in github_packages | sort(attribute='name') %}
+    <tr>
+      <td>
+        <a href="{{ package.website_url }}">{{ package.name }}</a>
+      </td>
+      <td>
+        <a href="/one_badge_target?package={{ package.url | urlencode}}">
+          <img src="/one_badge_image?package={{ package.url | urlencode}}">
+        </a>
+      </td>
+      {% endfor %}
+  </table>
+</body>
+</html>
