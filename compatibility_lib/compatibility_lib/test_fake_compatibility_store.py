@@ -27,6 +27,44 @@ PACKAGE_2 = package.Package("package2")
 PACKAGE_3 = package.Package("package3")
 PACKAGE_4 = package.Package("package4")
 
+RECENT_DEPS_1 = {
+    'package1': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.13.0',
+        'installed_version_time': datetime.datetime.utcnow(),
+        'is_latest': 1,
+        'latest_version': '1.13.0',
+        'latest_version_time': datetime.datetime.utcnow(),
+    },
+    'six': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.2.3',
+        'installed_version_time': datetime.datetime.utcnow(),
+        'is_latest': 1,
+        'latest_version': '1.2.3',
+        'latest_version_time': datetime.datetime.utcnow(),
+    }
+}
+
+OLD_DEP_VERSIONS_1 = {
+    'package1': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.12.0',
+        'installed_version_time': datetime.datetime.utcnow(),
+        'is_latest': 1,
+        'latest_version': '1.12.0',
+        'latest_version_time': datetime.datetime.utcnow(),
+    },
+    'six': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.2.2',
+        'installed_version_time': datetime.datetime.utcnow(),
+        'is_latest': 1,
+        'latest_version': '1.2.2',
+        'latest_version_time': datetime.datetime.utcnow(),
+    }
+}
+
 PACKAGE_1_PY2_CR = compatibility_store.CompatibilityResult(
     packages=[PACKAGE_1],
     python_major_version=2,
@@ -44,6 +82,20 @@ PACKAGE_1_PY3_CR = compatibility_store.CompatibilityResult(
     packages=[PACKAGE_1],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+)
+
+PACKAGE_1_PY3_CR_WITH_RECENT_DEPS = compatibility_store.CompatibilityResult(
+    packages=[PACKAGE_1],
+    python_major_version=3,
+    status=compatibility_store.Status.SUCCESS,
+    dependency_info=RECENT_DEPS_1,
+)
+
+PACKAGE_1_PY3_CR_WITH_OLD_DEPS_VERS = compatibility_store.CompatibilityResult(
+    packages=[PACKAGE_1],
+    python_major_version=3,
+    status=compatibility_store.Status.SUCCESS,
+    dependency_info=OLD_DEP_VERSIONS_1,
 )
 
 PACKAGE_2_PY2_CR = compatibility_store.CompatibilityResult(
@@ -217,3 +269,18 @@ class TestCompatibilityStore(unittest.TestCase):
                 frozenset([PACKAGE_1, PACKAGE_3]): [],
                 frozenset([PACKAGE_2, PACKAGE_3]): [],
             }))
+
+    def test_get_dependency_info(self):
+        self._store.save_compatibility_statuses(
+            [PACKAGE_1_PY3_CR_WITH_RECENT_DEPS])
+        self.assertEqual(
+            self._store.get_dependency_info('package1'),
+            RECENT_DEPS_1)
+
+    def test_get_dependency_info_old_and_new(self):
+        self._store.save_compatibility_statuses(
+            [PACKAGE_1_PY3_CR_WITH_OLD_DEPS_VERS,
+             PACKAGE_1_PY3_CR_WITH_RECENT_DEPS])
+        self.assertEqual(
+            self._store.get_dependency_info('package1'),
+            RECENT_DEPS_1)

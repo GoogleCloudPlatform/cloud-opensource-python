@@ -129,6 +129,90 @@ class CompatibilityResult:
     def timestamp(self, timestamp: datetime.datetime):
         self._timestamp = timestamp
 
+    def get_package_version(self) -> str:
+        """Returns the version of the single package in a CompatibilityResult.
+
+        The CompatibilityResult must have `dependency_info` set that includes
+        the package.
+
+        Returns:
+            A string containing the version of the single package found in the
+            CompatibilityResult `packages` attribute. For example:
+
+            cr1 = CompatibilityResult(
+                packages=[Package('package1')],
+                dependency_info={'package1': {'installed_version': '1.2.3' ..})
+            cr1.get_package_version(cr1) => '1.2.3'
+        """
+        if len(self.packages) != 1:
+            raise ValueError(
+                'multiple packages found in CompatibilityResult: {}'.format(
+                    self))
+
+        install_name = self.packages[0].install_name
+        if 'github.com' in install_name:
+            install_name = configs.WHITELIST_URLS[install_name]
+        install_name_sanitized = install_name.split('[')[0]
+
+        for pkg, version_info in self.dependency_info.items():
+            if pkg == install_name_sanitized:
+                return version_info['installed_version']
+        raise ValueError('missing version information for {}'.format(
+            install_name_sanitized))
+
+
+def get_latest_compatibility_result_by_version(
+        compatibility_results: Iterable[Optional[CompatibilityResult]]
+        ) -> Optional[CompatibilityResult]:
+    """Return the CompatibilityResult with the highest version number.
+
+    >>> cr1 = CompatibilityResult(
+    ...    packages=[Package('package1')],
+    ...    dependency_info={'package1': {'installed_version': '1.2.3' ..})
+    >>> cr2 = CompatibilityResult(
+    ...    packages=[Package('package1')],
+    ...    dependency_info={'package1': {'installed_version': '1.2.4' ..})
+    >>> get_latest_compatibility_result_by_version([cr1, cr2]) == cr2
+
+    Args:
+        compatibility_results: A list of CompatibilityResults for the same
+            single package.
+
+    Returns:
+        The CompatibilityResult from the given iterable with the highest
+        version. Returns None if all the input CompatibilityResults are None.
+
+    """
+    latest_version_compatibility_result = None
+    packages = None
+
+    for compatibility_result in compatibility_results:
+        if compatibility_result is None:
+            continue
+
+        if packages:
+            if compatibility_result.packages != packages:
+                raise ValueError(
+                    'CompatibilityResult contains different packages: '
+                    '{0} != {1}'.format(
+                        packages, compatibility_result.packages))
+        else:
+            packages = compatibility_result.packages
+
+        if latest_version_compatibility_result is None:
+            latest_version_compatibility_result = compatibility_result
+        elif compatibility_result.dependency_info is None:
+            continue
+        else:
+            latest_version = version.LooseVersion(
+                latest_version_compatibility_result.get_package_version())
+            test_version = version.LooseVersion(
+                compatibility_result.get_package_version())
+            if test_version > latest_version:
+                latest_version_compatibility_result = compatibility_result
+
+    return latest_version_compatibility_result
+
 
 class CompatibilityStore:
     """Storage for package compatibility information."""
@@ -477,29 +561,21 @@ class CompatibilityStore:
         # was accidentally released for Python 3, from having it's dependencies
         # stored. It will also make sure that the Python 3 version of package
         # dependencies are stored when Python 2 releases stop happening.
-        install_name_to_compatibility_result = {}
+        name_to_compatibility_result = {}
         for cs in compatibility_statuses:
             if len(cs.packages) == 1:
                 install_name = cs.packages[0].install_name
-                if install_name not in install_name_to_compatibility_result:
-                    install_name_to_compatibility_result[install_name] = cs
-                else:
-                    compatibility_res = install_name_to_compatibility_result[
-                        install_name]
-                    if compatibility_res.dependency_info is None:
-                        continue
-                    old_version_string = self._get_package_version(
-                        compatibility_res)
-                    new_version_string = self._get_package_version(cs)
-
-                    old_version = version.LooseVersion(old_version_string)
-                    new_version = version.LooseVersion(new_version_string)
-                    if new_version > old_version:
-                        install_name_to_compatibility_result[install_name] = cs
+                latest_compatibility_result = (
+                    get_latest_compatibility_result_by_version(
+                        [name_to_compatibility_result.get(install_name),
+                         cs]))
+                name_to_compatibility_result[
+                    install_name] = latest_compatibility_result
 
         dependency_rows = itertools.chain(
             *[self._compatibility_status_to_release_time_rows(cs)
-              for cs in install_name_to_compatibility_result.values()])
+              for cs in name_to_compatibility_result.values()
+              if cs])
 
         # Insert the dependency rows in a stable order to make testing more
         # convenient.
@@ -515,36 +591,6 @@ class CompatibilityStore:
                 with closing(conn.cursor()) as cursor:
                     cursor.executemany(sql, dependency_rows)
                     conn.commit()
-
-    def _get_package_version(self, result: CompatibilityResult) -> str:
-        """Returns the version of the single package in a CompatibilityResult.
-
-        Args:
-            result: The compatibility result. This result must contain exactly
-                one package.
-
-        Returns:
-            A string containing the version of the single package found in the
-            CompatibilityResult `packages` attribute. For example:
-
-            cr1 = CompatibilityResult(
-                packages=[Package('package1')],
-                dependency_info={'package1': {'installed_version': '1.2.3' ..})
-            _get_package_version(cr1) => '1.2.3'
-        """
-        if len(result.packages) != 1:
-            raise ValueError('multiple packages found in CompatibilityResult')
-
-        install_name = result.packages[0].install_name
-        if 'github.com' in install_name:
-            install_name = configs.WHITELIST_URLS[install_name]
-        install_name_sanitized = install_name.split('[')[0]
-
-        for pkg, version_info in result.dependency_info.items():
-            if pkg == install_name_sanitized:
-                return version_info['installed_version']
-        raise ValueError('missing version information for {}'.format(
-            install_name_sanitized))
 
     def get_dependency_info(self, package_name: str):
         """Returns dependency info for an indicated Google OSS package.

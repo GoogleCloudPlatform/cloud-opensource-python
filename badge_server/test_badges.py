@@ -14,7 +14,6 @@
 """Add tests for the badge server image end-point."""
 
 import datetime
-import json
 import unittest
 import unittest.mock
 import urllib.parse
