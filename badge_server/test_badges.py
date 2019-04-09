@@ -357,3 +357,34 @@ class TestBadgeImageUnknownPackage(BadgeImageTestCase):
         self.assertEqual(json_response['right_text'], 'unknown package')
         self.assertEqual(json_response['right_color'], '#9F9F9F')
         self.assertLinkUrl(package, json_response['whole_link'])
+
+
+class TestBadgeImageMissingData(BadgeImageTestCase):
+    """Tests for the cases where the badge image displays 'missing data.'"""
+
+    def test_missing_self_compatibility_data(self):
+        package = 'google-api-core'
+        missing_self_data = list(RECENT_SUCCESS_DATA)
+        missing_self_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        self.fake_store.save_compatibility_statuses(missing_self_data)
+
+        json_response = self.get_image_json(package)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'missing data')
+        self.assertEqual(json_response['right_color'], '#9F9F9F')
+        self.assertLinkUrl(package, json_response['whole_link'])
+
+    def test_missing_pair_compatibility_data(self):
+        package = 'google-api-core'
+        missing_self_data = list(RECENT_SUCCESS_DATA)
+        missing_self_data.remove(
+            GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2)
+        self.fake_store.save_compatibility_statuses(missing_self_data)
+
+        json_response = self.get_image_json(package)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'missing data')
+        self.assertEqual(json_response['right_color'], '#9F9F9F')
+        self.assertLinkUrl(package, json_response['whole_link'])
