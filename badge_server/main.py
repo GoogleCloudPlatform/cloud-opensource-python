@@ -502,6 +502,32 @@ def one_badge_image():
     return response
 
 
+@app.route('/all')
+def all_badges():
+    """Display badges for all supported packages on a single page."""
+
+    def format_pypi_package(package):
+        if '[' in package:  # e.g. apache-beam[gcp]
+            package = package.split('[')[0]
+        return 'https://pypi.org/project/{}'.format(package)
+
+    pypi_packages = [
+        {'name': package,
+         'url': package,
+         'website_url': format_pypi_package(package)}
+        for package in configs.PKG_LIST]
+    github_packages = [
+        {'name': package_name,
+         'url': package_url,
+         'website_url': package_url.replace('git+git', 'https')}
+        for (package_url, package_name) in configs.WHITELIST_URLS.items()]
+
+    return flask.render_template(
+        'all-badges.html',
+        pypi_packages=pypi_packages,
+        github_packages=github_packages)
+
+
 @app.route('/one_badge_target')
 def one_badge_target():
     package_name = flask.request.args.get('package')
