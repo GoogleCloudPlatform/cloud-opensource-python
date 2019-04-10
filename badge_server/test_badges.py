@@ -85,8 +85,8 @@ APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibility
 APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]'),
      package.Package('google-api-core')],
-    python_major_version=3,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=3,   # apache-beam does not support Python 3
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
@@ -108,8 +108,8 @@ APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibi
 APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git'),
      package.Package('google-api-core')],
-    python_major_version=3,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=3,   # apache-beam does not support Python 3
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
@@ -122,8 +122,8 @@ APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.Compa
 APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git'),
      package.Package('git+git://github.com/google/api-core.git')],
-    python_major_version=3,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=3,   # apache-beam does not support Python 3
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
@@ -149,8 +149,8 @@ APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.Compatibi
         package.Package('apache-beam[gcp]'),
         package.Package('git+git://github.com/google/api-core.git')
     ],
-    python_major_version=3,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=3,   # apache-beam does not support Python 3
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
@@ -201,8 +201,8 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_st
 GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core'),
      package.Package('tensorflow')],
-    python_major_version=2,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=2,   # tensorflow does not support Python 2
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
@@ -217,8 +217,8 @@ GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_2 = compatibility_store.Compatibil
         package.Package('google-api-core'),
         package.Package('git+git://github.com/google/tensorflow.git'),
     ],
-    python_major_version=2,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=2,   # tensorflow does not support Python 2
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
@@ -235,8 +235,8 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_2 = compatibility_store.Compatibil
         package.Package('git+git://github.com/google/api-core.git'),
         package.Package('tensorflow')
     ],
-    python_major_version=2,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=2,   # tensorflow does not support Python 2
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
@@ -262,8 +262,8 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.Compat
         package.Package('git+git://github.com/google/api-core.git'),
         package.Package('git+git://github.com/google/tensorflow.git')
     ],
-    python_major_version=3,
-    status=compatibility_store.Status.SUCCESS,
+    python_major_version=3,   # tensorflow does not support Python 2
+    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
