@@ -280,14 +280,16 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
     for pair, compatibility_results in pair_mapping.items():
+        other_package = _get_other_package_from_set(package_name, pair)
+        other_package_name = other_package.install_name
+
         missing_details = _get_missing_details(
             [pkg.install_name for pkg in pair], compatibility_results)
         if missing_details:
             result_dict = badge_utils._build_default_result(
-                status=BadgeStatus.MISSING_DATA, details=missing_details)
+                status=BadgeStatus.MISSING_DATA,
+                details={other_package_name: missing_details})
             return result_dict
-
-        other_package = _get_other_package_from_set(package_name, pair)
 
         for res in compatibility_results:
             version = res.python_major_version            # eg. '2', '3'
@@ -311,7 +313,6 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             # conflict within it's own dependencies) then skip the check since
             # a pairwise comparison is only significant if both packages are
             # self_compatible.
-            other_package_name = other_package.install_name
             self_compat_res = _get_self_compatibility_dict(other_package_name)
             if self_compat_res[pyver]['status'] != BadgeStatus.SUCCESS:
                 continue
