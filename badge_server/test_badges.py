@@ -82,7 +82,7 @@ APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibility
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]'),
      package.Package('google-api-core')],
     python_major_version=3,   # apache-beam does not support Python 3
@@ -105,7 +105,7 @@ APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibi
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git'),
      package.Package('google-api-core')],
     python_major_version=3,   # apache-beam does not support Python 3
@@ -119,7 +119,7 @@ APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.Compa
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git'),
      package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,   # apache-beam does not support Python 3
@@ -144,7 +144,7 @@ APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.Compatibi
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [
         package.Package('apache-beam[gcp]'),
         package.Package('git+git://github.com/google/api-core.git')
@@ -198,7 +198,7 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_st
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core'),
      package.Package('tensorflow')],
     python_major_version=2,   # tensorflow does not support Python 2
@@ -212,7 +212,7 @@ GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityR
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [
         package.Package('google-api-core'),
         package.Package('git+git://github.com/google/tensorflow.git'),
@@ -230,7 +230,7 @@ GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.Compatibil
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
+GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [
         package.Package('git+git://github.com/google/api-core.git'),
         package.Package('tensorflow')
@@ -257,7 +257,7 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_2 = compatibility_store.Compat
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
-GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
+GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [
         package.Package('git+git://github.com/google/api-core.git'),
         package.Package('git+git://github.com/google/tensorflow.git')
@@ -424,17 +424,17 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
 
     def test_pypi_mix_fresh_nodeps(self):
         RECENT_SUCCESS_DATA_EXTRA = RECENT_SUCCESS_DATA + [
-            APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_3,
-            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_3,
+            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3,
-            GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_2,
-            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_2,
+            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_2,
+            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_3
+            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_3
         ]
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
         package = 'google-api-core'
@@ -447,17 +447,17 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
 
     def test_git_mix_fresh_nodeps(self):
         RECENT_SUCCESS_DATA_EXTRA = RECENT_SUCCESS_DATA + [
-            APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_3,
-            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_3,
+            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3,
-            GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_2,
-            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_2,
+            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_2,
+            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_3
+            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_3
         ]
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
         package = 'git+git://github.com/google/api-core.git'
