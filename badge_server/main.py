@@ -441,7 +441,7 @@ def _get_check_results(package_name: str, commit_number: str = None):
         error_status = BadgeStatus.INTERNAL_ERROR
         self_compat_res, google_compat_res, dependency_res = (
             badge_utils._build_default_result(status=error_status),
-            badge_utils._build_default_result(status=error_status),
+            badge_utils._build_default_result(status=error_status, details={}),
             badge_utils._build_default_result(
                 status=error_status, include_pyversion=False))
 
