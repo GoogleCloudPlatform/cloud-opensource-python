@@ -14,11 +14,9 @@
 
 """Common utils methods for badge server."""
 
-import datetime
 import enum
 import json
 import logging
-import os
 from urllib.parse import urlparse
 from urllib.request import urlopen
 
