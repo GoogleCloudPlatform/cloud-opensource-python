@@ -415,7 +415,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                     package.Package('git+git://github.com/google/tensorflow.git'),
                     package.Package('google-api-core')
                 ],
-                python_major_version=2,
+                python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
                 timestamp=datetime.datetime.utcnow()),
         ]
@@ -444,7 +444,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                     package.Package('git+git://github.com/google/tensorflow.git'),
                     package.Package('git+git://github.com/google/api-core.git')
                 ],
-                python_major_version=2,
+                python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
                 timestamp=datetime.datetime.utcnow()),
         ]
