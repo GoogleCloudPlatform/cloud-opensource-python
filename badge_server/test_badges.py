@@ -390,7 +390,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    def test_pypi_py2py3_fresh_nodeps(self):
+    def test_pypi_py2py3_fresh_nodeps_unsupported_versions(self):
         fake_results = RECENT_SUCCESS_DATA + [
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
@@ -406,7 +406,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    def test_git_py2py3_fresh_nodeps(self):
+    def test_git_py2py3_fresh_nodeps_unsupported_versions(self):
         fake_results = RECENT_SUCCESS_DATA + [
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
