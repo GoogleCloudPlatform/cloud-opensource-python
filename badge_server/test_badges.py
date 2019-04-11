@@ -390,17 +390,14 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    def test_pypi_mix_fresh_nodeps(self):
-        RECENT_SUCCESS_DATA_EXTRA = RECENT_SUCCESS_DATA + [
+    def test_pypi_py2py3_fresh_nodeps(self):
+        fake_results = RECENT_SUCCESS_DATA + [
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2,
-            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
             GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
         ]
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
+        self.fake_store.save_compatibility_statuses(fake_results)
         package = 'google-api-core'
         json_response = self.get_image_json(package)
         self.assertEqual(json_response['left_text'],
@@ -409,8 +406,24 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package, json_response['whole_link'])
 
-    def test_git_mix_fresh_nodeps(self):
-        RECENT_SUCCESS_DATA_EXTRA = RECENT_SUCCESS_DATA + [
+    def test_git_py2py3_fresh_nodeps(self):
+        fake_results = RECENT_SUCCESS_DATA + [
+            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+        ]
+        self.fake_store.save_compatibility_statuses(fake_results)
+        package = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'success')
+        self.assertEqual(json_response['right_color'], '#44CC44')
+        self.assertLinkUrl(package, json_response['whole_link'])
+
+    def test_pypi_py2py3_fresh_nodeps_ignorable_results(self):
+        fake_results = RECENT_SUCCESS_DATA + [
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
@@ -419,7 +432,26 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
             GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
         ]
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
+        self.fake_store.save_compatibility_statuses(fake_results)
+        package = 'google-api-core'
+        json_response = self.get_image_json(package)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'success')
+        self.assertEqual(json_response['right_color'], '#44CC44')
+        self.assertLinkUrl(package, json_response['whole_link'])
+
+    def test_git_py2py3_fresh_nodeps_ignorable_results(self):
+        fake_results = RECENT_SUCCESS_DATA + [
+            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
+            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2,
+            GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
+            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+        ]
+        self.fake_store.save_compatibility_statuses(fake_results)
         package = 'git+git://github.com/google/api-core.git'
         json_response = self.get_image_json(package)
         self.assertEqual(json_response['left_text'],
