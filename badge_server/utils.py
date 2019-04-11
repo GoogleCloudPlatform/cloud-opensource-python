@@ -47,13 +47,10 @@ priority_level = dependency_highlighter.PriorityLevel
 
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
-URL_PREFIX = 'https://img.shields.io/badge/'
 GITHUB_HEAD_NAME = 'github head'
 GITHUB_API = 'https://api.github.com/repos'
-GITHUB_CACHE_TIME = 1800  # seconds
 SVG_CONTENT_TYPE = 'image/svg+xml'
 EMPTY_DETAILS = 'NO DETAILS'
-PACKAGE_NOT_SUPPORTED = "The package is not supported by checker server."
 
 PY_VER_MAPPING = {
     2: 'py2',
@@ -72,35 +69,12 @@ STATUS_COLOR_MAPPING = {
     'HIGH_PRIORITY': 'red',
 }
 
-DEFAULT_DEPENDENCY_RESULT = {
-    'status': 'CALCULATING',
-    'details': {},
-}
-
 
 class BadgeType(enum.Enum):
     """Enum class for badge types."""
     DEP_BADGE = 'dependency_badge'
     SELF_COMP_BADGE = 'self_comp_badge'
     GOOGLE_COMP_BADGE = 'google_comp_badge'
-
-
-def initialize_cache():
-    """Initialize cache based on environment variable."""
-    local_cache = 'RUN_LOCALLY'
-    redis_cache = 'REDISHOST'
-
-    if os.environ.get(local_cache) is not None:
-        import fake_cache
-        cache = fake_cache.FakeCache()
-    elif os.environ.get(redis_cache) is not None:
-        import redis_cache
-        cache = redis_cache.RedisCache()
-    else:
-        import datastore_cache
-        cache = datastore_cache.DatastoreCache()
-
-    return cache
 
 
 def _build_default_result(
@@ -176,20 +150,3 @@ def _calculate_commit_number(package: str) -> Optional[str]:
                 return None
 
     return None
-
-
-def _is_github_cache_valid(cache_timestamp_str=None):
-    """Return True if the cached result if calculated within last 30 mins."""
-    # Return False if the timestamp str passed in is None
-    if cache_timestamp_str is None:
-        return False
-
-    cache_timestamp = datetime.datetime.strptime(
-        cache_timestamp_str, TIMESTAMP_FORMAT)
-    current_timestamp = datetime.datetime.utcnow()
-    seconds_diff = (current_timestamp - cache_timestamp).seconds
-
-    if seconds_diff > GITHUB_CACHE_TIME:
-        return False
-    else:
-        return True
