@@ -112,20 +112,6 @@ APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3 = compatibility_store.Com
     status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
-APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
-    [package.Package('git+git://github.com/google/apache-beam.git'),
-     package.Package('git+git://github.com/google/api-core.git')],
-    python_major_version=2,
-    status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
-
-APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
-    [package.Package('git+git://github.com/google/apache-beam.git'),
-     package.Package('git+git://github.com/google/api-core.git')],
-    python_major_version=3,   # apache-beam does not support Python 3
-    status=compatibility_store.Status.INSTALL_ERROR,
-    timestamp=datetime.datetime.utcnow())
-
 APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
         package.Package('git+git://github.com/google/apache-beam.git'),
@@ -246,24 +232,6 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.Compatibil
     ],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
-
-GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
-    [
-        package.Package('git+git://github.com/google/api-core.git'),
-        package.Package('git+git://github.com/google/tensorflow.git')
-    ],
-    python_major_version=2,
-    status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
-
-GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
-    [
-        package.Package('git+git://github.com/google/api-core.git'),
-        package.Package('git+git://github.com/google/tensorflow.git')
-    ],
-    python_major_version=3,   # tensorflow does not support Python 2
-    status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
@@ -427,14 +395,10 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
             GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
             GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_3
         ]
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
         package = 'google-api-core'
@@ -450,14 +414,10 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2,
-            APACHE_BEAM_GIT_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
             GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_TENSORFLOW_GIT_RECENT_SUCCESS_3,
             GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_SUCCESS_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_GIT_RECENT_INSTALL_ERROR_3
         ]
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA_EXTRA)
         package = 'git+git://github.com/google/api-core.git'
