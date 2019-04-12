@@ -125,10 +125,6 @@ class CompatibilityResult:
     def timestamp(self) -> datetime.datetime:
         return self._timestamp
 
-    @timestamp.setter
-    def timestamp(self, timestamp: datetime.datetime):
-        self._timestamp = timestamp
-
     def get_package_version(self) -> str:
         """Returns the version of the single package in a CompatibilityResult.
 
