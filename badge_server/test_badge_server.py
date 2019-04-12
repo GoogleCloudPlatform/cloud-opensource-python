@@ -205,9 +205,9 @@ class TestBadgeServer(unittest.TestCase):
 
         expected = {
             'py2': {'status': main.BadgeStatus.PAIR_INCOMPATIBLE,
-                    'details': {'package2': 'NO DETAILS'} },
+                    'details': {'package2': {}} },
             'py3': {'status': main.BadgeStatus.PAIR_INCOMPATIBLE,
-                    'details': {'package2': 'NO DETAILS'} },
+                    'details': {'package2': {}} },
         }
 
         PACKAGE_1 = package.Package("package1")
@@ -253,9 +253,9 @@ class TestBadgeServer(unittest.TestCase):
         }
         expected_google = {
             'py2': {'status': main.BadgeStatus.INTERNAL_ERROR,
-                    'details': 'NO DETAILS'},
+                    'details': {}},
             'py3': {'status': main.BadgeStatus.INTERNAL_ERROR,
-                    'details': 'NO DETAILS'}
+                    'details': {}}
         }
         expected_dep = {
             'status': main.BadgeStatus.INTERNAL_ERROR,
