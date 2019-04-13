@@ -125,10 +125,6 @@ class CompatibilityResult:
     def timestamp(self) -> datetime.datetime:
         return self._timestamp
 
-    @timestamp.setter
-    def timestamp(self, timestamp: datetime.datetime):
-        self._timestamp = timestamp
-
     def get_package_version(self) -> str:
         """Returns the version of the single package in a CompatibilityResult.
 
@@ -232,6 +228,9 @@ class CompatibilityStore:
         # are None.
         if mysql_host is None and mysql_unix_socket is None:
             mysql_host = '127.0.0.1'
+            assert mysql_user is not None
+            assert mysql_password is not None
+
         if mysql_db is None:
             mysql_db = _DATABASE_NAME
 
