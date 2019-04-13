@@ -98,8 +98,8 @@ class CompatibilityResult:
         return NotImplemented
 
     def with_updated_dependency_info(
-        self, dependency_info: Mapping[str, Mapping[str, Any]]
-        ) -> CompatibilityResult:
+            self, dependency_info: Mapping[str, Mapping[str, Any]]
+            ) -> 'CompatibilityResult':
         """Return a CompatibilityResult with updated dependency_info.
 
         >>> original_result = compatibility_store.CompatibilityResult(
