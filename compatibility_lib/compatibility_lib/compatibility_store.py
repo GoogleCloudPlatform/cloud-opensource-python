@@ -97,6 +97,44 @@ class CompatibilityResult:
                     self.timestamp == o.timestamp)
         return NotImplemented
 
+    def with_updated_dependency_info(
+            self, dependency_info: Mapping[str, Mapping[str, Any]]
+            ) -> 'CompatibilityResult':
+        """Return a CompatibilityResult with updated dependency_info.
+
+        >>> original_result = compatibility_store.CompatibilityResult(
+        ...    packages=[PACKAGE_1],
+        ...    python_major_version=3,
+        ...    status=compatibility_store.Status.SUCCESS,
+        ...    dependency_info={
+        ...             'package1': {'installed_version': '1.2.3'},
+        ...             'package2': {'installed_version': '2.3.4'}})
+        >>> updated_result = original_result.with_updated_dependency_info(
+        ...     {'package2': {'installed_version': '9.8.7'},
+        ...      'package3': {'installed_version': '8.7.6'}})
+        >>> updated_result.dependency_info
+        {'package1': {'installed_version': '1.2.3'},
+         'package2': {'installed_version': '9.8.7'},
+         'package3': {'installed_version': '8.7.6'}}
+
+        Args:
+            dependency_info: The updated dependency information.
+
+        Returns:
+            A new CompatibilityResult that is identical to the current one
+            except with the given dependency_info merged in.
+        """
+        info = dict(self._dependency_info or {})
+        info.update(dependency_info)
+        return CompatibilityResult(
+            self.packages,
+            self.python_major_version,
+            self.status,
+            self.details,
+            info,
+            self.timestamp
+        )
+
     @property
     def packages(self) -> List[package.Package]:
         return self._packages

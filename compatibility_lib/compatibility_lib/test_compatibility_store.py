@@ -79,6 +79,56 @@ class TestCompatibilityResult(unittest.TestCase):
         self.assertEqual(compat_result.dependency_info, dependency_info)
         self.assertEqual(compat_result.timestamp, timestamp)
 
+    def test_with_updated_dependency_info_new_dependencies(self):
+        original_result = compatibility_store.CompatibilityResult(
+            packages=[PACKAGE_1],
+            python_major_version=3,
+            status=compatibility_store.Status.SUCCESS,
+            details="No details",
+            dependency_info={'package1': {'installed_version': '1.2.3'}})
+        updated_result = original_result.with_updated_dependency_info(
+            {'package2': {'installed_version': '4.5.6'}})
+
+        self.assertEqual(updated_result.dependency_info,
+                         {
+                             'package1': {'installed_version': '1.2.3'},
+                             'package2': {'installed_version': '4.5.6'},
+                         })
+
+        # Test that non-dependency properties are unchanged.
+        self.assertEqual(original_result.packages, updated_result.packages)
+        self.assertEqual(original_result.python_major_version,
+                         updated_result.python_major_version)
+        self.assertEqual(original_result.status, updated_result.status)
+        self.assertEqual(original_result.details, updated_result.details)
+        self.assertEqual(original_result.timestamp, updated_result.timestamp)
+
+
+    def test_with_updated_dependency_info_changed_dependencies(self):
+        original_result = compatibility_store.CompatibilityResult(
+            packages=[PACKAGE_1],
+            python_major_version=3,
+            status=compatibility_store.Status.SUCCESS,
+            details="No details",
+            dependency_info={'package1': {'installed_version': '1.2.3'}})
+        updated_result = original_result.with_updated_dependency_info(
+            {'package1': {'installed_version': '2.3.4'},
+             'package2': {'installed_version': '4.5.6'}})
+
+        self.assertEqual(updated_result.dependency_info,
+                         {
+                             'package1': {'installed_version': '2.3.4'},
+                             'package2': {'installed_version': '4.5.6'},
+                         })
+
+        # Test that non-dependency properties are unchanged.
+        self.assertEqual(original_result.packages, updated_result.packages)
+        self.assertEqual(original_result.python_major_version,
+                         updated_result.python_major_version)
+        self.assertEqual(original_result.status, updated_result.status)
+        self.assertEqual(original_result.details, updated_result.details)
+        self.assertEqual(original_result.timestamp, updated_result.timestamp)
+
 
 class TestCompatibilityStore(unittest.TestCase):
 
