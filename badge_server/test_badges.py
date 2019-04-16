@@ -45,10 +45,22 @@ GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
+GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [package.Package('google-api-core')],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime.utcnow())
+
 GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
+    [package.Package('google-api-core')],
+    python_major_version=3,
+    status=compatibility_store.Status.CHECK_WARNING,
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
@@ -57,10 +69,22 @@ GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime.utcnow())
 
+GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [package.Package('git+git://github.com/google/api-core.git')],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime.utcnow())
+
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime.utcnow())
+
+GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
+    [package.Package('git+git://github.com/google/api-core.git')],
+    python_major_version=3,
+    status=compatibility_store.Status.CHECK_WARNING,
     timestamp=datetime.datetime.utcnow())
 
 TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
@@ -510,4 +534,64 @@ class TestBadgeImageMissingData(BadgeImageTestCase):
                          'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'missing data')
         self.assertEqual(json_response['right_color'], '#9F9F9F')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+
+class TestSelfIncompatible(BadgeImageTestCase):
+    """Tests for the cases where the badge image displays 'self incompatible.'"""
+
+    def test_pypi_py2py3_py2_incompatible_fresh_nodeps(self):
+        package_name = 'google-api-core'
+        self_incompatible_data = list(RECENT_SUCCESS_DATA)
+        self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2)
+        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'self incompatible')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+    
+    def test_github_py2py3_py2_incompatible_fresh_nodeps(self):
+        package_name = 'git+git://github.com/google/api-core.git'
+        self_incompatible_data = list(RECENT_SUCCESS_DATA)
+        self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
+        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'self incompatible')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_pypi_py2py3_py3_incompatible_fresh_nodeps(self):
+        package_name = 'google-api-core'
+        self_incompatible_data = list(RECENT_SUCCESS_DATA)
+        self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3)
+        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'self incompatible')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_github_py2py3_py3_incompatible_fresh_nodeps(self):
+        package_name = 'git+git://github.com/google/api-core.git'
+        self_incompatible_data = list(RECENT_SUCCESS_DATA)
+        self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3)
+        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'self incompatible')
+        self.assertEqual(json_response['right_color'], '#E05D44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
