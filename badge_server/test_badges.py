@@ -536,6 +536,7 @@ class TestBadgeImageMissingData(BadgeImageTestCase):
         self.assertEqual(json_response['right_color'], '#9F9F9F')
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
+
 class TestSelfIncompatible(BadgeImageTestCase):
     """Tests for the cases where the badge image displays 'self incompatible.'"""
 
