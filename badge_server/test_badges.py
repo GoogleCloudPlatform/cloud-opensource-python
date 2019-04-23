@@ -915,7 +915,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
     def test_pypi_py2py3_expired_major_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0)
+            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0),
             'installed_version': '0.9.9',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -949,7 +949,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
     def test_git_py2py3_expired_major_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0)
+            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0),
             'installed_version': '0.9.9',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -985,7 +985,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
     def test_pypi_py2py3_expired_default_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0)
+            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0),
             'installed_version': '1.3.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1019,7 +1019,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
     def test_git_py2py3_expired_default_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0)
+            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0),
             'installed_version': '1.3.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
