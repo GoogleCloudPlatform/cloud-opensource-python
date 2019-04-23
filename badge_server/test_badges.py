@@ -631,9 +631,16 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
-        old_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        old_dep_info['google-auth']['installed_version'] = '1.4.0'
-        old_dep_info['google-auth']['is_latest'] = False
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.4.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
@@ -658,9 +665,16 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
     def test_git_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
-        old_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        old_dep_info['google-auth']['installed_version'] = '1.4.0'
-        old_dep_info['google-auth']['is_latest'] = False
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.4.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
@@ -685,9 +699,16 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
-        old_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        old_dep_info['google-auth']['installed_version'] = '1.6.0'
-        old_dep_info['google-auth']['is_latest'] = False
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.6.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
@@ -712,9 +733,16 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
     def test_git_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
-        old_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        old_dep_info['google-auth']['installed_version'] = '1.6.0'
-        old_dep_info['google-auth']['is_latest'] = False
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.6.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
@@ -742,9 +770,16 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['installed_version'] = '0.9.9'
-        obsolete_dep_info['google-auth']['is_latest'] = False
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
@@ -770,9 +805,16 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_git_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['installed_version'] = '0.9.9'
-        obsolete_dep_info['google-auth']['is_latest'] = False
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(
@@ -800,9 +842,16 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_off_by_minor(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['installed_version'] = '1.3.0'
-        obsolete_dep_info['google-auth']['is_latest'] = False
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
@@ -828,9 +877,16 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_git_py2py3_off_by_minor(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['installed_version'] = '1.3.0'
-        obsolete_dep_info['google-auth']['is_latest'] = False
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(
@@ -858,12 +914,15 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_expired_major_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['current_time'] = datetime.datetime(
-            2019, 3, 23, 0, 0, 0)
-        obsolete_dep_info['google-auth']['installed_version'] = '0.9.9'
-        obsolete_dep_info['google-auth']['is_latest'] = False
-        obsolete_dep_info['google-auth']['latest_version'] = '1.0.0'
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0)
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
@@ -889,12 +948,15 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_git_py2py3_expired_major_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['current_time'] = datetime.datetime(
-            2019, 3, 23, 0, 0, 0)
-        obsolete_dep_info['google-auth']['installed_version'] = '0.9.9'
-        obsolete_dep_info['google-auth']['is_latest'] = False
-        obsolete_dep_info['google-auth']['latest_version'] = '1.0.0'
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0)
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(
@@ -922,11 +984,15 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_expired_default_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['current_time'] = datetime.datetime(
-            2019, 8, 23, 0, 0, 0)
-        obsolete_dep_info['google-auth']['installed_version'] = '1.3.0'
-        obsolete_dep_info['google-auth']['is_latest'] = False
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0)
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
@@ -952,11 +1018,15 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
 
     def test_git_py2py3_expired_default_grace_period(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
-        obsolete_dep_info['google-auth'] = dict(UP_TO_DATE_DEPS['google-auth'])
-        obsolete_dep_info['google-auth']['current_time'] = datetime.datetime(
-            2019, 8, 23, 0, 0, 0)
-        obsolete_dep_info['google-auth']['installed_version'] = '1.3.0'
-        obsolete_dep_info['google-auth']['is_latest'] = False
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0)
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
 
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(
