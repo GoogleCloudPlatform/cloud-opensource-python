@@ -629,6 +629,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
 
 
 class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
+    """Tests for cases where the badge image displays 'Outdated Dependency.'"""
 
     def test_pypi_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -760,6 +761,7 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
 
 class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
+    """Tests for cases where the badge image displays 'Obsolete Dependency.'"""
 
     def test_pypi_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
