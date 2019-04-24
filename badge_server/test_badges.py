@@ -627,6 +627,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'self incompatible')
 
+
 class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
     def test_pypi_py2py3_off_by_minor(self):
