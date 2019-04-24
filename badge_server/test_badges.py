@@ -646,8 +646,6 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        old_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in old_dep_compat_results]
         old_dep_compat_results.append(
             GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
                 old_dep_info))
@@ -680,8 +678,6 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        old_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in old_dep_compat_results]
         old_dep_compat_results.append(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
                 old_dep_info))
@@ -714,8 +710,6 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        old_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in old_dep_compat_results]
         old_dep_compat_results.append(
             GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
                 old_dep_info))
@@ -748,8 +742,6 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
         old_dep_compat_results = list(RECENT_SUCCESS_DATA)
         old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        old_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in old_dep_compat_results]
         old_dep_compat_results.append(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
                 old_dep_info))
@@ -785,8 +777,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -822,8 +812,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -857,8 +845,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -894,8 +880,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -928,8 +912,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -964,8 +946,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -998,8 +978,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
@@ -1034,8 +1012,6 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         obsolete_dep_compat_results.remove(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        obsolete_dep_compat_results = [cr.with_updated_dependency_info(
-            UP_TO_DATE_DEPS) for cr in obsolete_dep_compat_results]
         obsolete_dep_compat_results.append(
             GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
                 obsolete_dep_info))
