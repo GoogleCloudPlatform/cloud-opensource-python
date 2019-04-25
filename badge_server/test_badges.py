@@ -629,7 +629,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
 
 
 class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
-    """Tests for cases where the badge image displays 'Outdated Dependency.'"""
+    """Tests for cases where the badge image displays 'old dependency.'"""
 
     def test_pypi_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -761,7 +761,7 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
 
 
 class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
-    """Tests for cases where the badge image displays 'Obsolete Dependency.'"""
+    """Tests for cases where the badge image displays 'obsolete dependency.'"""
 
     def test_pypi_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
@@ -900,6 +900,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
     def test_pypi_py2py3_expired_major_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
             'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0),
@@ -932,6 +933,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
     def test_git_py2py3_expired_major_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
             'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0),
@@ -966,6 +968,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
     def test_pypi_py2py3_expired_default_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
             'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0),
@@ -998,6 +1001,7 @@ class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
     def test_git_py2py3_expired_default_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
             'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0),
