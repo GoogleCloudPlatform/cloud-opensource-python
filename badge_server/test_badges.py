@@ -287,6 +287,9 @@ UP_TO_DATE_DEPS = {
         'latest_version_time': datetime.datetime(
             2019, 2, 27, 0, 0, 53)
     },
+
+    # TODO: Replace with 'requests' once dependencies are properly added to
+    # the existing compatibility results
     'google-api-core': {
         'current_time': datetime.datetime.utcnow(),
         'installed_version': '1.9.0',
