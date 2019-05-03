@@ -31,72 +31,216 @@ APACHE_BEAM_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'apache-beam[gcp]': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '2.12.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': True,
+            'latest_version': '2.12.0',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'apache-beam[gcp]': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '2.12.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': True,
+            'latest_version': '2.12.0',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.CHECK_WARNING,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=3,
     status=compatibility_store.Status.CHECK_WARNING,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=2,
     status=compatibility_store.Status.CHECK_WARNING,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,
     status=compatibility_store.Status.CHECK_WARNING,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('tensorflow')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'tensorflow': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.3.1',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+            'is_latest': True,
+            'latest_version': '1.3.1',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/tensorflow.git')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    dependency_info={
+        'tensorflow': {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.3.1',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+            'is_latest': True,
+            'latest_version': '1.3.1',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+        },
+    },
     timestamp=datetime.datetime.utcnow())
 
 APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
