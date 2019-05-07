@@ -346,8 +346,26 @@ class BadgeImageDependencyIssueTestCase(BadgeImageTestCase):
                 'latest_version_time': datetime.datetime(2019, 4, 29, 13, 11, 29),
                 'current_time': datetime.datetime(2019, 5, 7, 8, 31, 59)
             })
+        obsolete_dependencies = dependency_highlighter.OutdatedDependency(
+            pkgname='protobuf',
+            parent='tensorflow',
+            priority=dependency_highlighter.Priority(
+                level=dependency_highlighter.PriorityLevel.HIGH_PRIORITY),
+            info={
+                'installed_version': '3.0.0',
+                'installed_version_time': datetime.datetime(2019, 5, 2, 15, 37,
+                                                            44),
+                'latest_version': '4.0.0',
+                'latest_version_time': datetime.datetime(2019, 4, 29, 13, 11,
+                                                         29),
+                'current_time': datetime.datetime(2019, 5, 7, 8, 31, 59)
+            })
         self.dependency_highlighter_stub.set_outdated_dependencies(
             'google-api-core', [outdated_dependencies])
+
+        # This should show 'obsolete dependency' on the badge
+        self.dependency_highlighter_stub.set_outdated_dependencies(
+            'tensorflow', [outdated_dependencies, obsolete_dependencies])
         self.deprecated_dep_finder_stub = deprecated_dep_finder_stub.DeprecatedDepFinderStub(
         )
 
@@ -362,10 +380,12 @@ class BadgeImageDependencyIssueTestCase(BadgeImageTestCase):
         self._pkg_list_patch = unittest.mock.patch(
             'compatibility_lib.configs.PKG_LIST', [
                 'google-api-core',
+                'tensorflow',
             ])
         self._whitelist_urls_patch = unittest.mock.patch(
             'compatibility_lib.configs.WHITELIST_URLS', {
                 'git+git://github.com/google/api-core.git': 'google-api-core',
+                'git+git://github.com/google/tensorflow.git': 'tensorflow',
             })
         self._store_patch.start()
         self.addCleanup(self._store_patch.stop)
@@ -663,4 +683,16 @@ class TestDependencyOutdatedOrObsolete(BadgeImageDependencyIssueTestCase):
                          'compatibility check (PyPI)')
         self.assertEqual(json_response['right_text'], 'old dependency')
         self.assertEqual(json_response['right_color'], '#A4A61D')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_obsolete_dependency(self):
+        package_name = 'tensorflow'
+        dependency_data = list(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(dependency_data)
+
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
