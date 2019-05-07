@@ -697,7 +697,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
         self.assertEqual(json_response['right_text'], 'self incompatible')
         self.assertEqual(json_response['right_color'], '#E05D44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
-    
+
     def test_github_py2py3_py2_incompatible_fresh_nodeps(self):
         package_name = 'git+git://github.com/google/api-core.git'
         self_incompatible_data = list(RECENT_SUCCESS_DATA)
