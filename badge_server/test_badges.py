@@ -253,7 +253,7 @@ APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibility
 APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]'),
      package.Package('google-api-core')],
-    python_major_version=3,  # apache-beam does not support Python 3
+    python_major_version=3,   # apache-beam does not support Python 3
     status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
@@ -296,7 +296,7 @@ APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.Com
         package.Package('apache-beam[gcp]'),
         package.Package('git+git://github.com/google/api-core.git')
     ],
-    python_major_version=3,  # apache-beam does not support Python 3
+    python_major_version=3,   # apache-beam does not support Python 3
     status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
@@ -348,7 +348,7 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_st
 GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core'),
      package.Package('tensorflow')],
-    python_major_version=2,  # tensorflow does not support Python 2
+    python_major_version=2,   # tensorflow does not support Python 2
     status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
@@ -364,7 +364,7 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.Comp
         package.Package('git+git://github.com/google/api-core.git'),
         package.Package('tensorflow')
     ],
-    python_major_version=2,  # tensorflow does not support Python 2
+    python_major_version=2,   # tensorflow does not support Python 2
     status=compatibility_store.Status.INSTALL_ERROR,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
@@ -572,8 +572,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         fake_results = RECENT_SUCCESS_DATA + [
             compatibility_store.CompatibilityResult(
                 [
-                    package.Package(
-                        'git+git://github.com/google/apache-beam.git'),
+                    package.Package('git+git://github.com/google/apache-beam.git'),
                     package.Package('google-api-core')
                 ],
                 python_major_version=2,
@@ -581,8 +580,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                 timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
             compatibility_store.CompatibilityResult(
                 [
-                    package.Package(
-                        'git+git://github.com/google/tensorflow.git'),
+                    package.Package('git+git://github.com/google/tensorflow.git'),
                     package.Package('google-api-core')
                 ],
                 python_major_version=3,
@@ -603,8 +601,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         fake_results = RECENT_SUCCESS_DATA + [
             compatibility_store.CompatibilityResult(
                 [
-                    package.Package(
-                        'git+git://github.com/google/apache-beam.git'),
+                    package.Package('git+git://github.com/google/apache-beam.git'),
                     package.Package('git+git://github.com/google/api-core.git')
                 ],
                 python_major_version=2,
@@ -612,8 +609,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                 timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
             compatibility_store.CompatibilityResult(
                 [
-                    package.Package(
-                        'git+git://github.com/google/tensorflow.git'),
+                    package.Package('git+git://github.com/google/tensorflow.git'),
                     package.Package('git+git://github.com/google/api-core.git')
                 ],
                 python_major_version=3,
@@ -692,8 +688,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
         package_name = 'google-api-core'
         self_incompatible_data = list(RECENT_SUCCESS_DATA)
         self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
-        self_incompatible_data.append(
-            GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2)
+        self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
 
         json_response = self.get_image_json(package_name)
@@ -707,8 +702,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
         package_name = 'git+git://github.com/google/api-core.git'
         self_incompatible_data = list(RECENT_SUCCESS_DATA)
         self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
-        self_incompatible_data.append(
-            GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
+        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
 
         json_response = self.get_image_json(package_name)
@@ -722,8 +716,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
         package_name = 'google-api-core'
         self_incompatible_data = list(RECENT_SUCCESS_DATA)
         self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        self_incompatible_data.append(
-            GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3)
+        self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
 
         json_response = self.get_image_json(package_name)
@@ -737,8 +730,7 @@ class TestSelfIncompatible(BadgeImageTestCase):
         package_name = 'git+git://github.com/google/api-core.git'
         self_incompatible_data = list(RECENT_SUCCESS_DATA)
         self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        self_incompatible_data.append(
-            GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3)
+        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
 
         json_response = self.get_image_json(package_name)
