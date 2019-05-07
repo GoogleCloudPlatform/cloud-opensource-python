@@ -31,87 +31,231 @@ APACHE_BEAM_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'apache-beam[gcp]': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '2.12.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': True,
+            'latest_version': '2.12.0',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'apache-beam[gcp]': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '2.12.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': True,
+            'latest_version': '2.12.0',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.CHECK_WARNING,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=3,
     status=compatibility_store.Status.CHECK_WARNING,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=2,
     status=compatibility_store.Status.CHECK_WARNING,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,
     status=compatibility_store.Status.CHECK_WARNING,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('tensorflow')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'tensorflow': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.3.1',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+            'is_latest': True,
+            'latest_version': '1.3.1',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 TENSORFLOW_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/tensorflow.git')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    dependency_info={
+        'tensorflow': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.3.1',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+            'is_latest': True,
+            'latest_version': '1.3.1',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 26, 0, 0, 0),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]'),
      package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]'),
      package.Package('google-api-core')],
     python_major_version=3,   # apache-beam does not support Python 3
     status=compatibility_store.Status.INSTALL_ERROR,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
@@ -120,14 +264,14 @@ APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.Comp
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/apache-beam.git'),
      package.Package('google-api-core')],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
@@ -136,7 +280,7 @@ APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
@@ -145,7 +289,7 @@ APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.Compatibi
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [
@@ -154,7 +298,7 @@ APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.Com
     ],
     python_major_version=3,   # apache-beam does not support Python 3
     status=compatibility_store.Status.INSTALL_ERROR,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_GIT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
@@ -163,7 +307,7 @@ APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_GIT_RECENT_SUCCESS_2 = compatibility_store.
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
@@ -172,7 +316,7 @@ GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [
@@ -181,7 +325,7 @@ GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_store.
     ],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
@@ -190,7 +334,7 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_st
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [
@@ -199,21 +343,21 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_st
     ],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core'),
      package.Package('tensorflow')],
     python_major_version=2,   # tensorflow does not support Python 2
     status=compatibility_store.Status.INSTALL_ERROR,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core'),
      package.Package('tensorflow')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [
@@ -222,7 +366,7 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.Comp
     ],
     python_major_version=2,   # tensorflow does not support Python 2
     status=compatibility_store.Status.INSTALL_ERROR,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [
@@ -231,7 +375,7 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.Compatibil
     ],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [
@@ -240,7 +384,7 @@ GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.Compa
     ],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
-    timestamp=datetime.datetime.utcnow())
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 RECENT_SUCCESS_DATA = [
     APACHE_BEAM_RECENT_SUCCESS_2,
@@ -433,7 +577,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                 ],
                 python_major_version=2,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime.utcnow()),
+                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
             compatibility_store.CompatibilityResult(
                 [
                     package.Package('git+git://github.com/google/tensorflow.git'),
@@ -441,7 +585,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                 ],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime.utcnow()),
+                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
         ]
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
@@ -462,7 +606,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                 ],
                 python_major_version=2,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime.utcnow()),
+                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
             compatibility_store.CompatibilityResult(
                 [
                     package.Package('git+git://github.com/google/tensorflow.git'),
@@ -470,7 +614,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
                 ],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime.utcnow()),
+                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
         ]
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
