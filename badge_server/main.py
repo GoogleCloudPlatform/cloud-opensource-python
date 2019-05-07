@@ -445,7 +445,6 @@ def _get_check_results(package_name: str, commit_number: str = None):
             badge_utils._build_default_result(status=error_status, details={}),
             badge_utils._build_default_result(
                 status=error_status, include_pyversion=False))
-
     return (self_compat_res, google_compat_res, dependency_res)
 
 

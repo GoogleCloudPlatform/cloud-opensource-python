@@ -20,6 +20,7 @@ import urllib.parse
 
 from compatibility_lib import compatibility_store
 from compatibility_lib import dependency_highlighter_stub
+from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder_stub
 from compatibility_lib import fake_compatibility_store
 from compatibility_lib import package
@@ -326,6 +327,58 @@ class BadgeImageTestCase(unittest.TestCase):
         self.assertEqual([package], params['package'])
 
 
+class BadgeImageDependencyIssueTestCase(BadgeImageTestCase):
+    """Test cases for dependency issues."""
+
+    def setUp(self):
+        self.fake_store = fake_compatibility_store.CompatibilityStore()
+        self.dependency_highlighter_stub = dependency_highlighter_stub.DependencyHighlighterStub(
+        )
+        outdated_dependencies = dependency_highlighter.OutdatedDependency(
+            pkgname='urllib3',
+            parent='google-api-core',
+            priority=dependency_highlighter.Priority(
+                level=dependency_highlighter.PriorityLevel.LOW_PRIORITY),
+            info={
+                'installed_version': '1.24.3',
+                'installed_version_time': datetime.datetime(2019, 5, 2, 15, 37, 44),
+                'latest_version': '1.25.2',
+                'latest_version_time': datetime.datetime(2019, 4, 29, 13, 11, 29),
+                'current_time': datetime.datetime(2019, 5, 7, 8, 31, 59)
+            })
+        self.dependency_highlighter_stub.set_outdated_dependencies(
+            'google-api-core', [outdated_dependencies])
+        self.deprecated_dep_finder_stub = deprecated_dep_finder_stub.DeprecatedDepFinderStub(
+        )
+
+        main.app.config['TESTING'] = True
+        self.client = main.app.test_client()
+
+        self._store_patch = unittest.mock.patch('utils.store', self.fake_store)
+        self._highlighter_patch = unittest.mock.patch(
+            'utils.highlighter', self.dependency_highlighter_stub)
+        self._finder_patch = unittest.mock.patch(
+            'utils.finder', self.deprecated_dep_finder_stub)
+        self._pkg_list_patch = unittest.mock.patch(
+            'compatibility_lib.configs.PKG_LIST', [
+                'google-api-core',
+            ])
+        self._whitelist_urls_patch = unittest.mock.patch(
+            'compatibility_lib.configs.WHITELIST_URLS', {
+                'git+git://github.com/google/api-core.git': 'google-api-core',
+            })
+        self._store_patch.start()
+        self.addCleanup(self._store_patch.stop)
+        self._highlighter_patch.start()
+        self.addCleanup(self._highlighter_patch.stop)
+        self._finder_patch.start()
+        self.addCleanup(self._finder_patch.stop)
+        self._pkg_list_patch.start()
+        self.addCleanup(self._pkg_list_patch.stop)
+        self._whitelist_urls_patch.start()
+        self.addCleanup(self._whitelist_urls_patch.stop)
+
+
 class TestBadgeImageSuccess(BadgeImageTestCase):
     """Tests for the cases where the badge image displays 'success.'"""
 
@@ -594,4 +647,20 @@ class TestSelfIncompatible(BadgeImageTestCase):
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'self incompatible')
         self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+
+class TestDependencyOutdatedOrObsolete(BadgeImageDependencyIssueTestCase):
+    """Tests for the cases where the badge image shows dependency issues."""
+
+    def test_outdated_dependency(self):
+        package_name = 'google-api-core'
+        dependency_data = list(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(dependency_data)
+
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'old dependency')
+        self.assertEqual(json_response['right_color'], '#A4A61D')
         self.assertLinkUrl(package_name, json_response['whole_link'])
