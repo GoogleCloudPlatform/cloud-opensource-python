@@ -353,11 +353,9 @@ class BadgeImageDependencyIssueTestCase(BadgeImageTestCase):
                 level=dependency_highlighter.PriorityLevel.HIGH_PRIORITY),
             info={
                 'installed_version': '3.0.0',
-                'installed_version_time': datetime.datetime(2019, 5, 2, 15, 37,
-                                                            44),
+                'installed_version_time': datetime.datetime(2019, 5, 2, 15, 37, 44),
                 'latest_version': '4.0.0',
-                'latest_version_time': datetime.datetime(2019, 4, 29, 13, 11,
-                                                         29),
+                'latest_version_time': datetime.datetime(2019, 4, 29, 13, 11, 29),
                 'current_time': datetime.datetime(2019, 5, 7, 8, 31, 59)
             })
         self.dependency_highlighter_stub.set_outdated_dependencies(
