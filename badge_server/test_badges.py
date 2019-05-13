@@ -463,6 +463,13 @@ class BadgeImageTestCase(unittest.TestCase):
                 'package': package
             }).get_json()
 
+    def get_target_json(self, package):
+        """Return the calculated badge data for a package as a dict."""
+        return self.client.get(
+            '/one_badge_target', query_string={
+                'package': package
+            }).get_json()
+
     def assertLinkUrl(self, package, actual_url):
         """Assert that the link for the badge image is correct for a package."""
         parsed_url = urllib.parse.urlparse(actual_url)
