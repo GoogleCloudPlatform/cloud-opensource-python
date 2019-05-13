@@ -476,6 +476,11 @@ class BadgeImageTestCase(unittest.TestCase):
         params = urllib.parse.parse_qs(parsed_url.query)
         self.assertEqual([package], params['package'])
 
+    def assertBadgeStatusToColor(self, badge_status_to_color):
+        for status, color in badge_status_to_color.items():
+            badge_status = main.BadgeStatus(status)
+            self.assertEqual(main.BADGE_STATUS_TO_COLOR[badge_status], color)
+
 
 class TestBadgeImageSuccess(BadgeImageTestCase):
     """Tests for the cases where the badge image displays 'success.'"""
