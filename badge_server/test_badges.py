@@ -477,6 +477,7 @@ class BadgeImageTestCase(unittest.TestCase):
         self.assertEqual([package], params['package'])
 
     def assertBadgeStatusToColor(self, badge_status_to_color):
+        """Assert that the given badge status to color mapping is correct."""
         for status, color in badge_status_to_color.items():
             badge_status = main.BadgeStatus(status)
             self.assertEqual(main.BADGE_STATUS_TO_COLOR[badge_status], color)
