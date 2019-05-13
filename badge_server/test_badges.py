@@ -464,7 +464,7 @@ class BadgeImageTestCase(unittest.TestCase):
             }).get_json()
 
     def get_target_json(self, package):
-        """Return the calculated badge data for a package as a dict."""
+        """Return the calculated details page data for a package as a dict."""
         return self.client.get(
             '/one_badge_target', query_string={
                 'package': package
