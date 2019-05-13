@@ -411,7 +411,7 @@ RECENT_SUCCESS_DATA = [
 ]
 
 
-class BadgeImageTestCase(unittest.TestCase):
+class BadgeTestCase(unittest.TestCase):
     """Base class for tests of badge images."""
 
     def setUp(self):
@@ -483,7 +483,7 @@ class BadgeImageTestCase(unittest.TestCase):
             self.assertEqual(main.BADGE_STATUS_TO_COLOR[badge_status], color)
 
 
-class TestBadgeImageSuccess(BadgeImageTestCase):
+class TestBadgeImageSuccess(BadgeTestCase):
     """Tests for the cases where the badge image displays 'success.'"""
 
     def test_pypi_py2py3_fresh_nodeps(self):
@@ -639,7 +639,7 @@ class TestBadgeImageSuccess(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
 
-class TestBadgeImageUnknownPackage(BadgeImageTestCase):
+class TestBadgeImageUnknownPackage(BadgeTestCase):
     """Tests for the cases where the badge image displays 'unknown package.'"""
 
     def test_pypi_unknown_package(self):
@@ -663,7 +663,7 @@ class TestBadgeImageUnknownPackage(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
 
-class TestBadgeImageMissingData(BadgeImageTestCase):
+class TestBadgeImageMissingData(BadgeTestCase):
     """Tests for the cases where the badge image displays 'missing data.'"""
 
     def test_missing_self_compatibility_data(self):
@@ -694,7 +694,7 @@ class TestBadgeImageMissingData(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
 
-class TestSelfIncompatible(BadgeImageTestCase):
+class TestSelfIncompatible(BadgeTestCase):
     """Tests for the cases where the badge image displays 'self incompatible.'"""
 
     def test_pypi_py2py3_py2_incompatible_fresh_nodeps(self):
