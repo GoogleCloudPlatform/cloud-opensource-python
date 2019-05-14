@@ -824,7 +824,7 @@ class TestSelfIncompatible(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'self incompatible')
 
 
-class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
+class TestBadgeImageOutdatedDependency(BadgeTestCase):
     """Tests for cases where the badge image displays 'old dependency.'"""
 
     def test_pypi_py2py3_off_by_minor(self):
@@ -956,7 +956,7 @@ class TestBadgeImageOutdatedDependency(BadgeImageTestCase):
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
 
-class TestBadgeImageObsoleteDependency(BadgeImageTestCase):
+class TestBadgeImageObsoleteDependency(BadgeTestCase):
     """Tests for cases where the badge image displays 'obsolete dependency.'"""
 
     def test_pypi_py2py3_off_by_major(self):
