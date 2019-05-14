@@ -678,25 +678,20 @@ class TestSuccess(BadgeTestCase):
 class TestBadgeImageUnknownPackage(BadgeTestCase):
     """Tests for the cases where the badge image displays 'unknown package.'"""
 
+    def assertImageResponse(self, package_name, left_text):
+        """Assert that the badge image response is correct for a package."""
+        BadgeTestCase.assertImageResponse(
+            self, package_name, main.BadgeStatus.UNKNOWN_PACKAGE, left_text)
+
     def test_pypi_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'xxx'
-        json_response = self.get_image_json(package_name)
-        self.assertEqual(json_response['left_text'],
-                         'compatibility check (PyPI)')
-        self.assertEqual(json_response['right_text'], 'unknown package')
-        self.assertEqual(json_response['right_color'], '#9F9F9F')
-        self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertImageResponse(package_name, 'compatibility check (PyPI)')
 
     def test_github_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'https://github.com/brianquinlan/notebooks'
-        json_response = self.get_image_json(package_name)
-        self.assertEqual(json_response['left_text'],
-                         'compatibility check (master)')
-        self.assertEqual(json_response['right_text'], 'unknown package')
-        self.assertEqual(json_response['right_color'], '#9F9F9F')
-        self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertImageResponse(package_name, 'compatibility check (master)')
 
 
 class TestBadgeImageMissingData(BadgeTestCase):
