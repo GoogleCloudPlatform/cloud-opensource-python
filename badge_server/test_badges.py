@@ -681,7 +681,7 @@ class TestSuccess(BadgeTestCase):
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
 
-class TestBadgeImageUnknownPackage(BadgeTestCase):
+class TestUnknownPackage(BadgeTestCase):
     """Tests for the cases where the badge image displays 'unknown package.'"""
 
     def assertImageResponsePyPI(self, package_name):
@@ -694,15 +694,42 @@ class TestBadgeImageUnknownPackage(BadgeTestCase):
         BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.UNKNOWN_PACKAGE)
 
+    def assertTargetResponse(self, package_name):
+        expected_status = main.BadgeStatus.UNKNOWN_PACKAGE
+        expected_details = ('This package is not a whitelisted google '
+                            'python package; to whitelist a package, '
+                            'contact the python team.')
+        json_response = self.get_target_json(package_name)
+        self.assertEqual(json_response['package_name'], package_name)
+        self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
+
+        # self compatibility result check
+        self.assertEqual(
+            json_response['self_compat_res'],
+            utils._build_default_result(expected_status,
+                                        details=expected_details))
+
+        # pair compatibility result check
+        self.assertEqual(
+            json_response['google_compat_res'],
+            utils._build_default_result(expected_status, details={}))
+
+        # dependency result check
+        self.assertEqual(
+            json_response['dependency_res'],
+            utils._build_default_result(expected_status, False, {}))
+
     def test_pypi_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'xxx'
         self.assertImageResponsePyPI(package_name)
+        self.assertTargetResponse(package_name)
 
     def test_github_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'https://github.com/brianquinlan/notebooks'
         self.assertImageResponseGithub(package_name)
+        self.assertTargetResponse(package_name)
 
 
 class TestBadgeImageMissingData(BadgeTestCase):
