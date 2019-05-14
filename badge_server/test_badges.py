@@ -697,18 +697,17 @@ class TestBadgeImageUnknownPackage(BadgeTestCase):
 class TestBadgeImageMissingData(BadgeTestCase):
     """Tests for the cases where the badge image displays 'missing data.'"""
 
+    def assertImageResponse(self, package_name, left_text):
+        """Assert that the badge image response is correct for a package."""
+        BadgeTestCase.assertImageResponse(
+            self, package_name, main.BadgeStatus.MISSING_DATA, left_text)
+
     def test_missing_self_compatibility_data(self):
         package_name = 'google-api-core'
         missing_self_data = list(RECENT_SUCCESS_DATA)
         missing_self_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         self.fake_store.save_compatibility_statuses(missing_self_data)
-
-        json_response = self.get_image_json(package_name)
-        self.assertEqual(json_response['left_text'],
-                         'compatibility check (PyPI)')
-        self.assertEqual(json_response['right_text'], 'missing data')
-        self.assertEqual(json_response['right_color'], '#9F9F9F')
-        self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertImageResponse(package_name, 'compatibility check (PyPI)')
 
     def test_missing_pair_compatibility_data(self):
         package_name = 'google-api-core'
@@ -716,13 +715,7 @@ class TestBadgeImageMissingData(BadgeTestCase):
         missing_self_data.remove(
             GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2)
         self.fake_store.save_compatibility_statuses(missing_self_data)
-
-        json_response = self.get_image_json(package_name)
-        self.assertEqual(json_response['left_text'],
-                         'compatibility check (PyPI)')
-        self.assertEqual(json_response['right_text'], 'missing data')
-        self.assertEqual(json_response['right_color'], '#9F9F9F')
-        self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertImageResponse(package_name, 'compatibility check (PyPI)')
 
 
 class TestSelfIncompatible(BadgeTestCase):
