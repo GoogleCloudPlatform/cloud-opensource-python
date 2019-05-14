@@ -53,7 +53,7 @@ app = flask.Flask(__name__)
 
 
 @enum.unique
-class BadgeStatus(enum.Enum):
+class BadgeStatus(str, enum.Enum):
     """Represents a package's badge status.
 
     The status is based on the results of running 'pip install' and
@@ -534,14 +534,18 @@ def one_badge_target():
     commit_number = badge_utils._calculate_commit_number(package_name)
 
     self, google, dependency = _get_check_results(package_name)
-    target = flask.render_template(
-        'one-badge.html',
+    template_args = dict(
         package_name=package_name,
         self_compat_res=self,
         google_compat_res=google,
         dependency_res=dependency,
         badge_status_to_color=BADGE_STATUS_TO_COLOR,
         commit_number=commit_number)
+
+    target = flask.render_template('one-badge.html', **template_args)
+
+    if flask.current_app.config['TESTING']:
+        return flask.json.jsonify(**template_args)
     return target
 
 
