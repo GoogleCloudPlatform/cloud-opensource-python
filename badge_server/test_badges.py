@@ -483,8 +483,34 @@ class BadgeTestCase(unittest.TestCase):
             self.assertEqual(main.BADGE_STATUS_TO_COLOR[badge_status], color)
 
 
-class TestBadgeImageSuccess(BadgeTestCase):
+class TestSuccess(BadgeTestCase):
     """Tests for the cases where the badge image displays 'success.'"""
+
+    def assertTargetResponse(self, package_name, *supported_pyversions):
+        expected_status = main.BadgeStatus.SUCCESS
+        json_response = self.get_target_json(package_name)
+        self.assertEqual(json_response['package_name'], package_name)
+        self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
+
+        # self compatibility result check
+        for pyversion in ['py2', 'py3']:
+            expected_details = utils.EMPTY_DETAILS
+            if pyversion not in supported_pyversions:
+                expected_details = ('The package does not support this '
+                                    'version of python.')
+            self.assertEqual(
+                json_response['self_compat_res'][pyversion],
+                {'details': expected_details, 'status': expected_status})
+
+        # pair compatibility result check
+        self.assertEqual(
+            json_response['google_compat_res'],
+            utils._build_default_result(expected_status, details={}))
+
+        # dependency result check
+        self.assertEqual(
+            json_response['dependency_res'],
+            {'deprecated_deps': '', 'details': {}, 'status': expected_status})
 
     def test_pypi_py2py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -495,6 +521,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -505,6 +532,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_pypi_py2_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -515,6 +543,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2')
 
     def test_git_py2_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -525,6 +554,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2')
 
     def test_pypi_py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -535,6 +565,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py3')
 
     def test_git_py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -545,6 +576,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py3')
 
     def test_pypi_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
         """Tests that pairs not sharing a common version are ignored."""
@@ -562,6 +594,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
         """Tests that pairs not sharing a common version are ignored."""
@@ -579,6 +612,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_pypi_py2py3_fresh_nodeps_ignore_git(self):
         """Tests that pair results containing git packages are ignored."""
@@ -608,6 +642,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps_ignore_git(self):
         """Tests that pair results containing git packages are ignored."""
@@ -637,6 +672,7 @@ class TestBadgeImageSuccess(BadgeTestCase):
         self.assertEqual(json_response['right_text'], 'success')
         self.assertEqual(json_response['right_color'], '#44CC44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
+        self.assertTargetResponse(package_name, 'py2', 'py3')
 
 
 class TestBadgeImageUnknownPackage(BadgeTestCase):
