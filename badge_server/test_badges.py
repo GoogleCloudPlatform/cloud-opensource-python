@@ -957,7 +957,7 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
 
 
 class TestBadgeImageObsoleteDependency(BadgeTestCase):
-    """Tests for cases where the badge image displays 'obsolete dependency.'"""
+    """Tests for cases where the badge image displays 'obsolete dependency'."""
 
     def test_pypi_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
