@@ -19,7 +19,7 @@ import unittest.mock
 import urllib.parse
 
 from compatibility_lib import compatibility_store
-from compatibility_lib import dependency_highlighter_stub
+from compatibility_lib import dependency_highlighter
 from compatibility_lib import deprecated_dep_finder_stub
 from compatibility_lib import fake_compatibility_store
 from compatibility_lib import package
@@ -410,14 +410,50 @@ RECENT_SUCCESS_DATA = [
     GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3,
 ]
 
+UP_TO_DATE_DEPS = {
+    'google-auth': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.6.3',
+        'installed_version_time': datetime.datetime(
+            2019, 2, 19, 21, 15, 56),
+        'is_latest': True,
+        'latest_version': '1.6.3',
+        'latest_version_time': datetime.datetime(
+            2019, 2, 19, 21, 15, 56)
+    },
+    'grpcio': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.19.0',
+        'installed_version_time': datetime.datetime(
+            2019, 2, 27, 0, 0, 53),
+        'is_latest': True,
+        'latest_version': '1.19.0',
+        'latest_version_time': datetime.datetime(
+            2019, 2, 27, 0, 0, 53)
+    },
+
+    # TODO: Replace with 'requests' once dependencies are properly added to
+    # the existing compatibility results
+    'google-api-core': {
+        'current_time': datetime.datetime.utcnow(),
+        'installed_version': '1.9.0',
+        'installed_version_time': datetime.datetime(
+            2019, 4, 5, 18, 1, 48),
+        'is_latest': True,
+        'latest_version': '1.9.0',
+        'latest_version_time': datetime.datetime(
+            2019, 4, 5, 18, 1, 48)
+    },
+}
+
 
 class BadgeTestCase(unittest.TestCase):
     """Base class for tests of badge images."""
 
     def setUp(self):
         self.fake_store = fake_compatibility_store.CompatibilityStore()
-        self.dependency_highlighter_stub = dependency_highlighter_stub.DependencyHighlighterStub(
-        )
+        self.dependency_highlighter_stub = dependency_highlighter.DependencyHighlighter(
+            store=self.fake_store)
         self.deprecated_dep_finder_stub = deprecated_dep_finder_stub.DeprecatedDepFinderStub(
         )
 
@@ -786,5 +822,411 @@ class TestSelfIncompatible(BadgeTestCase):
         self.assertEqual(json_response['left_text'],
                          'compatibility check (master)')
         self.assertEqual(json_response['right_text'], 'self incompatible')
+
+
+class TestBadgeImageOutdatedDependency(BadgeTestCase):
+    """Tests for cases where the badge image displays 'old dependency.'"""
+
+    def test_pypi_py2py3_off_by_minor(self):
+        old_dep_info = dict(UP_TO_DATE_DEPS)
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.4.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        old_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
+                old_dep_info))
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_3.with_updated_dependency_info(
+                old_dep_info))
+
+        self.fake_store.save_compatibility_statuses(old_dep_compat_results)
+        package_name = 'google-api-core'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'old dependency')
+        self.assertEqual(json_response['right_color'], '#A4A61D')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_git_py2py3_off_by_minor(self):
+        old_dep_info = dict(UP_TO_DATE_DEPS)
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.4.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        old_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
+                old_dep_info))
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3.with_updated_dependency_info(
+                old_dep_info))
+
+        self.fake_store.save_compatibility_statuses(old_dep_compat_results)
+        package_name = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'old dependency')
+        self.assertEqual(json_response['right_color'], '#A4A61D')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_pypi_py2py3_off_by_patch(self):
+        old_dep_info = dict(UP_TO_DATE_DEPS)
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.6.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        old_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
+                old_dep_info))
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_3.with_updated_dependency_info(
+                old_dep_info))
+
+        self.fake_store.save_compatibility_statuses(old_dep_compat_results)
+        package_name = 'google-api-core'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'old dependency')
+        self.assertEqual(json_response['right_color'], '#A4A61D')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_git_py2py3_off_by_patch(self):
+        old_dep_info = dict(UP_TO_DATE_DEPS)
+        old_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.6.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        old_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        old_dep_compat_results.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
+                old_dep_info))
+        old_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3.with_updated_dependency_info(
+                old_dep_info))
+
+        self.fake_store.save_compatibility_statuses(old_dep_compat_results)
+        package_name = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'old dependency')
+        self.assertEqual(json_response['right_color'], '#A4A61D')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+
+class TestBadgeImageObsoleteDependency(BadgeTestCase):
+    """Tests for cases where the badge image displays 'obsolete dependency'."""
+
+    def test_pypi_py2py3_off_by_major(self):
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'google-api-core'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_git_py2py3_off_by_major(self):
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_pypi_py2py3_off_by_minor(self):
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'google-api-core'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_git_py2py3_off_by_minor(self):
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime.utcnow(),
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.6.3',
+            'latest_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_pypi_py2py3_expired_major_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0),
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'google-api-core'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_git_py2py3_expired_major_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 3, 23, 0, 0, 0),
+            'installed_version': '0.9.9',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_pypi_py2py3_expired_default_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0),
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'google-api-core'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (PyPI)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
+        self.assertEqual(json_response['right_color'], '#E05D44')
+        self.assertLinkUrl(package_name, json_response['whole_link'])
+
+    def test_git_py2py3_expired_default_grace_period(self):
+        """Tests that "old dependency" eventually changes to "obsolete ..."."""
+        obsolete_dep_info = dict(UP_TO_DATE_DEPS)
+        obsolete_dep_info['google-auth'] = {
+            'current_time': datetime.datetime(2019, 8, 23, 0, 0, 0),
+            'installed_version': '1.3.0',
+            'installed_version_time': datetime.datetime(
+                2019, 2, 19, 21, 15, 56),
+            'is_latest': False,
+            'latest_version': '1.0.0',
+            'latest_version_time': datetime.datetime(2019, 2, 19, 21, 15, 56)
+        }
+
+        obsolete_dep_compat_results = list(RECENT_SUCCESS_DATA)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        obsolete_dep_compat_results.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2.with_updated_dependency_info(
+                obsolete_dep_info))
+        obsolete_dep_compat_results.append(
+            GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3.with_updated_dependency_info(
+                obsolete_dep_info))
+
+        self.fake_store.save_compatibility_statuses(
+            obsolete_dep_compat_results)
+        package_name = 'git+git://github.com/google/api-core.git'
+        json_response = self.get_image_json(package_name)
+        self.assertEqual(json_response['left_text'],
+                         'compatibility check (master)')
+        self.assertEqual(json_response['right_text'], 'obsolete dependency')
         self.assertEqual(json_response['right_color'], '#E05D44')
         self.assertLinkUrl(package_name, json_response['whole_link'])
