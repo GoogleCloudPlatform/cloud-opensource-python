@@ -545,13 +545,17 @@ class TestSuccess(BadgeTestCase):
     def setUp(self):
         BadgeTestCase.setUp(self)
         self.success_data = RECENT_SUCCESS_DATA
-        self.unsupported_data = [
+
+        # All of the CompatibilityResults in pairs_without_common_versions and
+        # github_pairs have erroneous statuses but should still yield a
+        # 'success' status as they should be skipped.
+        self.pairs_without_common_versions = [
             APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
             APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
             GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
             GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
         ]
-        self.pair_results_with_git = [
+        self.github_pairs = [
             compatibility_store.CompatibilityResult(
                 [
                     package.Package('git+git://github.com/google/apache-beam.git'),
@@ -642,17 +646,19 @@ class TestSuccess(BadgeTestCase):
         self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py3')
 
-    def test_pypi_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
+    def test_pypi_py2py3_fresh_nodeps_ignore_pairs_without_common_versions(
+            self):
         """Tests that pairs not sharing a common version are ignored."""
-        fake_results = self.success_data + self.unsupported_data
+        fake_results = self.success_data + self.pairs_without_common_versions
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
-    def test_git_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
+    def test_git_py2py3_fresh_nodeps_ignore_pairs_without_common_versions(
+            self):
         """Tests that pairs not sharing a common version are ignored."""
-        fake_results = self.success_data + self.unsupported_data
+        fake_results = self.success_data + self.pairs_without_common_versions
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
@@ -660,7 +666,7 @@ class TestSuccess(BadgeTestCase):
 
     def test_pypi_py2py3_fresh_nodeps_ignore_git(self):
         """Tests that pair results containing git packages are ignored."""
-        fake_results = self.success_data + self.pair_results_with_git
+        fake_results = self.success_data + self.github_pairs
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
@@ -668,7 +674,7 @@ class TestSuccess(BadgeTestCase):
 
     def test_git_py2py3_fresh_nodeps_ignore_git(self):
         """Tests that pair results containing git packages are ignored."""
-        fake_results = self.success_data + self.pair_results_with_git
+        fake_results = self.success_data + self.github_pairs
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
@@ -778,13 +784,14 @@ class TestBadgeImageDependency(TestSuccess):
         # Dependency Info
         dep_info = dict(UP_TO_DATE_DEPS)
 
-        # Success Data
-        self.success_data = list(RECENT_SUCCESS_DATA)
+        # Success Data: add up-to-date dependency information for all
+        # CompatibilityResults containing a single package.
+        self.success_data = []
         for compat_result in RECENT_SUCCESS_DATA:
             if len(compat_result.packages) == 1:
-                self.success_data.remove(compat_result)
-                self.success_data.append(
-                    compat_result.with_updated_dependency_info(dep_info))
+                compat_result = compat_result.with_updated_dependency_info(
+                    dep_info)
+            self.sucess_data.append(compat_result)
 
 
 class TestBadgeImageOutdatedDependency(BadgeTestCase):
