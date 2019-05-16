@@ -522,12 +522,12 @@ class BadgeTestCase(unittest.TestCase):
                          main.BADGE_STATUS_TO_COLOR.get(expected_status))
         self.assertLinkUrl(package_name, json_response['whole_link'])
 
-    def assertImageResponsePyPI(self, package_name, expected_status):
+    def _assertImageResponsePyPI(self, package_name, expected_status):
         """Assert that the badge image response is correct for a PyPI package."""
         self._assertImageResponse(
             package_name, expected_status, 'compatibility check (PyPI)')
 
-    def assertImageResponseGithub(self, package_name, expected_status):
+    def _assertImageResponseGithub(self, package_name, expected_status):
         """Assert that the badge image response is correct for a github package."""
         self._assertImageResponse(
             package_name, expected_status, 'compatibility check (master)')
@@ -542,14 +542,14 @@ class BadgeTestCase(unittest.TestCase):
 class TestSuccess(BadgeTestCase):
     """Tests for the cases where the badge image displays 'success.'"""
 
-    def assertImageSuccessPyPI(self, package_name):
+    def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
-        BadgeTestCase.assertImageResponsePyPI(
+        BadgeTestCase._assertImageResponsePyPI(
             self, package_name, main.BadgeStatus.SUCCESS)
 
-    def assertImageSuccessGithub(self, package_name):
+    def assertImageResponseGithub(self, package_name):
         """Assert that the badge image response is correct for a github package."""
-        BadgeTestCase.assertImageResponseGithub(
+        BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.SUCCESS)
 
     def assertTargetResponse(self, package_name, *supported_pyversions):
@@ -581,37 +581,37 @@ class TestSuccess(BadgeTestCase):
     def test_pypi_py2py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'google-api-core'
-        self.assertImageSuccessPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageSuccessGithub(package_name)
+        self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_pypi_py2_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'apache-beam[gcp]'
-        self.assertImageSuccessPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2')
 
     def test_git_py2_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'git+git://github.com/google/apache-beam.git'
-        self.assertImageSuccessGithub(package_name)
+        self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2')
 
     def test_pypi_py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'tensorflow'
-        self.assertImageSuccessPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py3')
 
     def test_git_py3_fresh_nodeps(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'git+git://github.com/google/tensorflow.git'
-        self.assertImageSuccessGithub(package_name)
+        self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py3')
 
     def test_pypi_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
@@ -624,7 +624,7 @@ class TestSuccess(BadgeTestCase):
         ]
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
-        self.assertImageSuccessPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
@@ -637,7 +637,7 @@ class TestSuccess(BadgeTestCase):
         ]
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageSuccessGithub(package_name)
+        self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_pypi_py2py3_fresh_nodeps_ignore_git(self):
@@ -662,7 +662,7 @@ class TestSuccess(BadgeTestCase):
         ]
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
-        self.assertImageSuccessPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps_ignore_git(self):
@@ -687,45 +687,40 @@ class TestSuccess(BadgeTestCase):
         ]
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageSuccessGithub(package_name)
+        self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
 
 class TestBadgeImageUnknownPackage(BadgeTestCase):
     """Tests for the cases where the badge image displays 'unknown package.'"""
 
-    def assertImageUnknownPackagePyPI(self, package_name):
+    def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
-        BadgeTestCase.assertImageResponsePyPI(
+        BadgeTestCase._assertImageResponsePyPI(
             self, package_name, main.BadgeStatus.UNKNOWN_PACKAGE)
 
-    def assertImageUnknownPackageGithub(self, package_name):
+    def assertImageResponseGithub(self, package_name):
         """Assert that the badge image response is correct for a github package."""
-        BadgeTestCase.assertImageResponseGithub(
+        BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.UNKNOWN_PACKAGE)
 
     def test_pypi_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'xxx'
-        self.assertImageUnknownPackagePyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_github_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
         package_name = 'https://github.com/brianquinlan/notebooks'
-        self.assertImageUnknownPackageGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
 
 class TestBadgeImageMissingData(BadgeTestCase):
     """Tests for the cases where the badge image displays 'missing data.'"""
 
-    def assertImageMissingDataPyPI(self, package_name):
+    def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
-        BadgeTestCase.assertImageResponsePyPI(
-            self, package_name, main.BadgeStatus.MISSING_DATA)
-
-    def assertImageMissingDataGithub(self, package_name):
-        """Assert that the badge image response is correct for a github package."""
-        BadgeTestCase.assertImageResponseGithub(
+        BadgeTestCase._assertImageResponsePyPI(
             self, package_name, main.BadgeStatus.MISSING_DATA)
 
     def test_missing_self_compatibility_data(self):
@@ -733,7 +728,7 @@ class TestBadgeImageMissingData(BadgeTestCase):
         missing_self_data = list(RECENT_SUCCESS_DATA)
         missing_self_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         self.fake_store.save_compatibility_statuses(missing_self_data)
-        self.assertImageMissingDataPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_missing_pair_compatibility_data(self):
         package_name = 'google-api-core'
@@ -741,20 +736,20 @@ class TestBadgeImageMissingData(BadgeTestCase):
         missing_self_data.remove(
             GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2)
         self.fake_store.save_compatibility_statuses(missing_self_data)
-        self.assertImageMissingDataPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
 
 class TestSelfIncompatible(BadgeTestCase):
     """Tests for the cases where the badge image displays 'self incompatible.'"""
 
-    def assertImageSelfIncompatiblePyPI(self, package_name):
+    def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
-        BadgeTestCase.assertImageResponsePyPI(
+        BadgeTestCase._assertImageResponsePyPI(
             self, package_name, main.BadgeStatus.SELF_INCOMPATIBLE)
 
-    def assertImageSelfIncompatibleGithub(self, package_name):
+    def assertImageResponseGithub(self, package_name):
         """Assert that the badge image response is correct for a github package."""
-        BadgeTestCase.assertImageResponseGithub(
+        BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.SELF_INCOMPATIBLE)
 
     def test_pypi_py2py3_py2_incompatible_fresh_nodeps(self):
@@ -763,7 +758,7 @@ class TestSelfIncompatible(BadgeTestCase):
         self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
         self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageSelfIncompatiblePyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_github_py2py3_py2_incompatible_fresh_nodeps(self):
         package_name = 'git+git://github.com/google/api-core.git'
@@ -771,7 +766,7 @@ class TestSelfIncompatible(BadgeTestCase):
         self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageSelfIncompatibleGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
     def test_pypi_py2py3_py3_incompatible_fresh_nodeps(self):
         package_name = 'google-api-core'
@@ -779,7 +774,7 @@ class TestSelfIncompatible(BadgeTestCase):
         self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
         self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageSelfIncompatiblePyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_github_py2py3_py3_incompatible_fresh_nodeps(self):
         package_name = 'git+git://github.com/google/api-core.git'
@@ -787,20 +782,20 @@ class TestSelfIncompatible(BadgeTestCase):
         self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
         self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageSelfIncompatibleGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
 
 class TestBadgeImageOutdatedDependency(BadgeTestCase):
     """Tests for cases where the badge image displays 'old dependency.'"""
 
-    def assertImageOutdatedDependencyPyPI(self, package_name):
+    def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
-        BadgeTestCase.assertImageResponsePyPI(
+        BadgeTestCase._assertImageResponsePyPI(
             self, package_name, main.BadgeStatus.OUTDATED_DEPENDENCY)
 
-    def assertImageOutdatedDependencyGithub(self, package_name):
+    def assertImageResponseGithub(self, package_name):
         """Assert that the badge image response is correct for a github package."""
-        BadgeTestCase.assertImageResponseGithub(
+        BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.OUTDATED_DEPENDENCY)
 
     def test_pypi_py2py3_off_by_minor(self):
@@ -828,7 +823,7 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
 
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'google-api-core'
-        self.assertImageOutdatedDependencyPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_git_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -855,7 +850,7 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
 
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageOutdatedDependencyGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
     def test_pypi_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -882,7 +877,7 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
 
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'google-api-core'
-        self.assertImageOutdatedDependencyPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_git_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -909,20 +904,20 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
 
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageOutdatedDependencyGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
 
 class TestBadgeImageObsoleteDependency(BadgeTestCase):
     """Tests for cases where the badge image displays 'obsolete dependency'."""
 
-    def assertImageObsoleteDependencyPyPI(self, package_name):
+    def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
-        BadgeTestCase.assertImageResponsePyPI(
+        BadgeTestCase._assertImageResponsePyPI(
             self, package_name, main.BadgeStatus.OBSOLETE_DEPENDENCY)
 
-    def assertImageObsoleteDependencyGithub(self, package_name):
+    def assertImageResponseGithub(self, package_name):
         """Assert that the badge image response is correct for a github package."""
-        BadgeTestCase.assertImageResponseGithub(
+        BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.OBSOLETE_DEPENDENCY)
 
     def test_pypi_py2py3_off_by_major(self):
@@ -951,7 +946,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'google-api-core'
-        self.assertImageObsoleteDependencyPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_git_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
@@ -981,7 +976,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageObsoleteDependencyGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
     def test_pypi_py2py3_off_by_minor(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
@@ -1009,7 +1004,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'google-api-core'
-        self.assertImageObsoleteDependencyPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_git_py2py3_off_by_minor(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
@@ -1039,7 +1034,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageObsoleteDependencyGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
     def test_pypi_py2py3_expired_major_grace_period(self):
         """Tests that "old dependency" eventually changes to "obsolete ..."."""
@@ -1067,7 +1062,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'google-api-core'
-        self.assertImageObsoleteDependencyPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_git_py2py3_expired_major_grace_period(self):
         """Tests that "old dependency" eventually changes to "obsolete ..."."""
@@ -1097,7 +1092,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageObsoleteDependencyGithub(package_name)
+        self.assertImageResponseGithub(package_name)
 
     def test_pypi_py2py3_expired_default_grace_period(self):
         """Tests that "old dependency" eventually changes to "obsolete ..."."""
@@ -1125,7 +1120,7 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'google-api-core'
-        self.assertImageObsoleteDependencyPyPI(package_name)
+        self.assertImageResponsePyPI(package_name)
 
     def test_git_py2py3_expired_default_grace_period(self):
         """Tests that "old dependency" eventually changes to "obsolete ..."."""
@@ -1155,4 +1150,4 @@ class TestBadgeImageObsoleteDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(
             obsolete_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
-        self.assertImageObsoleteDependencyGithub(package_name)
+        self.assertImageResponseGithub(package_name)
