@@ -542,6 +542,38 @@ class BadgeTestCase(unittest.TestCase):
 class TestSuccess(BadgeTestCase):
     """Tests for the cases where the badge image displays 'success.'"""
 
+    def setUp(self):
+        BadgeTestCase.setUp(self)
+        self.success_data = RECENT_SUCCESS_DATA
+
+        # All of the CompatibilityResults in pairs_without_common_versions and
+        # github_pairs have erroneous statuses but should still yield a
+        # 'success' status as they should be skipped.
+        self.pairs_without_common_versions = [
+            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
+            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
+            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
+        ]
+        self.github_pairs = [
+            compatibility_store.CompatibilityResult(
+                [
+                    package.Package('git+git://github.com/google/apache-beam.git'),
+                    package.Package('google-api-core')
+                ],
+                python_major_version=2,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                timestamp=datetime.datetime.utcnow()),
+            compatibility_store.CompatibilityResult(
+                [
+                    package.Package('git+git://github.com/google/tensorflow.git'),
+                    package.Package('google-api-core')
+                ],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                timestamp=datetime.datetime.utcnow()),
+        ]
+
     def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
         BadgeTestCase._assertImageResponsePyPI(
@@ -579,62 +611,54 @@ class TestSuccess(BadgeTestCase):
             {'deprecated_deps': '', 'details': {}, 'status': expected_status})
 
     def test_pypi_py2py3_fresh_nodeps(self):
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(self.success_data)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_git_py2py3_fresh_nodeps(self):
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(self.success_data)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
     def test_pypi_py2_fresh_nodeps(self):
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(self.success_data)
         package_name = 'apache-beam[gcp]'
         self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2')
 
     def test_git_py2_fresh_nodeps(self):
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(self.success_data)
         package_name = 'git+git://github.com/google/apache-beam.git'
         self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2')
 
     def test_pypi_py3_fresh_nodeps(self):
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(self.success_data)
         package_name = 'tensorflow'
         self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py3')
 
     def test_git_py3_fresh_nodeps(self):
-        self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
+        self.fake_store.save_compatibility_statuses(self.success_data)
         package_name = 'git+git://github.com/google/tensorflow.git'
         self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py3')
 
-    def test_pypi_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
+    def test_pypi_py2py3_fresh_nodeps_ignore_pairs_without_common_versions(
+            self):
         """Tests that pairs not sharing a common version are ignored."""
-        fake_results = RECENT_SUCCESS_DATA + [
-            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
-            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
-            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-        ]
+        fake_results = self.success_data + self.pairs_without_common_versions
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
         self.assertTargetResponse(package_name, 'py2', 'py3')
 
-    def test_git_py2py3_fresh_nodeps_ignore_unsupported_versions(self):
+    def test_git_py2py3_fresh_nodeps_ignore_pairs_without_common_versions(
+            self):
         """Tests that pairs not sharing a common version are ignored."""
-        fake_results = RECENT_SUCCESS_DATA + [
-            APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3,
-            APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3,
-            GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-            GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2,
-        ]
+        fake_results = self.success_data + self.pairs_without_common_versions
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
@@ -642,24 +666,7 @@ class TestSuccess(BadgeTestCase):
 
     def test_pypi_py2py3_fresh_nodeps_ignore_git(self):
         """Tests that pair results containing git packages are ignored."""
-        fake_results = RECENT_SUCCESS_DATA + [
-            compatibility_store.CompatibilityResult(
-                [
-                    package.Package('git+git://github.com/google/apache-beam.git'),
-                    package.Package('google-api-core')
-                ],
-                python_major_version=2,
-                status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
-            compatibility_store.CompatibilityResult(
-                [
-                    package.Package('git+git://github.com/google/tensorflow.git'),
-                    package.Package('google-api-core')
-                ],
-                python_major_version=3,
-                status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
-        ]
+        fake_results = self.success_data + self.github_pairs
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
@@ -667,24 +674,7 @@ class TestSuccess(BadgeTestCase):
 
     def test_git_py2py3_fresh_nodeps_ignore_git(self):
         """Tests that pair results containing git packages are ignored."""
-        fake_results = RECENT_SUCCESS_DATA + [
-            compatibility_store.CompatibilityResult(
-                [
-                    package.Package('git+git://github.com/google/apache-beam.git'),
-                    package.Package('git+git://github.com/google/api-core.git')
-                ],
-                python_major_version=2,
-                status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
-            compatibility_store.CompatibilityResult(
-                [
-                    package.Package('git+git://github.com/google/tensorflow.git'),
-                    package.Package('git+git://github.com/google/api-core.git')
-                ],
-                python_major_version=3,
-                status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
-        ]
+        fake_results = self.success_data + self.github_pairs
         self.fake_store.save_compatibility_statuses(fake_results)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
@@ -783,6 +773,25 @@ class TestSelfIncompatible(BadgeTestCase):
         self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
         self.assertImageResponseGithub(package_name)
+
+
+class TestBadgeImageDependency(TestSuccess):
+    """Tests for cases with multiple dependencies displaying 'success'."""
+
+    def setUp(self):
+        TestSuccess.setUp(self)
+
+        # Dependency Info
+        dep_info = dict(UP_TO_DATE_DEPS)
+
+        # Success Data: add up-to-date dependency information for all
+        # CompatibilityResults containing a single package.
+        self.success_data = []
+        for compat_result in RECENT_SUCCESS_DATA:
+            if len(compat_result.packages) == 1:
+                compat_result = compat_result.with_updated_dependency_info(
+                    dep_info)
+            self.success_data.append(compat_result)
 
 
 class TestBadgeImageOutdatedDependency(BadgeTestCase):
