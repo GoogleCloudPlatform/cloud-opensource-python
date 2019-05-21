@@ -158,6 +158,7 @@ def _get_missing_details(package_names: List[str],
         `results` only contained a result for 3, this would be returned:
         "Missing data for packages=['opencensus'], versions=[2]".
     """
+    package_names.sort()
     message = 'package_names: Expected length of 1 or 2, got {}'.format(
         len(package_names))
     assert len(package_names) in (1, 2), message
