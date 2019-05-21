@@ -791,7 +791,7 @@ class TestBadgeImageDependency(TestSuccess):
             if len(compat_result.packages) == 1:
                 compat_result = compat_result.with_updated_dependency_info(
                     dep_info)
-            self.sucess_data.append(compat_result)
+            self.success_data.append(compat_result)
 
 
 class TestBadgeImageOutdatedDependency(BadgeTestCase):
