@@ -158,8 +158,8 @@ class TestBadgeServer(unittest.TestCase):
             python_major_version=2,
             status=compatibility_store.Status.SUCCESS)]
         details = main._get_missing_details(package_names, results)
-        expected_details = ("Missing data for packages=['opencensus', "
-                            "'compatibility-lib'], versions=[3]")
+        expected_details = ("Missing data for packages=['compatibility-lib', "
+                            "'opencensus'], versions=[3]")
         self.assertEqual(details, expected_details)
 
     def test__get_self_compatibility_dict(self):
