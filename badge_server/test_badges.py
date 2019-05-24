@@ -102,7 +102,7 @@ GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.CompatibilityRe
 GOOGLE_API_CORE_RECENT_INSTALL_FAILURE_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core')],
     python_major_version=2,
-    status=compatibility_store.Status.CHECK_WARNING,
+    status=compatibility_store.Status.INSTALL_ERROR,
     dependency_info={
         'google-api-core': {
             'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
