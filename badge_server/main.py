@@ -118,9 +118,9 @@ BADGE_STATUS_TO_COLOR = {
 # 1. Status.INSTALL_ERROR occurs when the pip installation fails. This can
 #    happen if the package doesn't exist, a dependency does not exist, the
 #    setup.py file is invalid (when installed from git), etc.
-# 2. Status.CHECK_WARNING occurs when `pip check` returns an error. This happens
-#    when there are installed packages have incompatible dependencies. See:
-#    https://pip.pypa.io/en/stable/reference/pip_check/
+# 2. Status.CHECK_WARNING occurs when `pip check` returns an error. This
+#    happens when there are installed packages have incompatible dependencies.
+#    See: https://pip.pypa.io/en/stable/reference/pip_check/
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     compatibility_store.Status.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
     compatibility_store.Status.SUCCESS: BadgeStatus.SUCCESS,
