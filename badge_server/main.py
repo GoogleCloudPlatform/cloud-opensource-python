@@ -114,18 +114,17 @@ BADGE_STATUS_TO_COLOR = {
 }
 
 
-# Note: An INSTALL_ERROR occurs when pip_check yields an
-# PipCheckResultType.INSTALL_ERROR. Technically, this could happen when
-# querying the compatibility server if the input had an unrecognized package
-# or a given package does not support the given python version, both of which
-# are not internal errors. However, since we handle for those cases, we should
-# never get an INSTALL_ERROR for either of those reasons. An INSTALL_ERROR
-# *could* occur when a github repo subdirectory is moved or some error is
-# thrown in code.
+# NOTE:
+# 1. Status.INSTALL_ERROR occurs when the pip installation fails. This can
+#    happen if the package doesn't exist, a dependency does not exist, the
+#    setup.py file is invalid (when installed from git), etc.
+# 2. Status.CHECK_WARNING occurs when `pip check` returns an error. This happens
+#    when there are installed packages have incompatible dependencies. See:
+#    https://pip.pypa.io/en/stable/reference/pip_check/
 PACKAGE_STATUS_TO_BADGE_STATUS = {
     compatibility_store.Status.UNKNOWN: BadgeStatus.UNKNOWN_PACKAGE,
     compatibility_store.Status.SUCCESS: BadgeStatus.SUCCESS,
-    compatibility_store.Status.INSTALL_ERROR: BadgeStatus.INTERNAL_ERROR,
+    compatibility_store.Status.INSTALL_ERROR: None,
     compatibility_store.Status.CHECK_WARNING: None
 }
 
