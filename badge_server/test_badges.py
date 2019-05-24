@@ -902,8 +902,29 @@ class TestBadgeImageDependency(TestSuccess):
             self.success_data.append(compat_result)
 
 
-class TestBadgeImageOutdatedDependency(BadgeTestCase):
+class TestOutdatedDependency(BadgeTestCase):
     """Tests for cases where the badge image displays 'old dependency.'"""
+
+    def setUp(self):
+        BadgeTestCase.setUp(self)
+
+        self.off_by_minor_expected_details = {
+            'google-auth': {
+                'detail': 'google-auth is not up to date with the latest version',
+                'installed_version': '1.4.0',
+                'latest_version': '1.6.3',
+                'priority': 'LOW_PRIORITY'
+            }
+        }
+
+        self.off_by_patch_expected_details = {
+            'google-auth': {
+                'detail': 'google-auth is not up to date with the latest version',
+                'installed_version': '1.6.0',
+                'latest_version': '1.6.3',
+                'priority': 'LOW_PRIORITY'
+            }
+        }
 
     def assertImageResponsePyPI(self, package_name):
         """Assert that the badge image response is correct for a PyPI package."""
@@ -914,6 +935,28 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
         """Assert that the badge image response is correct for a github package."""
         BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.OUTDATED_DEPENDENCY)
+
+    def assertTargetResponse(self, package_name, expected_details):
+        expected_status = main.BadgeStatus.OUTDATED_DEPENDENCY
+        json_response = self.get_target_json(package_name)
+        self.assertEqual(json_response['package_name'], package_name)
+        self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
+
+        # self compatibility result check
+        self.assertEqual(
+            json_response['self_compat_res'],
+            utils._build_default_result(main.BadgeStatus.SUCCESS,
+                                        details=utils.EMPTY_DETAILS))
+
+        # pair compatibility result check
+        self.assertEqual(
+            json_response['google_compat_res'],
+            utils._build_default_result(main.BadgeStatus.SUCCESS, details={}))
+
+        # dependency result check
+        self.assertEqual(
+            json_response['dependency_res'],
+            {'deprecated_deps': '', 'details': expected_details, 'status': expected_status})
 
     def test_pypi_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -941,6 +984,8 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
+        self.assertTargetResponse(
+            package_name, self.off_by_minor_expected_details)
 
     def test_git_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -968,6 +1013,8 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
+        self.assertTargetResponse(
+            package_name, self.off_by_minor_expected_details)
 
     def test_pypi_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -995,6 +1042,8 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'google-api-core'
         self.assertImageResponsePyPI(package_name)
+        self.assertTargetResponse(
+            package_name, self.off_by_patch_expected_details)
 
     def test_git_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
@@ -1022,6 +1071,8 @@ class TestBadgeImageOutdatedDependency(BadgeTestCase):
         self.fake_store.save_compatibility_statuses(old_dep_compat_results)
         package_name = 'git+git://github.com/google/api-core.git'
         self.assertImageResponseGithub(package_name)
+        self.assertTargetResponse(
+            package_name, self.off_by_patch_expected_details)
 
 
 class TestBadgeImageObsoleteDependency(BadgeTestCase):
