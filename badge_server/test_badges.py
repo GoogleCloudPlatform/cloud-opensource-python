@@ -189,6 +189,24 @@ GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2 = compatibility_store.Compatibili
     },
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
+GOOGLE_API_CORE_GIT_RECENT_INSTALL_FAILURE_2 = compatibility_store.CompatibilityResult(
+    [package.Package('git+git://github.com/google/api-core.git')],
+    python_major_version=2,
+    status=compatibility_store.Status.INSTALL_ERROR,
+    dependency_info={
+        'google-api-core': {
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
+            'installed_version': '1.9.0',
+            'installed_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+            'is_latest': True,
+            'latest_version': '1.9.0',
+            'latest_version_time': datetime.datetime(
+                2019, 4, 5, 18, 1, 48),
+        },
+    },
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
 GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
     [package.Package('git+git://github.com/google/api-core.git')],
     python_major_version=3,
@@ -887,6 +905,15 @@ class TestSelfIncompatible(BadgeTestCase):
         self_incompatible_data = list(RECENT_SUCCESS_DATA)
         self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
         self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
+        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+        self.assertImageResponseGithub(package_name)
+        self.assertTargetResponse(package_name, 'py2')
+
+    def test_github_py2py3_py2_installation_failure_fresh_nodeps(self):
+        package_name = 'git+git://github.com/google/api-core.git'
+        self_incompatible_data = list(RECENT_SUCCESS_DATA)
+        self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
+        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_INSTALL_FAILURE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
         self.assertImageResponseGithub(package_name)
         self.assertTargetResponse(package_name, 'py2')
