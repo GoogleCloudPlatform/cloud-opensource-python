@@ -286,6 +286,13 @@ APACHE_BEAM_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibility
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
+APACHE_BEAM_GOOGLE_API_CORE_RECENT_PAIR_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [package.Package('apache-beam[gcp]'),
+     package.Package('google-api-core')],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
 APACHE_BEAM_GOOGLE_API_CORE_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
     [package.Package('apache-beam[gcp]'),
      package.Package('google-api-core')],
@@ -309,6 +316,13 @@ APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_SUCCESS_2 = compatibility_store.Compatibi
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
+APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_PAIR_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [package.Package('git+git://github.com/google/apache-beam.git'),
+     package.Package('google-api-core')],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
 APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
         package.Package('git+git://github.com/google/apache-beam.git'),
@@ -325,6 +339,15 @@ APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2 = compatibility_store.Compatibi
     ],
     python_major_version=2,
     status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
+APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_PAIR_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('apache-beam[gcp]'),
+        package.Package('git+git://github.com/google/api-core.git')
+    ],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_INSTALL_ERROR_3 = compatibility_store.CompatibilityResult(
@@ -363,6 +386,24 @@ GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_store.
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
+GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('google-api-core'),
+        package.Package('google-api-python-client')
+    ],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
+GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('google-api-core'),
+        package.Package('google-api-python-client')
+    ],
+    python_major_version=3,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
 GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2 = compatibility_store.CompatibilityResult(
     [
         package.Package('git+git://github.com/google/api-core.git'),
@@ -381,6 +422,24 @@ GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3 = compatibility_st
     status=compatibility_store.Status.SUCCESS,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
+GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_2 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('git+git://github.com/google/api-core.git'),
+        package.Package('google-api-python-client')
+    ],
+    python_major_version=2,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
+GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('git+git://github.com/google/api-core.git'),
+        package.Package('google-api-python-client')
+    ],
+    python_major_version=3,
+    status=compatibility_store.Status.CHECK_WARNING,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
 GOOGLE_API_CORE_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
     [package.Package('google-api-core'),
      package.Package('tensorflow')],
@@ -393,6 +452,13 @@ GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityR
      package.Package('tensorflow')],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
+GOOGLE_API_CORE_TENSORFLOW_RECENT_PAIR_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
+    [package.Package('google-api-core'),
+     package.Package('tensorflow')],
+    python_major_version=3,
+    status=compatibility_store.Status.CHECK_WARNING,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_INSTALL_ERROR_2 = compatibility_store.CompatibilityResult(
@@ -411,6 +477,15 @@ GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.Compatibil
     ],
     python_major_version=3,
     status=compatibility_store.Status.SUCCESS,
+    timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
+
+GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_PAIR_INCOMPATIBLE_3 = compatibility_store.CompatibilityResult(
+    [
+        package.Package('git+git://github.com/google/api-core.git'),
+        package.Package('tensorflow')
+    ],
+    python_major_version=3,
+    status=compatibility_store.Status.CHECK_WARNING,
     timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0))
 
 GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3 = compatibility_store.CompatibilityResult(
@@ -443,6 +518,30 @@ RECENT_SUCCESS_DATA = [
     GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_3,
     GOOGLE_API_CORE_TENSORFLOW_RECENT_SUCCESS_3,
     GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_SUCCESS_3,
+    GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3,
+]
+
+GOOGLE_API_CORE_SELF_INCOMPATIBLE_DATA = [
+    APACHE_BEAM_RECENT_SUCCESS_2,
+    APACHE_BEAM_GIT_RECENT_SUCCESS_2,
+    GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2,
+    GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3,
+    GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2,
+    GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3,
+    TENSORFLOW_RECENT_SUCCESS_3,
+    TENSORFLOW_GIT_RECENT_SUCCESS_3,
+    APACHE_BEAM_GOOGLE_API_CORE_RECENT_PAIR_INCOMPATIBLE_2,
+    APACHE_BEAM_GIT_GOOGLE_API_CORE_RECENT_PAIR_INCOMPATIBLE_2,
+    APACHE_BEAM_GOOGLE_API_CORE_GIT_RECENT_PAIR_INCOMPATIBLE_2,
+    APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_GIT_RECENT_SUCCESS_2,
+    APACHE_BEAM_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2,
+    APACHE_BEAM_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_SUCCESS_2,
+    GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_2,
+    GOOGLE_API_CORE_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_3,
+    GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_2,
+    GOOGLE_API_CORE_GIT_GOOGLE_API_PYTHON_CLIENT_RECENT_PAIR_INCOMPATIBLE_3,
+    GOOGLE_API_CORE_TENSORFLOW_RECENT_PAIR_INCOMPATIBLE_3,
+    GOOGLE_API_CORE_GIT_TENSORFLOW_RECENT_PAIR_INCOMPATIBLE_3,
     GOOGLE_API_PYTHON_CLIENT_TENSORFLOW_RECENT_SUCCESS_3,
 ]
 
@@ -856,85 +955,102 @@ class TestSelfIncompatible(BadgeTestCase):
         BadgeTestCase._assertImageResponseGithub(
             self, package_name, main.BadgeStatus.SELF_INCOMPATIBLE)
 
-    def assertTargetResponse(self, package_name, *affected_pyversions):
+    def assertTargetResponse(self, package_name, expected_pair_result):
         json_response = self.get_target_json(package_name)
         self.assertEqual(json_response['package_name'], package_name)
         self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
 
         # self compatibility result check
-        for pyversion in ['py2', 'py3']:
-            expected_status = main.BadgeStatus.SELF_INCOMPATIBLE
-            if pyversion not in affected_pyversions:
-                expected_status = main.BadgeStatus.SUCCESS
-
-            self.assertEqual(
-                json_response['self_compat_res'][pyversion],
-                {'details': utils.EMPTY_DETAILS, 'status': expected_status})
+        expected_status = main.BadgeStatus.SELF_INCOMPATIBLE
+        self.assertEqual(
+            json_response['self_compat_res'],
+            utils._build_default_result(expected_status,
+                                        details=utils.EMPTY_DETAILS))
 
         # pair compatibility result check
         expected_status = main.BadgeStatus.SUCCESS
         self.assertEqual(
             json_response['google_compat_res'],
-            utils._build_default_result(expected_status, details={}))
+            expected_pair_result)
 
         # dependency result check
         self.assertEqual(
             json_response['dependency_res'],
             {'deprecated_deps': '', 'details': {}, 'status': expected_status})
 
-    def test_pypi_py2py3_py2_incompatible_fresh_nodeps(self):
+    def test_pypi_py2py3_incompatible_fresh_nodeps(self):
         package_name = 'google-api-core'
-        self_incompatible_data = list(RECENT_SUCCESS_DATA)
-        self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
-        self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2)
-        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+        self.fake_store.save_compatibility_statuses(
+            GOOGLE_API_CORE_SELF_INCOMPATIBLE_DATA)
+
+        # Test badge image
         self.assertImageResponsePyPI(package_name)
-        self.assertTargetResponse(package_name, 'py2')
+
+        # Test badge details page
+        expected_pair_result = {
+            'py2': {'details': {'apache-beam[gcp]': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE},
+            'py3': {'details': {'tensorflow': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE}
+        }
+        self.assertTargetResponse(package_name, expected_pair_result)
 
     def test_pypi_py2py3_py2_installation_failure_fresh_nodeps(self):
         package_name = 'google-api-core'
-        self_incompatible_data = list(RECENT_SUCCESS_DATA)
-        self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_2)
+        self_incompatible_data = list(GOOGLE_API_CORE_SELF_INCOMPATIBLE_DATA)
+        self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_2)
         self_incompatible_data.append(GOOGLE_API_CORE_RECENT_INSTALL_FAILURE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageResponsePyPI(package_name)
-        self.assertTargetResponse(package_name, 'py2')
 
-    def test_github_py2py3_py2_incompatible_fresh_nodeps(self):
+        # Test badge image
+        self.assertImageResponsePyPI(package_name)
+
+        # Test badge details page
+        expected_pair_result = {
+            'py2': {'details': {'apache-beam[gcp]': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE},
+            'py3': {'details': {'tensorflow': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE}
+        }
+        self.assertTargetResponse(package_name, expected_pair_result)
+
+    def test_github_py2py3_incompatible_fresh_nodeps(self):
         package_name = 'git+git://github.com/google/api-core.git'
-        self_incompatible_data = list(RECENT_SUCCESS_DATA)
-        self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
-        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
-        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+        self.fake_store.save_compatibility_statuses(
+            GOOGLE_API_CORE_SELF_INCOMPATIBLE_DATA)
+
+        # Test badge image
         self.assertImageResponseGithub(package_name)
-        self.assertTargetResponse(package_name, 'py2')
+
+        # Test badge details page
+        expected_pair_result = {
+            'py2': {'details': {'apache-beam[gcp]': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE},
+            'py3': {'details': {'tensorflow': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE}
+        }
+        self.assertTargetResponse(package_name, expected_pair_result)
 
     def test_github_py2py3_py2_installation_failure_fresh_nodeps(self):
         package_name = 'git+git://github.com/google/api-core.git'
-        self_incompatible_data = list(RECENT_SUCCESS_DATA)
-        self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_2)
-        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_INSTALL_FAILURE_2)
+        self_incompatible_data = list(GOOGLE_API_CORE_SELF_INCOMPATIBLE_DATA)
+        self_incompatible_data.remove(
+            GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_2)
+        self_incompatible_data.append(
+            GOOGLE_API_CORE_GIT_RECENT_INSTALL_FAILURE_2)
         self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageResponseGithub(package_name)
-        self.assertTargetResponse(package_name, 'py2')
 
-    def test_pypi_py2py3_py3_incompatible_fresh_nodeps(self):
-        package_name = 'google-api-core'
-        self_incompatible_data = list(RECENT_SUCCESS_DATA)
-        self_incompatible_data.remove(GOOGLE_API_CORE_RECENT_SUCCESS_3)
-        self_incompatible_data.append(GOOGLE_API_CORE_RECENT_SELF_INCOMPATIBLE_3)
-        self.fake_store.save_compatibility_statuses(self_incompatible_data)
-        self.assertImageResponsePyPI(package_name)
-        self.assertTargetResponse(package_name, 'py3')
-
-    def test_github_py2py3_py3_incompatible_fresh_nodeps(self):
-        package_name = 'git+git://github.com/google/api-core.git'
-        self_incompatible_data = list(RECENT_SUCCESS_DATA)
-        self_incompatible_data.remove(GOOGLE_API_CORE_GIT_RECENT_SUCCESS_3)
-        self_incompatible_data.append(GOOGLE_API_CORE_GIT_RECENT_SELF_INCOMPATIBLE_3)
-        self.fake_store.save_compatibility_statuses(self_incompatible_data)
+        # Test badge image
         self.assertImageResponseGithub(package_name)
-        self.assertTargetResponse(package_name, 'py3')
+
+        # Test badge details page
+        expected_pair_result = {
+            'py2': {'details': {'apache-beam[gcp]': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE},
+            'py3': {'details': {'tensorflow': utils.EMPTY_DETAILS},
+                    'status': main.BadgeStatus.PAIR_INCOMPATIBLE}
+        }
+        self.assertTargetResponse(package_name, expected_pair_result)
 
 
 class TestBadgeImageDependency(TestSuccess):
