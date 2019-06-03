@@ -547,7 +547,7 @@ GOOGLE_API_CORE_SELF_INCOMPATIBLE_DATA = [
 
 UP_TO_DATE_DEPS = {
     'google-auth': {
-        'current_time': datetime.datetime.utcnow(),
+        'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
         'installed_version': '1.6.3',
         'installed_version_time': datetime.datetime(
             2019, 2, 19, 21, 15, 56),
@@ -557,7 +557,7 @@ UP_TO_DATE_DEPS = {
             2019, 2, 19, 21, 15, 56)
     },
     'grpcio': {
-        'current_time': datetime.datetime.utcnow(),
+        'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
         'installed_version': '1.19.0',
         'installed_version_time': datetime.datetime(
             2019, 2, 27, 0, 0, 53),
@@ -566,11 +566,8 @@ UP_TO_DATE_DEPS = {
         'latest_version_time': datetime.datetime(
             2019, 2, 27, 0, 0, 53)
     },
-
-    # TODO: Replace with 'requests' once dependencies are properly added to
-    # the existing compatibility results
-    'google-api-core': {
-        'current_time': datetime.datetime.utcnow(),
+    'requests': {
+        'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
         'installed_version': '1.9.0',
         'installed_version_time': datetime.datetime(
             2019, 4, 5, 18, 1, 48),
@@ -698,7 +695,7 @@ class TestSuccess(BadgeTestCase):
                 ],
                 python_major_version=2,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime.utcnow()),
+                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
             compatibility_store.CompatibilityResult(
                 [
                     package.Package('git+git://github.com/google/tensorflow.git'),
@@ -706,7 +703,7 @@ class TestSuccess(BadgeTestCase):
                 ],
                 python_major_version=3,
                 status=compatibility_store.Status.INSTALL_ERROR,
-                timestamp=datetime.datetime.utcnow()),
+                timestamp=datetime.datetime(2019, 5, 7, 0, 0, 0)),
         ]
 
     def assertImageResponsePyPI(self, package_name):
@@ -1266,7 +1263,7 @@ class TestOutdatedDependency(BadgeTestCase):
     def test_pypi_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
         old_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '1.4.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1295,7 +1292,7 @@ class TestOutdatedDependency(BadgeTestCase):
     def test_git_py2py3_off_by_minor(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
         old_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '1.4.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1324,7 +1321,7 @@ class TestOutdatedDependency(BadgeTestCase):
     def test_pypi_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
         old_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '1.6.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1353,7 +1350,7 @@ class TestOutdatedDependency(BadgeTestCase):
     def test_git_py2py3_off_by_patch(self):
         old_dep_info = dict(UP_TO_DATE_DEPS)
         old_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '1.6.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1465,7 +1462,7 @@ class TestObsoleteDependency(BadgeTestCase):
     def test_pypi_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '0.9.9',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1495,7 +1492,7 @@ class TestObsoleteDependency(BadgeTestCase):
     def test_git_py2py3_off_by_major(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '0.9.9',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1527,7 +1524,7 @@ class TestObsoleteDependency(BadgeTestCase):
     def test_pypi_py2py3_off_by_minor(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '1.3.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
@@ -1557,7 +1554,7 @@ class TestObsoleteDependency(BadgeTestCase):
     def test_git_py2py3_off_by_minor(self):
         obsolete_dep_info = dict(UP_TO_DATE_DEPS)
         obsolete_dep_info['google-auth'] = {
-            'current_time': datetime.datetime.utcnow(),
+            'current_time': datetime.datetime(2019, 5, 7, 0, 0, 0),
             'installed_version': '1.3.0',
             'installed_version_time': datetime.datetime(
                 2019, 2, 19, 21, 15, 56),
