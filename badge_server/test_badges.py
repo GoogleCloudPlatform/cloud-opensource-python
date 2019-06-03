@@ -736,9 +736,11 @@ class TestSuccess(BadgeTestCase):
                 {'details': expected_details, 'status': expected_status})
 
         # pair compatibility result check
-        self.assertEqual(
-            json_response['google_compat_res'],
-            utils._build_default_result(expected_status, details={}))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': {}},
+            'py3': {'status': expected_status, 'details': {}}
+        }
+        self.assertEqual(json_response['google_compat_res'], expected_result)
 
         # dependency result check
         self.assertEqual(
@@ -830,29 +832,31 @@ class TestUnknownPackage(BadgeTestCase):
             self, package_name, main.BadgeStatus.UNKNOWN_PACKAGE)
 
     def assertTargetResponse(self, package_name):
-        expected_status = main.BadgeStatus.UNKNOWN_PACKAGE
-        expected_details = ('This package is not a whitelisted google '
-                            'python package; to whitelist a package, '
-                            'contact the python team.')
         json_response = self.get_target_json(package_name)
         self.assertEqual(json_response['package_name'], package_name)
         self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
 
         # self compatibility result check
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(expected_status,
-                                        details=expected_details))
+        expected_status = main.BadgeStatus.UNKNOWN_PACKAGE
+        expected_details = ('This package is not a whitelisted google '
+                            'python package; to whitelist a package, '
+                            'contact the python team.')
+        expected_result = {
+            'py2': {'status': expected_status, 'details': expected_details},
+            'py3': {'status': expected_status, 'details': expected_details}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
         # pair compatibility result check
-        self.assertEqual(
-            json_response['google_compat_res'],
-            utils._build_default_result(expected_status, details={}))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': {}},
+            'py3': {'status': expected_status, 'details': {}}
+        }
+        self.assertEqual(json_response['google_compat_res'], expected_result)
 
         # dependency result check
-        self.assertEqual(
-            json_response['dependency_res'],
-            utils._build_default_result(expected_status, False, {}))
+        expected_result = {'status': expected_status, 'details': {}}
+        self.assertEqual(json_response['dependency_res'], expected_result)
 
     def test_pypi_unknown_package(self):
         self.fake_store.save_compatibility_statuses(RECENT_SUCCESS_DATA)
@@ -889,19 +893,25 @@ class TestMissingData(BadgeTestCase):
         self.assertEqual(json_response['package_name'], package_name)
         self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
 
+        #   self compatibility result check
         expected_status = main.BadgeStatus.MISSING_DATA
         expected_details = ("Missing data for packages=['google-api-core'], "
                             "versions=[2]")
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(expected_status,
-                                        details=expected_details))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': expected_details},
+            'py3': {'status': expected_status, 'details': expected_details}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
+        #   pair compatibility result check
         expected_status = main.BadgeStatus.SUCCESS
-        self.assertEqual(
-            json_response['google_compat_res'],
-            utils._build_default_result(expected_status, details={}))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': {}},
+            'py3': {'status': expected_status, 'details': {}}
+        }
+        self.assertEqual(json_response['google_compat_res'], expected_result)
 
+        #   dependency result check
         self.assertEqual(
             json_response['dependency_res'],
             {'deprecated_deps': '', 'details': {}, 'status': expected_status})
@@ -927,15 +937,18 @@ class TestMissingData(BadgeTestCase):
                 "Missing data for packages=['google-api-core', "
                 "'google-api-python-client'], versions=[2]")
         }
-        self.assertEqual(
-            json_response['google_compat_res'],
-            utils._build_default_result(expected_status,
-                                        details=expected_details))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': expected_details},
+            'py3': {'status': expected_status, 'details': expected_details}
+        }
+        self.assertEqual(json_response['google_compat_res'], expected_result)
 
         expected_status = main.BadgeStatus.SUCCESS
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(expected_status))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': utils.EMPTY_DETAILS},
+            'py3': {'status': expected_status, 'details': utils.EMPTY_DETAILS}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
         self.assertEqual(
             json_response['dependency_res'],
@@ -962,10 +975,11 @@ class TestSelfIncompatible(BadgeTestCase):
 
         # self compatibility result check
         expected_status = main.BadgeStatus.SELF_INCOMPATIBLE
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(expected_status,
-                                        details=utils.EMPTY_DETAILS))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': utils.EMPTY_DETAILS},
+            'py3': {'status': expected_status, 'details': utils.EMPTY_DETAILS}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
         # pair compatibility result check
         expected_status = main.BadgeStatus.SUCCESS
@@ -1073,9 +1087,11 @@ class TestPairIncompatibility(BadgeTestCase):
 
         # self compatibility result check
         expected_status = main.BadgeStatus.SUCCESS
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(expected_status))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': utils.EMPTY_DETAILS},
+            'py3': {'status': expected_status, 'details': utils.EMPTY_DETAILS}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
         # pair compatibility result check
         self.assertEqual(
@@ -1222,23 +1238,27 @@ class TestOutdatedDependency(BadgeTestCase):
             self, package_name, main.BadgeStatus.OUTDATED_DEPENDENCY)
 
     def assertTargetResponse(self, package_name, expected_details):
-        expected_status = main.BadgeStatus.OUTDATED_DEPENDENCY
         json_response = self.get_target_json(package_name)
         self.assertEqual(json_response['package_name'], package_name)
         self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
 
         # self compatibility result check
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(main.BadgeStatus.SUCCESS,
-                                        details=utils.EMPTY_DETAILS))
+        expected_status = main.BadgeStatus.SUCCESS
+        expected_result = {
+            'py2': {'status': expected_status, 'details': utils.EMPTY_DETAILS},
+            'py3': {'status': expected_status, 'details': utils.EMPTY_DETAILS}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
         # pair compatibility result check
-        self.assertEqual(
-            json_response['google_compat_res'],
-            utils._build_default_result(main.BadgeStatus.SUCCESS, details={}))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': {}},
+            'py3': {'status': expected_status, 'details': {}}
+        }
+        self.assertEqual(json_response['google_compat_res'], expected_result)
 
         # dependency result check
+        expected_status = main.BadgeStatus.OUTDATED_DEPENDENCY
         self.assertEqual(
             json_response['dependency_res'],
             {'deprecated_deps': '', 'details': expected_details, 'status': expected_status})
@@ -1417,23 +1437,27 @@ class TestObsoleteDependency(BadgeTestCase):
             self, package_name, main.BadgeStatus.OBSOLETE_DEPENDENCY)
 
     def assertTargetResponse(self, package_name, expected_details):
-        expected_status = main.BadgeStatus.OBSOLETE_DEPENDENCY
         json_response = self.get_target_json(package_name)
         self.assertEqual(json_response['package_name'], package_name)
         self.assertBadgeStatusToColor(json_response['badge_status_to_color'])
 
         # self compatibility result check
-        self.assertEqual(
-            json_response['self_compat_res'],
-            utils._build_default_result(main.BadgeStatus.SUCCESS,
-                                        details=utils.EMPTY_DETAILS))
+        expected_status = main.BadgeStatus.SUCCESS
+        expected_result = {
+            'py2': {'status': expected_status, 'details': utils.EMPTY_DETAILS},
+            'py3': {'status': expected_status, 'details': utils.EMPTY_DETAILS}
+        }
+        self.assertEqual(json_response['self_compat_res'], expected_result)
 
         # pair compatibility result check
-        self.assertEqual(
-            json_response['google_compat_res'],
-            utils._build_default_result(main.BadgeStatus.SUCCESS, details={}))
+        expected_result = {
+            'py2': {'status': expected_status, 'details': {}},
+            'py3': {'status': expected_status, 'details': {}}
+        }
+        self.assertEqual(json_response['google_compat_res'], expected_result)
 
         # dependency result check
+        expected_status = main.BadgeStatus.OBSOLETE_DEPENDENCY
         self.assertEqual(
             json_response['dependency_res'],
             {'deprecated_deps': '', 'details': expected_details, 'status': expected_status})
