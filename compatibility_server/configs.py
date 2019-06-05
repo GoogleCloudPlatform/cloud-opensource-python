@@ -39,6 +39,8 @@ IGNORED_DEPENDENCIES = [
     'virtualenv',
 ]
 
+# If updating this list, make sure to update the whitelist as well with the
+# appropiate github repo if one exists.
 PKG_LIST = [
     'google-api-core',
     'google-api-python-client',
@@ -47,34 +49,44 @@ PKG_LIST = [
     'google-cloud-automl',
     'google-cloud-bigquery',
     'google-cloud-bigquery-datatransfer',
+    'google-cloud-bigquery-storage',
     'google-cloud-bigtable',
     'google-cloud-container',
     'google-cloud-core',
+    'google-cloud-datacatalog',
+    'google-cloud-datalabeling',
     'google-cloud-dataproc',
     'google-cloud-datastore',
     'google-cloud-dlp',
     'google-cloud-dns',
     'google-cloud-error-reporting',
     'google-cloud-firestore',
+    'google-cloud-iam',
     'google-cloud-iot',
+    # 'google-cloud-irm', # unreleased
     'google-cloud-kms',
     'google-cloud-language',
     'google-cloud-logging',
     'google-cloud-monitoring',
+    'google-cloud-os-login',
+    # 'google-cloud-phishing-protection', # unreleased
     'google-cloud-pubsub',
     'google-cloud-redis',
     'google-cloud-resource-manager',
     'google-cloud-runtimeconfig',
+    'google-cloud-scheduler',
     'google-cloud-securitycenter',
     'google-cloud-spanner',
     'google-cloud-speech',
     'google-cloud-storage',
+    'google-cloud-talent',
     'google-cloud-tasks',
     'google-cloud-texttospeech',
     'google-cloud-trace',
     'google-cloud-translate',
     'google-cloud-videointelligence',
     'google-cloud-vision',
+    'google-cloud-webrisk',
     'google-cloud-websecurityscanner',
     'google-resumable-media',
     'apache-beam[gcp]',
@@ -96,32 +108,46 @@ WHITELIST_PKGS = PKG_LIST
 # WHITELIST_URLS maps a github url to its associated pypi package name. This is
 # used for sanitizing input packages and making sure we don't run random pypi
 # or github packages.
+# If updating this list, make sure to update the `PKG_LIST` with the
+# appropriate pypi package if one has been released.
 WHITELIST_URLS = {
     _format_url('googleapis/google-cloud-python', 'asset'):
         'google-cloud-asset',
     _format_url('googleapis/google-cloud-python', 'automl'):
         'google-cloud-automl',
+    _format_url('googleapis/google-cloud-python', 'datacatalog'):
+        'google-cloud-datacatalog',
+    _format_url('googleapis/google-cloud-python', 'datalabeling'):
+        'google-cloud-datalabeling',
     _format_url('googleapis/google-cloud-python', 'dataproc'):
         'google-cloud-dataproc',
     _format_url('googleapis/google-cloud-python', 'dlp'):
         'google-cloud-dlp',
+    _format_url('googleapis/google-cloud-python', 'iam'):
+        'google-cloud-iam',
     _format_url('googleapis/google-cloud-python', 'iot'):
         'google-cloud-iot',
+    # unreleased
+    _format_url('googleapis/google-cloud-python', 'irm'):
+        'google-cloud-irm',
     _format_url('googleapis/google-cloud-python', 'kms'):
         'google-cloud-kms',
     _format_url('googleapis/python-ndb', ''):
         'google-cloud-ndb',
-    # This is not released yet
     _format_url('googleapis/google-cloud-python', 'oslogin'):
         'google-cloud-os-login',
     _format_url('googleapis/google-cloud-python', 'redis'):
         'google-cloud-redis',
+    _format_url('googleapis/google-cloud-python', 'scheduler'):
+        'google-cloud-scheduler',
     _format_url('googleapis/google-cloud-python', 'securitycenter'):
         'google-cloud-securitycenter',
     _format_url('googleapis/google-cloud-python', 'tasks'):
         'google-cloud-tasks',
     _format_url('googleapis/google-cloud-python', 'texttospeech'):
         'google-cloud-texttospeech',
+    _format_url('googleapis/google-cloud-python', 'webrisk'):
+        'google-cloud-webrisk',
     _format_url('googleapis/google-cloud-python', 'websecurityscanner'):
         'google-cloud-websecurityscanner',
     _format_url('googleapis/google-cloud-python', 'api_core'):
@@ -130,6 +156,8 @@ WHITELIST_URLS = {
         'google-cloud-bigquery',
     _format_url('googleapis/google-cloud-python', 'bigquery_datatransfer'):
         'google-cloud-bigquery-datatransfer',
+    _format_url('googleapis/google-cloud-python', 'bigquery_storage'):
+        'google-cloud-bigquery-storage',
     _format_url('googleapis/google-cloud-python', 'bigtable'):
         'google-cloud-bigtable',
     _format_url('googleapis/google-cloud-python', 'container'):
@@ -149,6 +177,9 @@ WHITELIST_URLS = {
         'google-cloud-logging',
     _format_url('googleapis/google-cloud-python', 'monitoring'):
         'google-cloud-monitoring',
+    # unreleased
+    _format_url('googleapis/google-cloud-python', 'phishingprotection'):
+        'google-cloud-phishing-protection',
     _format_url('googleapis/google-cloud-python', 'pubsub'):
         'google-cloud-pubsub',
     _format_url('googleapis/google-cloud-python', 'resource_manager'):
@@ -161,6 +192,8 @@ WHITELIST_URLS = {
         'google-cloud-speech',
     _format_url('googleapis/google-cloud-python', 'storage'):
         'google-cloud-storage',
+    _format_url('googleapis/google-cloud-python', 'talent'):
+        'google-cloud-talent',
     _format_url('googleapis/google-cloud-python', 'trace'):
         'google-cloud-trace',
     _format_url('googleapis/google-cloud-python', 'translate'):
