@@ -20,7 +20,6 @@ import unittest
 
 class TestConfigs(unittest.TestCase):
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_config_files_match(self):
         cwd = os.path.dirname(os.path.realpath(__file__))
         root, _ = os.path.split(cwd)
