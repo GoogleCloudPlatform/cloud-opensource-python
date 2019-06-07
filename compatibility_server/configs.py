@@ -261,7 +261,7 @@ WHITELIST_URLS = {
                 'contrib/opencensus-ext-grpc'): 'opencensus-ext-grpc',
     _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-httplib'): 'opencensus-ext-httplib',
-        _format_url('census-instrumentation/opencensus-python',
+    _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-jaeger'): 'opencensus-ext-jaeger',
     _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-logging'): 'opencensus-ext-logging',
@@ -270,9 +270,11 @@ WHITELIST_URLS = {
     _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-ocagent'): 'opencensus-ext-ocagent',
     _format_url('census-instrumentation/opencensus-python',
-                'contrib/opencensus-ext-postgresql'): 'opencensus-ext-postgresql',
+                'contrib/opencensus-ext-postgresql'):
+        'opencensus-ext-postgresql',
     _format_url('census-instrumentation/opencensus-python',
-                'contrib/opencensus-ext-prometheus'): 'opencensus-ext-prometheus',
+                'contrib/opencensus-ext-prometheus'):
+        'opencensus-ext-prometheus',
     _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-pymongo'): 'opencensus-ext-pymongo',
     _format_url('census-instrumentation/opencensus-python',
@@ -282,11 +284,14 @@ WHITELIST_URLS = {
     _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-requests'): 'opencensus-ext-requests',
     _format_url('census-instrumentation/opencensus-python',
-                'contrib/opencensus-ext-sqlalchemy'): 'opencensus-ext-sqlalchemy',
+                'contrib/opencensus-ext-sqlalchemy'):
+        'opencensus-ext-sqlalchemy',
     _format_url('census-instrumentation/opencensus-python',
-                'contrib/opencensus-ext-stackdriver'): 'opencensus-ext-stackdriver',
+                'contrib/opencensus-ext-stackdriver'):
+        'opencensus-ext-stackdriver',
     _format_url('census-instrumentation/opencensus-python',
-                'contrib/opencensus-ext-threading'): 'opencensus-ext-threading',
+                'contrib/opencensus-ext-threading'):
+        'opencensus-ext-threading',
     _format_url('census-instrumentation/opencensus-python',
                 'contrib/opencensus-ext-zipkin'): 'opencensus-ext-zipkin',
     _format_url('google/protorpc'): 'protorpc',
