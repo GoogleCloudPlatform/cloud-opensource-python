@@ -48,7 +48,7 @@ GITHUB_CLIENTLIBS_PREFIX = ('git+git://github.com/googleapis/'
 CLIENTLIBS_GITHUB_URL = 'https://github.com/googleapis/google-cloud-python.git'
 
 GITHUB_OPENCENSUS_PREFIX = ('git+git://github.com/census-instrumentation/'
-                         'opencensus-python.git#subdirectory=')
+                            'opencensus-python.git#subdirectory=')
 OPENCENSUS_GITHUB_URL = ('https://github.com/census-instrumentation/'
                          'opencensus-python.git')
 
