@@ -43,9 +43,14 @@ from opencensus.tags import tag_map as tag_map_module
 PYPI_URL = 'https://pypi.org/pypi/'
 CONTAINER_WITH_PKG = "checker"
 TIME_OUT = 300  # seconds
-GITHUB_CLIENTLIBS_PREFIX = 'git+git://github.com/googleapis/' \
-                           'google-cloud-python.git#subdirectory='
+GITHUB_CLIENTLIBS_PREFIX = ('git+git://github.com/googleapis/'
+                            'google-cloud-python.git#subdirectory=')
 CLIENTLIBS_GITHUB_URL = 'https://github.com/googleapis/google-cloud-python.git'
+
+GITHUB_OPENCENSUS_PREFIX = ('git+git://github.com/census-instrumentation/'
+                            'opencensus-python.git#subdirectory=')
+OPENCENSUS_GITHUB_URL = ('https://github.com/census-instrumentation/'
+                         'opencensus-python.git')
 
 # Pattern for pip installation errors not related to the package being
 # installed. See:
@@ -431,11 +436,18 @@ class _OneshotPipCheck():
             # sys	0m0.357s
             client_repo_directory = self._clone_repo(
                 container, CLIENTLIBS_GITHUB_URL)
+        elif any(GITHUB_OPENCENSUS_PREFIX in pkg for pkg in self._packages):
+            client_repo_directory = self._clone_repo(
+                container, OPENCENSUS_GITHUB_URL)
 
         install_names = []
         for pkg in self._packages:
             if GITHUB_CLIENTLIBS_PREFIX in pkg:
                 install_subdirectory = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
+                install_names.append(
+                    os.path.join(client_repo_directory, install_subdirectory))
+            elif GITHUB_OPENCENSUS_PREFIX in pkg:
+                install_subdirectory = pkg.split(GITHUB_OPENCENSUS_PREFIX)[1]
                 install_names.append(
                     os.path.join(client_repo_directory, install_subdirectory))
             else:

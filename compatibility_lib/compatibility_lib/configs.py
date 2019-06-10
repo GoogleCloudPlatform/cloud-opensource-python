@@ -20,6 +20,15 @@ compatibility_lib is the same as the configs.py file in compatibility_server.
 The reason for this set up is that these modules need to be isolated from
 each other, but there also needs to be consistency in the objects and data
 in this file since they exist in the same workflow.
+
+Steps for updating the package list / white list:
+    1. Make sure to update both lists when appropriate (the package has been
+    release to PyPI and the github repo exists)
+    2. Skip the dashboard tests and build when adding any new packages to
+    either list
+    3. Release a new version of compatibility lib
+    4. Redeploy the compatibility server
+    5. Unskip the dashboard tests and build
 """
 
 
@@ -95,6 +104,29 @@ PKG_LIST = [
     'grpc-google-iam-v1',
     'grpcio',
     'opencensus',
+    'opencensus-correlation',
+    'opencensus-ext-azure',
+    'opencensus-ext-dbapi',
+    'opencensus-ext-django',
+    'opencensus-ext-flask',
+    'opencensus-ext-gevent',
+    'opencensus-ext-google-cloud-clientlibs',
+    'opencensus-ext-grpc',
+    'opencensus-ext-httplib',
+    'opencensus-ext-jaeger',
+    'opencensus-ext-logging',
+    'opencensus-ext-mysql',
+    'opencensus-ext-ocagent',
+    'opencensus-ext-postgresql',
+    'opencensus-ext-prometheus',
+    'opencensus-ext-pymongo',
+    'opencensus-ext-pymysql',
+    'opencensus-ext-pyramid',
+    'opencensus-ext-requests',
+    'opencensus-ext-sqlalchemy',
+    'opencensus-ext-stackdriver',
+    'opencensus-ext-threading',
+    'opencensus-ext-zipkin',
     'protobuf',
     'protorpc',
     'tensorboard',
@@ -210,6 +242,58 @@ WHITELIST_URLS = {
     _format_url('apache/beam', 'sdks/python'): 'apache-beam[gcp]',
     _format_url('google/apitools'): 'google-apitools',
     _format_url('census-instrumentation/opencensus-python'): 'opencensus',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-correlation'): 'opencensus-correlation',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-azure'): 'opencensus-ext-azure',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-dbapi'): 'opencensus-ext-dbapi',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-django'): 'opencensus-ext-django',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-flask'): 'opencensus-ext-flask',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-gevent'): 'opencensus-ext-gevent',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-google-cloud-clientlibs'):
+        'opencensus-ext-google-cloud-clientlibs',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-grpc'): 'opencensus-ext-grpc',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-httplib'): 'opencensus-ext-httplib',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-jaeger'): 'opencensus-ext-jaeger',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-logging'): 'opencensus-ext-logging',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-mysql'): 'opencensus-ext-mysql',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-ocagent'): 'opencensus-ext-ocagent',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-postgresql'):
+        'opencensus-ext-postgresql',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-prometheus'):
+        'opencensus-ext-prometheus',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-pymongo'): 'opencensus-ext-pymongo',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-pymysql'): 'opencensus-ext-pymysql',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-pyramid'): 'opencensus-ext-pyramid',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-requests'): 'opencensus-ext-requests',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-sqlalchemy'):
+        'opencensus-ext-sqlalchemy',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-stackdriver'):
+        'opencensus-ext-stackdriver',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-threading'):
+        'opencensus-ext-threading',
+    _format_url('census-instrumentation/opencensus-python',
+                'contrib/opencensus-ext-zipkin'): 'opencensus-ext-zipkin',
     _format_url('google/protorpc'): 'protorpc',
     _format_url('tensorflow/tensorflow', 'tensorflow/tools/pip_package'):
         'tensorflow',
