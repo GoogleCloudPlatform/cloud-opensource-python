@@ -424,5 +424,5 @@ def main():
         webbrowser.open_new_tab('file://' + main_path)
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()
