@@ -110,7 +110,7 @@ PKG_LIST = [
     'opencensus-ext-django',
     'opencensus-ext-flask',
     'opencensus-ext-gevent',
-    'opencensus-ext-google',
+    'opencensus-ext-google-cloud-clientlibs',
     'opencensus-ext-grpc',
     'opencensus-ext-httplib',
     'opencensus-ext-jaeger',
