@@ -51,14 +51,14 @@ Commands for deployment
 2. Build, test, push, and deploy a new image
 
 TAG_NAME is in the format `v[NUMBER_OF_REVISION]`. Incrementing the number by 1 will be the new tag name.
-IMAGE_NAME is the gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME].
+IMAGE_NAME is the gcr.io/python-compatibility-tools/compatibility-image:[TAG_NAME].
 
     ::
 
-      docker build -t gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME] .
+      docker build -t gcr.io/python-compatibility-tools/compatibility-image:[TAG_NAME] .
       sudo docker run -v /var/run/docker.sock:/var/run/docker.sock -p 8888:8888 [IMAGE_NAME]
-      gcloud docker -- push gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME]
-      kubectl set image deployment/compatibility-server compatibility-server=gcr.io/python-compatibility-tools/compatibility-server:[TAG_NAME]
+      gcloud docker -- push gcr.io/python-compatibility-tools/compatibility-image:[TAG_NAME]
+      kubectl set image deployment/compatibility-server compatibility-server=gcr.io/python-compatibility-tools/compatibility-image:[TAG_NAME]
 
 Alternatively, we can use the deploy.yaml to push a new deployment.
 
