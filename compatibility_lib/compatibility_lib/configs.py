@@ -27,7 +27,7 @@ Steps for updating the package list / white list:
     2. Skip the dashboard tests and build when adding any new packages to
     either list
     3. Release a new version of compatibility lib
-    4. Redeploy the compatibility server
+    4. Redeploy the badge and compatibility servers
     5. Unskip the dashboard tests and build
 """
 
