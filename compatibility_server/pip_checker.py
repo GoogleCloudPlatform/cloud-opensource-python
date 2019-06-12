@@ -436,8 +436,10 @@ class _OneshotPipCheck():
             # sys	0m0.357s
             client_repo_directory = self._clone_repo(
                 container, CLIENTLIBS_GITHUB_URL)
-        elif any(GITHUB_OPENCENSUS_PREFIX in pkg for pkg in self._packages):
-            client_repo_directory = self._clone_repo(
+
+        opencensus_repo_directory = ''
+        if any(GITHUB_OPENCENSUS_PREFIX in pkg for pkg in self._packages):
+            opencensus_repo_directory = self._clone_repo(
                 container, OPENCENSUS_GITHUB_URL)
 
         install_names = []
@@ -448,8 +450,8 @@ class _OneshotPipCheck():
                     os.path.join(client_repo_directory, install_subdirectory))
             elif GITHUB_OPENCENSUS_PREFIX in pkg:
                 install_subdirectory = pkg.split(GITHUB_OPENCENSUS_PREFIX)[1]
-                install_names.append(
-                    os.path.join(client_repo_directory, install_subdirectory))
+                install_names.append(os.path.join(
+                    opencensus_repo_directory, install_subdirectory))
             else:
                 install_names.append(pkg)
 
