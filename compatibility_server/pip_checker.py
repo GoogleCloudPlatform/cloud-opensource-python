@@ -47,11 +47,6 @@ GITHUB_CLIENTLIBS_PREFIX = ('git+git://github.com/googleapis/'
                             'google-cloud-python.git#subdirectory=')
 CLIENTLIBS_GITHUB_URL = 'https://github.com/googleapis/google-cloud-python.git'
 
-GITHUB_OPENCENSUS_PREFIX = ('git+git://github.com/census-instrumentation/'
-                            'opencensus-python.git#subdirectory=')
-OPENCENSUS_GITHUB_URL = ('https://github.com/census-instrumentation/'
-                         'opencensus-python.git')
-
 # Pattern for pip installation errors not related to the package being
 # installed. See:
 # https://github.com/pypa/pip/blob/3a77bd667cc68935040563e1351604c461ce5333/src/pip/_internal/commands/install.py#L533
@@ -437,21 +432,12 @@ class _OneshotPipCheck():
             client_repo_directory = self._clone_repo(
                 container, CLIENTLIBS_GITHUB_URL)
 
-        opencensus_repo_directory = ''
-        if any(GITHUB_OPENCENSUS_PREFIX in pkg for pkg in self._packages):
-            opencensus_repo_directory = self._clone_repo(
-                container, OPENCENSUS_GITHUB_URL)
-
         install_names = []
         for pkg in self._packages:
             if GITHUB_CLIENTLIBS_PREFIX in pkg:
                 install_subdirectory = pkg.split(GITHUB_CLIENTLIBS_PREFIX)[1]
                 install_names.append(
                     os.path.join(client_repo_directory, install_subdirectory))
-            elif GITHUB_OPENCENSUS_PREFIX in pkg:
-                install_subdirectory = pkg.split(GITHUB_OPENCENSUS_PREFIX)[1]
-                install_names.append(os.path.join(
-                    opencensus_repo_directory, install_subdirectory))
             else:
                 install_names.append(pkg)
 
