@@ -34,7 +34,7 @@ class DeprecatedDepFinder(object):
                  py_version=None,
                  checker=None,
                  store=None,
-                 max_workers=10):
+                 max_workers=50):
         if py_version is None:
             py_version = '3'
 
@@ -47,6 +47,11 @@ class DeprecatedDepFinder(object):
         self._store = store
         self._dependency_info_getter = utils.DependencyInfo(
             py_version, self._checker, self._store)
+
+        # Share a common pool for PyPI requests to avoid creating too many
+        # threads.
+        self._pypi_thread_pool = concurrent.futures.ThreadPoolExecutor(
+            max_workers=self.max_workers)
 
     def _get_development_status_from_pypi(self, package_name):
         """Get the development status for a package.
@@ -82,10 +87,11 @@ class DeprecatedDepFinder(object):
         dependency_info = self._dependency_info_getter.get_dependency_info(
             package_name)
         deprecated_deps = []
-
-        for dep_name in dependency_info:
-            development_status = self._get_development_status_from_pypi(
-                dep_name)
+        for dep_name, development_status in zip(
+                dependency_info,
+                self._pypi_thread_pool.map(
+                        self._get_development_status_from_pypi,
+                        dependency_info)):
             if development_status == DEPRECATED_STATUS:
                 deprecated_deps.append(dep_name)
 
@@ -96,8 +102,9 @@ class DeprecatedDepFinder(object):
         if packages is None:
             packages = configs.PKG_LIST
 
-        with concurrent.futures.ThreadPoolExecutor(
-                max_workers=self.max_workers) as p:
+        # Create a small number of threads since get_deprecated_dep also
+        # uses a thread pool.
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as p:
             results = p.map(
                 self.get_deprecated_dep,
                 ((pkg) for pkg in packages))
