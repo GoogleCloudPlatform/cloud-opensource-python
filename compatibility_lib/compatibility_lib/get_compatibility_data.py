@@ -18,6 +18,7 @@ import argparse
 import contextlib
 import datetime
 import itertools
+import logging
 import signal
 
 import pexpect
@@ -38,6 +39,14 @@ INSTANCE_CONNECTION_NAME = 'python-compatibility-tools:us-central1:' \
                            'compatibility-data'
 
 PORT = '3306'
+
+LOG_LEVEL_TO_RUNTIME_CONSTANT = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL,
+}
 
 
 class ConnectionError(Exception):
@@ -148,7 +157,19 @@ if __name__ == '__main__':
         type=str,
         default='cloud_sql_proxy',
         help='Path to cloud_sql_proxy.')
+    parser.add_argument(
+        '--log_level',
+        choices=LOG_LEVEL_TO_RUNTIME_CONSTANT.keys(),
+        default='info',
+        help='the log level below which logging messages appear on the console')
+
     args = parser.parse_args()
+
+    log_level = LOG_LEVEL_TO_RUNTIME_CONSTANT[args.log_level]
+    logger = logging.getLogger("compatibility_lib")
+    logger.setLevel(log_level)
+    ch = logging.StreamHandler()
+    logger.addHandler(ch)
 
     check_pypi = args.pypi
     check_github = args.github
