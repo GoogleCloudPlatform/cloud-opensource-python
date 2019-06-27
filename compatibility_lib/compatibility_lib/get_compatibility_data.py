@@ -161,7 +161,8 @@ if __name__ == '__main__':
         '--log_level',
         choices=LOG_LEVEL_TO_RUNTIME_CONSTANT.keys(),
         default='info',
-        help='the log level below which logging messages appear on the console')
+        help=('the log level above which logging messages are written to ' +
+              'stderr'))
 
     args = parser.parse_args()
 
