@@ -15,10 +15,12 @@
 """Send request to server to get self and pairwise compatibility data."""
 
 import itertools
+import logging
 import concurrent.futures
 import json
 import requests
 import retrying
+import time
 
 from compatibility_lib import configs
 from compatibility_lib import utils
@@ -44,15 +46,26 @@ class CompatibilityChecker(object):
                                                    ' by our checker server.'
             return UNKNOWN_STATUS_RESULT
 
+        start_time = time.time()
         data = {
             'python-version': python_version,
             'package': packages
         }
         # Set the timeout to 299 seconds, which should be less than the
         # docker timeout (300 seconds).
-        result = requests.get(SERVER_URL, params=data, timeout=299)
-        content = result.content.decode('utf-8')
-
+        try:
+            result = requests.get(SERVER_URL, params=data, timeout=299)
+            content = result.content.decode('utf-8')
+        except Exception as e:
+            check_time = time.time() - start_time
+            logging.getLogger("compatibility_lib").error(
+                'Checked {} in {:.1f} seconds: {}'.format(
+                    packages, check_time, e))
+            raise
+        check_time = time.time() - start_time
+        logging.getLogger("compatibility_lib").debug(
+            'Checked {} in {:.1f} seconds (success!)'.format(
+                packages, check_time))
         return json.loads(content), python_version
 
     def filter_packages(self, packages, python_version):
@@ -128,11 +141,16 @@ class CompatibilityChecker(object):
         check_packages = self.collect_check_packages(
             python_version, packages, pkg_sets)
 
+        start_time = time.time()
         with concurrent.futures.ThreadPoolExecutor(
                 max_workers=self.max_workers) as p:
-            pkg_set_results = p.map(
-                self.retrying_check,
-                tuple(check_packages))
+            pkg_set_results = p.map(self.retrying_check, tuple(check_packages))
 
-            for result in zip(pkg_set_results):
+            for count, result in enumerate(zip(pkg_set_results)):
+                if (count and count % self.max_workers == 0 or
+                        count == len(check_packages) - 1):
+                    logging.getLogger("compatibility_lib").info(
+                        "Successfully checked {}/{} in {:.1f}s".format(
+                            count, len(check_packages),
+                            time.time() - start_time))
                 yield result
