@@ -1,0 +1,15 @@
+apiVersion: extensions/v1beta1
+kind: Service
+metadata:
+  name: compatibility-server
+  labels:
+    app: compatibility-server
+spec:
+  selector:
+    app: compatibility-server
+    tier: web
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: LoadBalancer
+  loadBalancerIP: 35.184.23.203
