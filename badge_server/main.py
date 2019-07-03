@@ -228,6 +228,7 @@ def _self_compatibilities_to_dict(
             result_dict[pyver]['details'] = badge_utils.EMPTY_DETAILS
     return result_dict
 
+
 def _get_self_compatibility_dict(package_name: str) -> dict:
     """Returns a dict containing self compatibility status and details.
 
