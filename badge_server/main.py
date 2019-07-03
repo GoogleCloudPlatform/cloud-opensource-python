@@ -187,12 +187,17 @@ def _get_missing_details(package_names: List[str],
     return missing_details
 
 
-def _get_self_compatibility_dict(package_name: str) -> dict:
-    """Returns a dict containing self compatibility status and details.
+def _self_compatibilities_to_dict(
+        package_name: str,
+        compatibility_results: List[compatibility_store.CompatibilityResult]
+        ) -> dict:
+    """Converts a CompatibilityResult into a dict containing compatibility info.
 
     Args:
         package_name: the name of the package to check (e.g.
             "google-cloud-storage").
+        compatibility_results: a (possibly empty) list of compatibility results
+            representing a self-compatibility check for the given package.
 
     Returns:
         A dict containing the self compatibility status and details for any
@@ -203,8 +208,6 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
             'py3': { 'status': BadgeStatus.SUCCESS, 'details': {} },
         }
     """
-    pkg = package.Package(package_name)
-    compatibility_results = badge_utils.store.get_self_compatibility(pkg)
     missing_details = _get_missing_details(
         [package_name], compatibility_results)
     if missing_details:
@@ -224,6 +227,27 @@ def _get_self_compatibility_dict(package_name: str) -> dict:
         if res.details is None:
             result_dict[pyver]['details'] = badge_utils.EMPTY_DETAILS
     return result_dict
+
+
+def _get_self_compatibility_dict(package_name: str) -> dict:
+    """Returns a dict containing self compatibility status and details.
+
+    Args:
+        package_name: the name of the package to check (e.g.
+            "google-cloud-storage").
+
+    Returns:
+        A dict containing the self compatibility status and details for any
+        self incompatibilities. The dict will be formatted like the following:
+
+        {
+            'py2': { 'status': BadgeStatus.SUCCESS, 'details': {} },
+            'py3': { 'status': BadgeStatus.SUCCESS, 'details': {} },
+        }
+    """
+    pkg = package.Package(package_name)
+    compatibility_results = badge_utils.store.get_self_compatibility(pkg)
+    return _self_compatibilities_to_dict(package_name, compatibility_results)
 
 
 def _get_other_package_from_set(name: str,
@@ -279,6 +303,11 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
     unsupported_package_mapping = configs.PKG_PY_VERSION_NOT_SUPPORTED
     pair_mapping = badge_utils.store.get_pairwise_compatibility_for_package(
         package_name)
+
+    package_to_self_compatibility = badge_utils.store.get_self_compatibilities(
+        [_get_other_package_from_set(package_name, pair)
+         for pair in pair_mapping])
+
     for pair, compatibility_results in pair_mapping.items():
         other_package = _get_other_package_from_set(package_name, pair)
         other_package_name = other_package.install_name
@@ -313,7 +342,9 @@ def _get_pair_compatibility_dict(package_name: str) -> dict:
             # conflict within it's own dependencies) then skip the check since
             # a pairwise comparison is only significant if both packages are
             # self_compatible.
-            self_compat_res = _get_self_compatibility_dict(other_package_name)
+            self_compat_res = _self_compatibilities_to_dict(
+                other_package_name,
+                package_to_self_compatibility.get(other_package, []))
             if self_compat_res[pyver]['status'] != BadgeStatus.SUCCESS:
                 continue
 
