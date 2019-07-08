@@ -13,10 +13,7 @@ spec:
     matchLabels:
       run: compatibility-server
   strategy:
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
-    type: RollingUpdate
+    type: Recreate
   template:
     metadata:
       creationTimestamp: null
