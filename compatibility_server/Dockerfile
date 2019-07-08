@@ -34,5 +34,5 @@ EXPOSE 8888
 # 5 replicas per vm, each replica has 10 workers which allows 50 docker images
 # created at most in the vm.
 CMD cd compatibility_checker && \
-  gunicorn -b 0.0.0.0:8888 -w 10 --worker-class gevent --max-requests 20 --max-requests-jitter 10 --timeout 300 \
+  gunicorn -b 0.0.0.0:8888 -w 2 --worker-class sync --max-requests 20 --max-requests-jitter 10 --timeout 300 \
            -e EXPORT_METRICS=1 compatibility_checker_server:app
