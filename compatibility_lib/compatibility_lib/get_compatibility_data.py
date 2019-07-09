@@ -30,7 +30,7 @@ from compatibility_lib import configs
 from compatibility_lib import package
 
 # The production compatibility server configuration currently runs
-# 200 pods and each pod has two workers.  
+# 200 pods and each pod has two workers.
 checker = compatibility_checker.CompatibilityChecker(max_workers=400)
 store = compatibility_store.CompatibilityStore()
 
