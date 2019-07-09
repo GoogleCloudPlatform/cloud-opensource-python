@@ -63,9 +63,16 @@ class CompatibilityChecker(object):
                     packages, check_time, e))
             raise
         check_time = time.time() - start_time
-        logging.getLogger("compatibility_lib").debug(
-            'Checked {} in {:.1f} seconds (success!)'.format(
-                packages, check_time))
+        if result.ok:
+            logging.getLogger("compatibility_lib").debug(
+                'Checked {} in {:.1f} seconds (success!)'.format(
+                    packages, check_time))
+        else:
+            logging.getLogger("compatibility_lib").debug(
+                'Checked {} in {:.1f} seconds: {}'.format(
+                    packages, check_time, content))
+            result.raise_for_status()
+
         return json.loads(content), python_version
 
     def filter_packages(self, packages, python_version):
