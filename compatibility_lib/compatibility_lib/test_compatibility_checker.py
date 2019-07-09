@@ -26,7 +26,7 @@ class TestCompatibilityChecker(unittest.TestCase):
 
         packages = ['opencensus']
         python_version = 3
-        expected_server_url = 'http://104.197.8.72'
+        expected_server_url = 'http://34.68.40.69/'
 
         data = {
             'python-version': python_version,

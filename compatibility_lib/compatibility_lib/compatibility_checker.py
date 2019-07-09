@@ -25,7 +25,7 @@ import time
 from compatibility_lib import configs
 from compatibility_lib import utils
 
-SERVER_URL = 'http://104.197.8.72'
+SERVER_URL = 'http://34.68.40.69/'
 
 UNKNOWN_STATUS_RESULT = {
     'result': 'UNKNOWN',
