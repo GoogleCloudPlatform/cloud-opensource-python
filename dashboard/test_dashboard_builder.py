@@ -68,7 +68,6 @@ class TestResultHolderGetResult(unittest.TestCase):
     patch_finder = mock.patch('dashboard_builder.deprecated_dep_finder.DeprecatedDepFinder', _DeprecatedDepFinder)
     patch_highlighter = mock.patch('dashboard_builder.dependency_highlighter.DependencyHighlighter', _DependencyHighlighter)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_self_compatibility_success(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -92,7 +91,6 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_1),
             expected)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_self_compatibility_error(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -124,7 +122,6 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_1),
             expected)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_self_compatibility_no_entry(self):
         package_to_results = {PACKAGE_1: []}
 
@@ -143,7 +140,6 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_1),
             expected)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_pairwise_success(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -182,7 +178,6 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_2),
             expected)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_pairwise_error(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -224,7 +219,6 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_2),
             expected)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_pairwise_no_entry(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -257,7 +251,6 @@ class TestResultHolderGetResult(unittest.TestCase):
             rh.get_result(PACKAGE_1, PACKAGE_2),
             expected)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_get_package_details(self):
         package_with_dependency_info = {
             'package1': {
@@ -311,7 +304,6 @@ class TestResultHolderHasIssues(unittest.TestCase):
         'dashboard_builder.dependency_highlighter.DependencyHighlighter',
         _DependencyHighlighter)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_no_issues(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -341,7 +333,6 @@ class TestResultHolderHasIssues(unittest.TestCase):
         self.assertFalse(rh.has_issues(PACKAGE_1))
         self.assertFalse(rh.has_issues(PACKAGE_2))
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_self_issues(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -373,7 +364,6 @@ class TestResultHolderHasIssues(unittest.TestCase):
         self.assertTrue(rh.has_issues(PACKAGE_1))
         self.assertFalse(rh.has_issues(PACKAGE_2))
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_pairwise_issues(self):
         package_to_results = {
             PACKAGE_1: [compatibility_store.CompatibilityResult(
@@ -414,7 +404,6 @@ class TestGridBuilder(unittest.TestCase):
         'dashboard_builder.dependency_highlighter.DependencyHighlighter',
         _DependencyHighlighter)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_success(self):
         """CompatibilityResult available for all packages and pairs."""
         packages = [PACKAGE_1, PACKAGE_2]
@@ -445,7 +434,6 @@ class TestGridBuilder(unittest.TestCase):
             builder = dashboard_builder.DashboardBuilder(packages, results)
             builder.build_dashboard('dashboard/grid-template.html')
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_self_failure(self):
         """CompatibilityResult failure installing a single package."""
         packages = [PACKAGE_1, PACKAGE_2]
@@ -474,7 +462,6 @@ class TestGridBuilder(unittest.TestCase):
             html_grid = builder.build_dashboard('dashboard/grid-template.html')
             self.assertIn("Installation failure", html_grid)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_missing_pairwise(self):
         """CompatibilityResult not available for a pair of packages."""
         packages = [PACKAGE_1, PACKAGE_2]
@@ -501,7 +488,6 @@ class TestGridBuilder(unittest.TestCase):
             builder = dashboard_builder.DashboardBuilder(packages, results)
             builder.build_dashboard('dashboard/grid-template.html')
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_missing_self(self):
         """CompatibilityResult not available for individual packages."""
         packages = [PACKAGE_1, PACKAGE_2]
@@ -523,7 +509,6 @@ class TestGridBuilder(unittest.TestCase):
             builder = dashboard_builder.DashboardBuilder(packages, results)
             builder.build_dashboard('dashboard/grid-template.html')
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_pairwise_failure(self):
         """CompatibilityResult failure between pair of packages."""
         packages = [PACKAGE_1, PACKAGE_2]
@@ -557,7 +542,6 @@ class TestGridBuilder(unittest.TestCase):
             html_grid = builder.build_dashboard('dashboard/grid-template.html')
             self.assertIn("Installation failure", html_grid)
 
-    @unittest.skip('TODO: unskip after letting new data populate')
     def test_not_show_py_ver_incompatible_results(self):
         """CompatibilityResult failure between pair of packages. Do not display
         the packages that are incompatible with a specific Python version.
