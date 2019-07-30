@@ -146,8 +146,7 @@
                         {% set self_2_details = result.self_compatibility_check[1].details %}
                     {% endif %}
                 {% endif %}
-                <td class="{{ bgColorName }}" onclick="showDialog(
-                    '{{ cellName|safe }}', '{{ result.status_type|safe }}', '{{ self_1_status|safe }}', '{{ self_2_status|safe }}','{{ pairwise_status|safe }}', '{{ self_1_details|replace('\n', ' ')|safe}}', '{{ self_2_details|replace('\n', ' ')|safe}}', '{{ pairwise_details|replace('\n', ' ')|safe }}')">
+                <td class="{{ bgColorName }}" onclick="showDialog('{{ cellName|safe }}', '{{ result.status_type|safe }}', '{{ self_1_status|safe }}', '{{ self_2_status|safe }}','{{ pairwise_status|safe }}', '{{ self_1_details|replace('\\', '\\\\')|replace('\'', '\\\'')|replace('\n', ' ')}}', '{{ self_2_details|replace('\\', '\\\\')|replace('\'', '\\\'')|replace('\n', ' ')}}', '{{ pairwise_details|replace('\\', '\\\\')|replace('\'', '\\\'')|replace('\n', ' ') }}')">
                     <div id="{{ cellName }}" class="dialog" title="{{ row_package.friendly_name }} and {{ col_package.friendly_name }}">
                     </div>
                 </td>
