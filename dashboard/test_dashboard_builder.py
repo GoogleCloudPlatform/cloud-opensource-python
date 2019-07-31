@@ -462,6 +462,38 @@ class TestGridBuilder(unittest.TestCase):
             html_grid = builder.build_dashboard('dashboard/grid-template.html')
             self.assertIn("Installation failure", html_grid)
 
+    def test_escape(self):
+        """Test that the arguments to showDialog() are escaped."""
+        packages = [PACKAGE_1, PACKAGE_2]
+        store = fake_compatibility_store.CompatibilityStore()
+        store.save_compatibility_statuses([
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_1],
+                python_major_version=3,
+                status=compatibility_store.Status.INSTALL_ERROR,
+                details=r"This \ has a ' in it < >"
+            ),
+            compatibility_store.CompatibilityResult(
+                packages=[PACKAGE_2],
+                python_major_version=3,
+                status=compatibility_store.Status.SUCCESS
+            ),
+        ])
+
+        with self.patch_finder, self.patch_highlighter:
+            package_to_results = store.get_self_compatibilities(packages)
+            pairwise_to_results = store.get_compatibility_combinations(
+                packages)
+            results = dashboard_builder._ResultHolder(package_to_results,
+                                                      pairwise_to_results)
+            builder = dashboard_builder.DashboardBuilder(packages, results)
+            html_grid = builder.build_dashboard('dashboard/grid-template.html')
+            with open('/tmp/foo.html', 'w+') as f:
+                f.write(html_grid)
+
+            self.assertIn("This \\\\ has a \\&#39; in it &lt; &gt;", html_grid)
+
+
     def test_missing_pairwise(self):
         """CompatibilityResult not available for a pair of packages."""
         packages = [PACKAGE_1, PACKAGE_2]
