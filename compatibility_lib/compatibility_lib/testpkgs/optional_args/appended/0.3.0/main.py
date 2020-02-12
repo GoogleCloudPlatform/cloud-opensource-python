@@ -15,9 +15,21 @@
 
 class Foo(object):
 
-    def __init__(self):
+    def __init__(self, x, y=None, **z):
         pass
 
 
-def bar():
+def bar(a, b, c=1, d=True, *e):
+    if e:
+        return sum(e)
+    if d:
+        return (a + b) * c
+    return 0
+
+
+def baz(baz='baz'):
     pass
+
+
+if __name__ == '__main__':
+    print(bar(1, 2))

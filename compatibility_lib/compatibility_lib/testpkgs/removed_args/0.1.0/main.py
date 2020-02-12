@@ -17,3 +17,7 @@ class Foo(object):
 
     def __init__(self, x):
         pass
+
+
+def bar(a):
+    pass

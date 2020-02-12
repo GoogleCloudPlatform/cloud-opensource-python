@@ -15,9 +15,13 @@
 
 class Foo(object):
 
-    def __init__(self):
+    def __init__(self, x, y=None):
         pass
 
 
-def bar():
+def bar(a, b, c=1, d=2):
+    pass
+
+
+def baz(name='bob', age=18):
     pass

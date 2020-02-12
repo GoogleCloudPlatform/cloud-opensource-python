@@ -15,9 +15,9 @@
 
 class Foo(object):
 
-    def __init__(self):
+    def __init__(self, x, y=[]):
         pass
 
 
-def bar():
+def bar(a=1, b=2, c=3, d=4, e=5):
     pass
