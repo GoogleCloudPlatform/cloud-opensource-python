@@ -1,3 +1,5 @@
+**NOTE: this repository is no longer being maintained**
+
 Dependency Management Toolkit for Google Cloud Python Projects
 ==============================================================
 
