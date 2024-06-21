@@ -63,9 +63,14 @@ def get_package_info(root_dir):
             module_name: {
                 'classes': {
                     class_name: {
-                        'args': [arg1, arg2, ...],
+                        'args': {
+                            'single_args': [arg1, arg2, ...],
+                            'defaults': {arg1: value1, ...},
+                            'vararg': argv,
+                            'kwarg': kwargs,
+                        },
                         'functions': {
-                            function_name: {'args': [...]},
+                            function_name: {'args': {...}},
                         }
                     },
                     class_name: {...},
@@ -118,9 +123,14 @@ def get_module_info(node):
         {
             'classes': {
                 class_name: {
-                    'args': [arg1, arg2, ...],
+                    'args': {
+                        'single_args': [arg1, arg2, ...],
+                        'defaults': {arg1: value1, ...},
+                        'vararg': argv,
+                        'kwarg': kwargs,
+                    },
                     'functions': {
-                        function_name: {'args': [...]},
+                        function_name: {'args': {...}},
                     }
                 },
                 class_name: {...},
@@ -151,7 +161,8 @@ def _get_class_info(classes):
 
         # assumption is that bases are user-defined within the same module
         init_func, subclasses, functions = _get_class_attrs(node, classes)
-        args = []
+        args = {'single_args': [], 'defaults': {},
+                'vararg': None, 'kwarg': None}
         if init_func is not None:
             args = _get_args(init_func.args)
 
@@ -219,11 +230,47 @@ def _get_function_info(functions):
 
 
 def _get_args(node):
-    """returns a list of args"""
-    args = []
-    for arg in node.args:
-        if isinstance(arg, ast.arg):
-            args.append(arg.arg)
-        elif isinstance(arg, ast.Name):
-            args.append(arg.id)
-    return args
+    """returns a dict mapping arg type to arg names"""
+    args, default_args, vararg, kwarg = [], {}, None, None
+    num_required_args = len(node.args) - len(node.defaults)
+
+    for i, argnode in enumerate(node.args):
+        arg = None
+        if isinstance(argnode, ast.arg):
+            arg = argnode.arg
+        elif isinstance(argnode, ast.Name):
+            arg = argnode.id
+        args.append(arg)
+
+        if i >= num_required_args:
+            valnode = node.defaults[i-len(node.args)]
+            if isinstance(valnode, ast.NameConstant):
+                value = valnode.value
+            elif isinstance(valnode, ast.Num):
+                value = valnode.n
+            elif isinstance(valnode, ast.Str):
+                value = valnode.s
+            elif isinstance(valnode, (ast.List, ast.Tuple)):
+                value = valnode.elts
+            elif isinstance(valnode, ast.Dict):
+                value = {}
+                for i, key in enumerate(valnode.keys):
+                    value[key] = valnode.values[i]
+            else:
+                # TODO: provide better error messaging
+                raise Exception('%s:%s: unsupported default arg type' %
+                                (valnode.lineno, valnode.col_offset))
+            default_args[arg] = value
+
+    if node.vararg:
+        vararg = node.vararg.arg
+    if node.kwarg:
+        kwarg = node.kwarg.arg
+
+    res = {}
+    res['single_args'] = args
+    res['defaults'] = default_args
+    res['vararg'] = vararg
+    res['kwarg'] = kwarg
+
+    return res

@@ -33,7 +33,12 @@ class TestSimplePackages(unittest.TestCase):
                     'classes': {},
                     'functions': {
                         'hello': {
-                            'args': []
+                            'args': {
+                                'single_args': [],
+                                'defaults': {},
+                                'vararg': None,
+                                'kwarg': None
+                            }
                         }
                     }
                 },
@@ -56,7 +61,7 @@ class TestSimplePackages(unittest.TestCase):
         new_dir = os.path.join(TEST_DIR, 'removed_func/0.2.0')
 
         res = check(old_dir, new_dir)
-        expected = ['missing attribute "bar" from new version']
+        expected = ['main: missing arg "bar"']
         self.assertEqual(expected, res)
 
     def test_semver_check_on_added_args(self):
@@ -64,13 +69,71 @@ class TestSimplePackages(unittest.TestCase):
         new_dir = os.path.join(TEST_DIR, 'added_args/0.2.0')
 
         res = check(old_dir, new_dir)
-        expected = ['args do not match; expecting: "self, x", got: "self, x, y"']
-        self.assertEqual(expected, res)
+        expected = ['main.Foo: expected 2 required args, got 3',
+                    'main.bar: expected 0 required args, got 1']
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
 
     def test_semver_check_on_removed_args(self):
         old_dir = os.path.join(TEST_DIR, 'removed_args/0.1.0')
         new_dir = os.path.join(TEST_DIR, 'removed_args/0.2.0')
 
         res = check(old_dir, new_dir)
-        expected = ['args do not match; expecting: "self, x", got: "self"']
+        expected = ['main.Foo: expected 2 args, got 1',
+                    'main.bar: expected 1 args, got 0']
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
+
+    def test_semver_check_on_added_optional_args(self):
+        ver1 = os.path.join(TEST_DIR, 'optional_args/appended/0.1.0')
+        ver2 = os.path.join(TEST_DIR, 'optional_args/appended/0.2.0')
+        ver3 = os.path.join(TEST_DIR, 'optional_args/appended/0.3.0')
+
+        res12 = check(ver1, ver2)
+        res23 = check(ver2, ver3)
+        res13 = check(ver1, ver3)
+
+        self.assertEqual([], res12)
+        self.assertEqual([], res23)
+        self.assertEqual([], res13)
+
+    def test_semver_check_on_removed_optional_args(self):
+        old_dir = os.path.join(TEST_DIR, 'optional_args/removed/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'optional_args/removed/0.2.0')
+
+        res = check(old_dir, new_dir)
+        expected = ['main.Foo: expected 3 args, got 2',
+                    'main.bar: missing arg "d"',
+                    'main.baz: expected 1 args, got 0']
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
+
+    def test_semver_check_on_inserted_optional_args(self):
+        old_dir = os.path.join(TEST_DIR, 'optional_args/inserted/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'optional_args/inserted/0.2.0')
+
+        res = check(old_dir, new_dir)
+        expected = ['main.Foo: bad arg name; expected "y", got "z"']
         self.assertEqual(expected, res)
+
+    def test_semver_check_on_modified_optional_args(self):
+        old_dir = os.path.join(TEST_DIR, 'optional_args/modified/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'optional_args/modified/0.2.0')
+
+        res = check(old_dir, new_dir)
+        expected = [('main.Foo: default value was not preserved; '
+                     'expecting "y=None", got "y=True"'),
+                    ('main.bar: default value was not preserved; '
+                     'expecting "c=1", got "c=2"'),
+                    ('main.bar: default value was not preserved; '
+                     'expecting "d=2", got "d=1"'),
+                    'main.baz: bad arg name; expected "name", got "first_name"']
+        for errmsg in res:
+            self.assertTrue(errmsg in expected)
+
+    def test_semver_check_on_converted_optional_args(self):
+        old_dir = os.path.join(TEST_DIR, 'optional_args/converted/0.1.0')
+        new_dir = os.path.join(TEST_DIR, 'optional_args/converted/0.2.0')
+
+        res = check(old_dir, new_dir)
+        self.assertEqual([], res)
